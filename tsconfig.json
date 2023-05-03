@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "outDir": "bin",
+        "sourceMap": false,
+        "target": "ESNext",
+        "declaration": false,
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "resolveJsonModule": true
+    },
+    "include": [
+        "Source/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
