@@ -10,6 +10,5 @@ export enum OpCodes {
     REQUEST_GUILD_MEMBERS = 8,
     INVALID_SESSION = 9,
     HELLO = 10,
-    HEARTBEAT_ACK = 11,
-    DM_UPDATE = 13
+    HEARTBEAT_ACK = 11
 }

@@ -14,6 +14,8 @@ Application.use(express.json());
 
 const Files = fs.readdirSync("./bin/Routes");
 
+import("../Handlers/Gateway.js");
+
 (async () => {
     for (let I = 0; I < Files.length; I++) {
         const V = Files[I];
