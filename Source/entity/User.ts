@@ -1,13 +1,50 @@
 /* eslint-disable */
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryColumn()
+  id: string;
 
-    @Column({
-        length: 32,
-    })
-    username: string
-} // TODO: Add more properties from https://discord.com/developers/docs/resources/user
+  @Column()
+  username: string;
+
+  @Column()
+  discriminator: string;
+
+  @Column({ nullable: true })
+  avatar: string;
+
+  @Column({ nullable: true })
+  bot: boolean;
+
+  @Column({ nullable: true })
+  system: boolean;
+
+  @Column({ nullable: true })
+  mfa_enabled: boolean;
+
+  @Column({ nullable: true })
+  banner: string;
+
+  @Column({ nullable: true })
+  accent_color: number;
+
+  @Column({ nullable: true })
+  locale: string;
+
+  @Column({ nullable: true })
+  verified: boolean;
+
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  flags: number;
+
+  @Column({ nullable: true })
+  premium_type: number;
+
+  @Column({ nullable: true })
+  public_flags: number;
+}
