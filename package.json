@@ -40,6 +40,8 @@
   "dependencies": {
     "@types/uuid": "^9.0.1",
     "@types/ws": "^8.5.4",
+    "bcrypt": "^5.1.0",
+    "class-transformer": "^0.5.1",
     "colors": "^1.4.0",
     "dotenv": "^16.0.3",
     "erlpack": "^0.1.4",

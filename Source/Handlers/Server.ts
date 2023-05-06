@@ -3,6 +3,7 @@ import * as env from "dotenv";
 
 import * as fs from "fs";
 import { Msg } from "../Modules/Logger";
+import { GenerateSnowflake, GenerateToken } from "../Modules/SnowflakeUtils";
 
 env.config();
 
@@ -14,7 +15,15 @@ Application.use(express.json());
 
 const Files = fs.readdirSync("./bin/Routes");
 
-import("../Handlers/Gateway.js");
+const Snowflake = GenerateSnowflake({
+    Timestamp: Date.now(),
+    WorkerID: 1,
+    ProcessID: 0,
+    Sequence: 0,
+});
+
+console.log(Snowflake);
+console.log(GenerateToken(Snowflake, Date.now(), "test"));
 
 (async () => {
     for (let I = 0; I < Files.length; I++) {

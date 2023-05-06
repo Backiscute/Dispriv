@@ -28,13 +28,21 @@ const express = __importStar(require("express"));
 const env = __importStar(require("dotenv"));
 const fs = __importStar(require("fs"));
 const Logger_1 = require("../Modules/Logger");
+const SnowflakeUtils_1 = require("../Modules/SnowflakeUtils");
 env.config();
 exports.Application = express.default();
 exports.Application.disable("etag");
 exports.Application.disable("x-powered-by");
 exports.Application.use(express.json());
 const Files = fs.readdirSync("./bin/Routes");
-import("../Handlers/Gateway.js");
+const Snowflake = (0, SnowflakeUtils_1.GenerateSnowflake)({
+    Timestamp: Date.now(),
+    WorkerID: 1,
+    ProcessID: 0,
+    Sequence: 0,
+});
+console.log(Snowflake);
+console.log((0, SnowflakeUtils_1.GenerateToken)(Snowflake, Date.now(), "test"));
 (async () => {
     for (let I = 0; I < Files.length; I++) {
         const V = Files[I];
