@@ -3,7 +3,7 @@ import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
-import { SendOp } from "../Modules/GatewayUtils";
+import { SendOp, SendRawJSON } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
 
 const Socket = new WebSocketServer({ port: parseInt(process.env.WSPORT) || 6968 });
@@ -34,9 +34,10 @@ Socket.on("connection", (Client) => {
             GatewayClient.Account = await GetUserByToken(Token);
 
             Msg(`Client ${GatewayClient.ID.red} identified as ${GatewayClient.Account.username} successfully`, "Gateway");
+            
 
             SendOp(Client, OpCodes.DISPATCH, {
-                _trace: ["[\"Dispriv-Gateway\",{\"micros\":0.0}]"],
+                "_trace":["[\"gateway-prd-us-east1-b-prs3\",{\"micros\":189890,\"calls\":[\"id_created\",{\"micros\":735,\"calls\":[]},\"session_lookup_time\",{\"micros\":480,\"calls\":[]},\"session_lookup_finished\",{\"micros\":14,\"calls\":[]},\"discord-sessions-prd-2-73\",{\"micros\":187060,\"calls\":[\"start_session\",{\"micros\":120393,\"calls\":[\"discord-api-785656c5b6-hnsw9\",{\"micros\":112351,\"calls\":[\"get_user\",{\"micros\":23943},\"get_guilds\",{\"micros\":16119},\"user_settings_proto\",{\"micros\":129},\"relationships\",{\"micros\":19935},\"friend_suggestion\",{\"micros\":59},\"connections\",{\"micros\":27},\"serialized_read_states\",{\"micros\":8},\"pending_payments\",{\"micros\":2},\"send_scheduled_deletion_message\",{\"micros\":1},\"sanitize_premium_perks\",{\"micros\":1},\"guild_join_requests\",{\"micros\":1},\"user_guild_settings\",{\"micros\":2},\"serialized_private_channels\",{\"micros\":5724},\"user_segments\",{\"micros\":5},\"experiments\",{\"micros\":12410},\"affine_user_ids\",{\"micros\":10646},\"required_action\",{\"micros\":4},\"authorized_ip_coro\",{\"micros\":1}]}]},\"starting_guild_connect\",{\"micros\":33,\"calls\":[]},\"presence_started\",{\"micros\":279,\"calls\":[]},\"guilds_started\",{\"micros\":114,\"calls\":[]},\"guilds_connect\",{\"micros\":65877,\"calls\":[]},\"presence_connect\",{\"micros\":1,\"calls\":[]},\"connect_finished\",{\"micros\":65894,\"calls\":[]},\"build_ready\",{\"micros\":312,\"calls\":[]},\"clean_ready\",{\"micros\":1,\"calls\":[]},\"optimize_ready\",{\"micros\":27,\"calls\":[]},\"split_ready\",{\"micros\":4,\"calls\":[]}]}]}]"],
                 analytics_token: Token,
                 api_code_version: 1,
                 connected_accounts: [], // TODO
@@ -63,6 +64,8 @@ Socket.on("connection", (Client) => {
                 users: [], // EVERY user in EVERY guild (for searching, mentions, etc)
                 v: 9 // api version
             }, 1, "READY");
+
+            SendRawJSON(Client, {"d":[{"activities":[],"client_info":{"client":"web","os":"windows","version":0},"session_id":GatewayClient.ID,"status":"online"},{"activities":[],"client_info":{"client":"desktop","os":"windows","version":0},"session_id":GatewayClient.ID,"status":"online"}],"op":0,"s":3,"t":"SESSIONS_REPLACE"});
 
             return SendOp(Client, OpCodes.DISPATCH, {
                 disclose: ["pomelo"], // what
