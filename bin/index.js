@@ -4,13 +4,13 @@ exports.DisprivDataSource = void 0;
 const typeorm_1 = require("typeorm");
 require("./Handlers/Server");
 require("./Handlers/Gateway");
-const User_1 = require("./entity/User");
+require("./Handlers/RTCSocket");
 exports.DisprivDataSource = new typeorm_1.DataSource({
     type: "sqlite",
     database: "Dispriv.db",
     synchronize: true,
     logging: false,
-    entities: [User_1.User],
+    entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
     migrations: []
 }).initialize();
