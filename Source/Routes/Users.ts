@@ -1,10 +1,15 @@
 import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
 import { User } from "../Entities/User";
-import { FriendType, FriendUser } from "../Entities/FriendUser";
+import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
 
 const App = Router();
+
+App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
+    const User = await GetUserByRequest(req);
+    res.json(User.AvailableSuperreactions);
+});
 
 App.get("/@me", VerifyAuth, async (req, res) => {
     const User = await GetUserByRequest(req);
@@ -18,8 +23,8 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
     const FoundUser = await User.findOneBy({ ID: UserID });
     if (!FoundUser) return res.status(404).json({ message: "Unknown User", code: 10013 });
 
-    const IncludeMutualGuilds = req.query.with_mutual_guilds ?? false;
-    const IncludeMutualFriendsCount = req.query.with_mutual_friends_count ?? false;
+    const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
+    const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;
 
     res.json({
         badges: [], // TODO
@@ -58,6 +63,12 @@ App.get("/@me/harvest", async (req, res) => {
     });
 });
 
+App.get("/@me/relationships", VerifyAuth, async (req, res) => {
+    const UserData = await GetUserByRequest(req, { Relations: true });
+    console.log(UserData.Relations);
+    res.json([ ]);
+});
+
 App.post("/@me/relationships", VerifyAuth, async (req, res) => {
     const FriendUsername = req.body.username;
     let FriendDiscriminator = (req.body.discriminator ?? 0).toString();
@@ -70,35 +81,27 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
     if (FriendUsername == MyUser.Username && FriendDiscriminator == MyUser.Discriminator) return res.status(400).json({ code: 80003, message: "Cannot send friend request to self" });
 
-    const QFriendUser = await User.findOneBy({ Username: FriendUsername, Discriminator: FriendDiscriminator });
-    if (!QFriendUser) return res.status(404).json({ message: "Unknown User", code: 10013 });
+    const RelationTarget = await User.findOneBy({ Username: FriendUsername, Discriminator: FriendDiscriminator });
+    if (!RelationTarget) return res.status(404).json({ message: "Unknown User", code: 10013 });
 
-    //if (QFriendUser.Relationships !== undefined && QFriendUser.Relationships.find(R => R.ID == MyUser.ID) || MyUser.Relationships !== undefined && MyUser.Relationships.find(R => R.ID == QFriendUser.ID)) return res.status(400).json({ code: 80003, message: "Friendship already exists, blocked or pending." });
+    //if (RelationTarget.Relationships !== undefined && RelationTarget.Relationships.find(R => R.ID == MyUser.ID) || MyUser.Relationships !== undefined && MyUser.Relationships.find(R => R.ID == QFriendUser.ID)) return res.status(400).json({ code: 80003, message: "Friendship already exists, blocked or pending." });
 
     try 
     {
-        Msg("Creating Friend Request, From: " + MyUser.Username + "#" + MyUser.Discriminator + " To: " + QFriendUser.Username + "#" + QFriendUser.Discriminator);
-        const NewFriendUser = FriendUser.create({ // save to target user
-            ID: MyUser.ID,
-            Type: FriendType.INCOMING,
-            nickname: null
+        Msg("Creating relation from " + MyUser.Username + "#" + MyUser.Discriminator + " to " + RelationTarget.Username + "#" + RelationTarget.Discriminator);
+        
+        const CreatedRelation = await Relation.create({
+            ID: GenerateSnowflake(),
+            From: MyUser,
+            Regarding: RelationTarget,
+            Type: RelationType.NOT_YET_ACCEPTED
         });
-    
-        const NewFriendUser1 = FriendUser.create({ // save to local user
-            ID: QFriendUser.ID,
-            Type: FriendType.OUTGOING,
-            nickname: null
-        });
-    
-        await NewFriendUser.save();
-        await NewFriendUser1.save();
+        await CreatedRelation.save();
     
         //QFriendUser.Relationships.unshift(NewFriendUser);
         //MyUser.Relationships.unshift(NewFriendUser1);
     
-        await QFriendUser.save();
-        await MyUser.save();
-
+        await RelationTarget.save();
         return res.sendStatus(204);
     }
     catch (err)
@@ -109,6 +112,6 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 });
 
 module.exports = {
-    DefaultAPI: "/api/*/users",
+    DefaultAPI: "/api/v9/users",
     App
 };

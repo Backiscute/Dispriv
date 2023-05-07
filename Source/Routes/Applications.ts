@@ -9,6 +9,6 @@ App.get("/", VerifyAuth, async (req, res) => {
 });
 
 module.exports = {
-    DefaultAPI: "/api/*/applications",
+    DefaultAPI: "/api/v9/applications",
     App
 };

@@ -85,7 +85,7 @@ export async function GetUserByToken(token: string) : Promise<User> {
     return TUser;
 }
 
-export async function GetUserByRequest(req) : Promise<User> {
+export async function GetUserByRequest(req, relations?: object) : Promise<User> {
     let Token = req.headers.authorization;
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
 
@@ -94,7 +94,8 @@ export async function GetUserByRequest(req) : Promise<User> {
 
     const UserID = GetTokenUserId(Token);
 
-    const TUser = await User.findOneBy({ ID: UserID });
+    console.log({ where: { ID: UserID }, relations: relations });
+    const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
     return TUser;
 }
 

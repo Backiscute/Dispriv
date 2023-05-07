@@ -1,29 +1,46 @@
-import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm";
+import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne, OneToMany } from "typeorm";
+import { User } from "./User";
 
-export const enum FriendType {
+export const enum RelationType {
     FRIEND = 1,
     BLOCKED = 2,
-    INCOMING = 3,
-    OUTGOING = 4
+    NOT_YET_ACCEPTED = 5,
+
+    INTERNAL_INCOMING = 3,
+    INTERNAL_OUTGOING = 4
 }
 
 @Entity()
-export class FriendUser extends BaseEntity {
+export class Relation extends BaseEntity {
     @PrimaryColumn()
     ID: string;
 
-    @Column({ default: FriendType.FRIEND })
-    Type: FriendType;
+    @ManyToOne(() => User, RelationOwner => RelationOwner.Relations, { eager: true })
+    From: User;
+
+    @ManyToOne(() => User, RelationRegarder => RelationRegarder.Relations, { eager: true })
+    Regarding: User;
+
+    @Column({ default: RelationType.FRIEND })
+    Type: RelationType;
 
     @Column({ nullable: true })
-    nickname?: string;
+    Nickname?: string;
 
-    Package() {
+    Package(IncludeUserData: boolean, Context: User) {
+        let TypeDecided = RelationType.INTERNAL_INCOMING;
+        if (this.Type === RelationType.NOT_YET_ACCEPTED)
+            if (Context.ID === this.From.ID)
+                TypeDecided = RelationType.INTERNAL_OUTGOING;
+            else
+                TypeDecided = RelationType.INTERNAL_INCOMING;
+
         return {
             id: this.ID,
-            nickname: this.nickname,
-            type: this.Type,
-            user_id: this.ID
+            nickname: this.Nickname,
+            type: TypeDecided,
+            user: IncludeUserData ? this.Regarding.PackagePublic() : undefined,
+            user_id: !IncludeUserData ? this.Regarding.ID : undefined
         };
     }
 }

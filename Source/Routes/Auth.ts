@@ -60,6 +60,6 @@ App.post("/login", async (req, res) => {
 });
 
 module.exports = {
-    DefaultAPI: "/api/*/auth",
+    DefaultAPI: "/api/v9/auth",
     App
 };

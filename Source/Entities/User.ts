@@ -1,8 +1,8 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
-import { FriendUser } from './FriendUser';
+import { Relation } from './FriendUser';
 
 @Entity()
 export class User extends BaseEntity {
@@ -39,11 +39,17 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   BannerColor?: string;
 
+  @Column({ default: 3 })
+  AvailableSuperreactions: number;
+
   @Column({ default: UserFlags.VERIFIED_EMAIL })
   Flags: UserFlags;
 
   @ManyToOne(() => Message, M => M.Author)
   MessagesByUser: Message[];
+
+  @ManyToOne(() => Relation, Rel => Rel.From || Rel.Regarding)
+  Relations: Relation[];
 
   Package() {
     return {
@@ -91,5 +97,4 @@ export class User extends BaseEntity {
       username: this.Username
     }
   }
-
 }
