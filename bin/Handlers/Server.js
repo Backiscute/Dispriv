@@ -54,3 +54,6 @@ console.log((0, SnowflakeUtils_1.GenerateToken)(Snowflake, Date.now(), "test"));
     }
     exports.Application.listen(process.env.PORT, () => (0, Logger_1.Msg)(`Application now listening on port ${process.env.PORT.green}`));
 })();
+exports.Application.use(function (req, res) {
+    res.status(404).json({ "message": "404: Not Found", "code": 0 });
+});
