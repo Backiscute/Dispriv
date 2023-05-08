@@ -4,6 +4,7 @@ import { User } from "../Entities/User";
 import bcrypt from "bcrypt";
 import { GenerateSnowflake, GenerateToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { Msg } from "../Modules/Logger";
+import { Relation } from "../Entities/FriendUser";
 
 
 const App = Router();
@@ -32,7 +33,8 @@ App.post("/register", async (req, res) => { // so what we do ok look at dis thin
         Bio: "Hey there! I am a new user on Dispriv!",
         Password: HashedPassword,
         DateOfBirth: new Date(DOB),
-        Discriminator: "0000" //TODO
+        Discriminator: "0000" ,//TODO,
+        Relations: []
     });
 
     await NewUser.save();

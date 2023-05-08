@@ -10,7 +10,7 @@ const Socket = new WebSocketServer({
   port: parseInt(process.env.WSPORT) || 6968,
 });
 
-const Connections: GatewayConnection[] = [];
+export const Connections: GatewayConnection[] = [];
 Socket.on("connection", (Client) => {
   const GatewayClient = new GatewayConnection(Client); // create new connection
   Connections.push(GatewayClient);
@@ -59,13 +59,24 @@ Socket.on("connection", (Client) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token);
+        GatewayClient.Account = await GetUserByToken(Token, { Relations: true });
         GatewayClient.UserToken = Token;
+
+        const ConnectionIntents = UnpackedData.d.intents ?? 0;
+        GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
         Msg(
           `Client ${GatewayClient.ID.red} identified as ${GatewayClient.Account.Username} successfully`,
           "Gateway"
         );
+
+        // stuff for ready payload
+        const Relations = [];
+        GatewayClient.Account.Relations.forEach(R => {
+          const PackagedRelation = R.Package(true, GatewayClient.Account);
+          if (PackagedRelation) Relations.unshift(PackagedRelation);
+        });
+        
 
         SendOp(
           GatewayClient,
@@ -89,7 +100,7 @@ Socket.on("connection", (Client) => {
             merged_members: [], // YOUR member object in every guild (for roles and stuff)
             private_channels: [], // group chats and dms
             read_state: {"entries": [], "partial": false, "version": 0}, // not sure what this is (prob unread dms)
-            relationships: [], // friends
+            relationships: Relations, // friends
             resume_gateway_url: process.env.OverrideWS || "ws://127.0.0.1:6968",
             session_id: GatewayClient.ID,
             session_type: "normal",
@@ -99,7 +110,7 @@ Socket.on("connection", (Client) => {
             user_guild_settings: {"entries": [], "partial": false, "version": 0}, // guild settings for the user (notifications, etc)
             user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is
             users: [], // EVERY user in EVERY guild (for searching, mentions, etc)
-            v: 9, // api version (f r)
+            v: 9, // api version (fr)
           },
           1,
           "READY"

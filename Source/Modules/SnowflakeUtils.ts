@@ -75,13 +75,13 @@ export async function VerifyToken(token: string) : Promise<boolean> {
     return Parts[2] === Signature;
 }
 
-export async function GetUserByToken(token: string) : Promise<User> {
+export async function GetUserByToken(token: string, relations?: object) : Promise<User> {
     const ValidToken = await VerifyToken(token);
     if (!ValidToken) return null;
 
     const UserID = GetTokenUserId(token);
 
-    const TUser = await User.findOneBy({ ID: UserID });
+    const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
     return TUser;
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany } from 'typeorm';
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
 import { Relation } from './FriendUser';
@@ -42,13 +42,16 @@ export class User extends BaseEntity {
   @Column({ default: 3 })
   AvailableSuperreactions: number;
 
+  @Column({ default: false })
+  Bot: boolean;
+
   @Column({ default: UserFlags.VERIFIED_EMAIL })
   Flags: UserFlags;
 
   @ManyToOne(() => Message, M => M.Author)
   MessagesByUser: Message[];
 
-  @ManyToOne(() => Relation, Rel => Rel.From || Rel.Regarding)
+  @OneToMany(() => Relation, Rel => Rel.From || Rel.Regarding)
   Relations: Relation[];
 
   Package() {
@@ -74,9 +77,10 @@ export class User extends BaseEntity {
       premium_type: 2,
       premium_usage_flags: 0,
       public_flags: this.Flags,
-      purchased_flags: 3, // get me this
-      username: this.Username, // can u do this.Username fr
-      verified: true
+      purchased_flags: 3,
+      username: this.Username,
+      verified: true,
+      bot: this.Bot
     }
   }
 

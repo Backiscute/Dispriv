@@ -1,6 +1,4 @@
 import { Router } from "express";
-import { User } from "../Entities/User";
-import { VerifyToken } from "../Modules/SnowflakeUtils";
 
 const App = Router();
 

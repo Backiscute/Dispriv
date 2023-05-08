@@ -9,6 +9,7 @@ export class GatewayConnection {
     Account?: User;
     Deflater: Deflate;
     Inflater: Inflate;
+    Intents: number;
 
     constructor(Socket) {
         this.ID = v4();
@@ -16,6 +17,7 @@ export class GatewayConnection {
 
         this.Deflater = new Deflate();
         this.Inflater = new Inflate();
+        this.Intents = 0;
     }
 
     Dispose() {
