@@ -16,10 +16,10 @@ export class Relation extends BaseEntity {
     @PrimaryColumn()
     ID: string;
 
-    @ManyToOne(() => User, RelationOwner => RelationOwner.Relations, { eager: true })
+    @ManyToOne(() => User, RelationOwner => RelationOwner.RelationsFrom, { eager: true })
     From: User;
 
-    @ManyToOne(() => User, RelationRegarder => RelationRegarder.Relations, { eager: true })
+    @ManyToOne(() => User, RelationRegarder => RelationRegarder.RelationsRegarding, { eager: true })
     Regarding: User;
 
     @Column({ default: RelationType.FRIEND })
@@ -28,13 +28,14 @@ export class Relation extends BaseEntity {
     @Column({ nullable: true })
     Nickname?: string;
 
-    Package(IncludeUserData: boolean, Context: User) {
-        let TypeDecided = RelationType.INTERNAL_INCOMING;
-        if (this.Type === RelationType.NOT_YET_ACCEPTED)
+    PackageGateway(IncludeUserData: boolean, Context: User) {
+        let TypeDecided = this.Type;
+        if (this.Type === RelationType.NOT_YET_ACCEPTED) {
             if (Context.ID === this.From.ID)
                 TypeDecided = RelationType.INTERNAL_OUTGOING;
             else
                 TypeDecided = RelationType.INTERNAL_INCOMING;
+        }
 
         let UserDecided = this.Regarding;
         if (Context.ID === this.Regarding.ID)
@@ -51,7 +52,7 @@ export class Relation extends BaseEntity {
         };
     }
 
-    Package2(IncludeUserData: boolean, Context: User) { // for endpoints, package should be used for gateway
+    PackageAPI(IncludeUserData: boolean, Context: User) { // for endpoints, package should be used for gateway
         let TypeDecided = RelationType.INTERNAL_INCOMING;
         if (this.Type === RelationType.NOT_YET_ACCEPTED)
             if (Context.ID === this.From.ID)

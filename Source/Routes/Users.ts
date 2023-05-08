@@ -5,10 +5,46 @@ import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
 import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
-import { DisprivDataSource } from "..";
-import { Entity } from "typeorm";
+import { Channel, ChannelType } from "../Entities/Channel";
 
 const App = Router();
+
+App.post("/@me/channels", VerifyAuth, async (req, res) => {
+    if (!Array.isArray(req.body.recipients)) return res.status(400).json({ code: 0, message: "400: Bad Request" });
+
+    const DMUsers: User[] = [];
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const MyUserRelations = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding];
+    for (let I = 0; I < req.body.recipients.length; I++) {
+        const UID = req.body.recipients[I];
+
+        const UserData = await User.findOne({ where: { ID: UID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
+        if (!UserData) return res.status(400).json({ code: 0, message: "400: Bad Request" });
+
+        const RelationBetweenUsers = MyUserRelations.find(R => R.From.ID === MyUser.ID || R.Regarding.ID === MyUser.ID);
+        if (!RelationBetweenUsers || RelationBetweenUsers?.Type !== RelationType.FRIEND) return res.status(400).json({ code: 0, message: "Friend relation between users not found" });
+
+        DMUsers.push(UserData);
+    }
+
+    /*const ChannelCheck = await Channel.findOne({
+        where: {
+            DMRecipients: DMUsers.map(U => { return { ID: U.ID }; }) as FindOptionsWhere<User>[]
+        }
+    });
+
+    if (ChannelCheck) return res.json(ChannelCheck.SmallDMPackage());*/
+
+    const CT = DMUsers.length === 1 ? ChannelType.DM : ChannelType.GROUP_DM;
+    const CreatedChannel = await Channel.create({
+        ID: GenerateSnowflake(),
+        Type: CT,
+        Owner: MyUser,
+        DMRecipients: DMUsers
+    }).save();
+
+    res.json(CreatedChannel.SmallDMPackage());
+});
 
 App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
     const User = await GetUserByRequest(req);
@@ -68,14 +104,40 @@ App.get("/@me/harvest", async (req, res) => {
 });
 
 App.get("/@me/relationships", VerifyAuth, async (req, res) => {
-    const UserData = await GetUserByRequest(req, { Relations: true });
-    const Relations = [];
-    console.log(UserData.Relations);
-    UserData.Relations.forEach(R => {
-        const PackagedRelation = R.Package2(true, UserData);
+    const UserData = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    /*UserData.Relations.forEach(R => {
+        const PackagedRelation = R.PackageAPI(true, UserData);
         if (PackagedRelation) Relations.unshift(PackagedRelation);
-    });
-    res.json(Relations);
+    });*/
+    res.json([ ...UserData.RelationsFrom.map((R) => R.PackageAPI(true, UserData)), ...UserData.RelationsRegarding.map((R) => R.PackageAPI(true, UserData)) ]);
+});
+
+App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
+    const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true,  RelationsRegarding: true } });
+    if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
+
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true,  RelationsRegarding: true });
+    const TargetRelation = [...MyUser.RelationsRegarding, ...MyUser.RelationsFrom].find(R => R.From.ID === RelationTarget.ID || R.Regarding.ID === RelationTarget.ID);
+    if (!TargetRelation || (TargetRelation?.Regarding.ID === MyUser.ID && TargetRelation?.Type === RelationType.BLOCKED)) return res.status(400).json({ code: 0, message: "Relation between users not found" });
+
+    Msg(`Relation between ${MyUser.Username}#${MyUser.Discriminator} <-> ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and not BLOCKED.`);
+    await TargetRelation.remove();
+    res.status(204).send();
+});
+
+App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
+    const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true,  RelationsRegarding: true } });
+    if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
+
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true,  RelationsRegarding: true });
+    const TargetRelation = MyUser.RelationsRegarding.find(R => R.From.ID === RelationTarget.ID);
+    if (TargetRelation?.Type !== RelationType.NOT_YET_ACCEPTED) return res.status(400).json({ code: 0, message: "Incoming relation between users not found" });
+
+    Msg(`Relation between ${MyUser.Username}#${MyUser.Discriminator} <- ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and NOT_YET_ACCEPTED.`);
+    TargetRelation.Type = RelationType.FRIEND;
+    await TargetRelation.save();
+
+    res.status(204).send();
 });
 
 App.post("/@me/relationships", VerifyAuth, async (req, res) => {
@@ -86,12 +148,12 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
     if (FriendDiscriminator.length < 4) FriendDiscriminator = FriendDiscriminator.padStart(4, "0");
 
-    const MyUser = await GetUserByRequest(req, { Relations: true });
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true,  RelationsRegarding: true });
 
-    if (FriendUsername === MyUser.Username && FriendDiscriminator === MyUser.Discriminator) return res.status(400).json({ code: 80003, message: "Cannot send friend request to self" });
-
-    const RelationTarget = await User.findOne({ where: {Username: FriendUsername, Discriminator: FriendDiscriminator }, relations: { Relations: true } });
+    const RelationTarget = await User.findOne({ where: {Username: FriendUsername, Discriminator: FriendDiscriminator }, relations: { RelationsFrom: true,  RelationsRegarding: true } });
     if (!RelationTarget) return res.status(404).json({ message: "Unknown User", code: 10013 });
+
+    if (MyUser.ID === RelationTarget.ID) return res.status(400).json({ code: 80003, message: "Cannot send friend request to self" });
 
     //if (RelationTarget.Relationships !== undefined && RelationTarget.Relationships.find(R => R.ID == MyUser.ID) || MyUser.Relationships !== undefined && MyUser.Relationships.find(R => R.ID == QFriendUser.ID)) return res.status(400).json({ code: 80003, message: "Friendship already exists, blocked or pending." });
 
@@ -106,25 +168,17 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             Type: RelationType.NOT_YET_ACCEPTED
         });
 
-
         await CreatedRelation.save();
 
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);
 
-       RelationTarget.Relations.unshift(CreatedRelation);
-       MyUser.Relations.unshift(CreatedRelation);
-
-       await RelationTarget.save();
-       await MyUser.save();
-
-       console.log(RelationTarget.Relations);
-       console.log(MyUser.Relations);
 
         const TargetConnection = FindConnection(RelationTarget.ID);
-        if (TargetConnection !== undefined) SendOp(TargetConnection, OpCodes.DISPATCH, CreatedRelation.Package(true, RelationTarget), null, "RELATIONSHIP_ADD");
+        if (TargetConnection) SendOp(TargetConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+        
         const MyConnection = FindConnection(MyUser.ID);
-        if (MyConnection !== undefined) SendOp(MyConnection, OpCodes.DISPATCH, CreatedRelation.Package(true, MyUser), null, "RELATIONSHIP_ADD");
+        if (MyConnection) SendOp(MyConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
 
         return res.sendStatus(204);
     }

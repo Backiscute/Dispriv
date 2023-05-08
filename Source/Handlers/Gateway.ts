@@ -59,7 +59,7 @@ Socket.on("connection", (Client) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { Relations: true });
+        GatewayClient.Account = await GetUserByToken(Token, { RelationsFrom: true, RelationsRegarding: true });
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;
@@ -69,13 +69,6 @@ Socket.on("connection", (Client) => {
           `Client ${GatewayClient.ID.red} identified as ${GatewayClient.Account.Username} successfully`,
           "Gateway"
         );
-
-        // stuff for ready payload
-        const Relations = [];
-        GatewayClient.Account.Relations.forEach(R => {
-          const PackagedRelation = R.Package(true, GatewayClient.Account);
-          if (PackagedRelation) Relations.unshift(PackagedRelation);
-        });
         
 
         SendOp(
@@ -100,7 +93,7 @@ Socket.on("connection", (Client) => {
             merged_members: [], // YOUR member object in every guild (for roles and stuff)
             private_channels: [], // group chats and dms
             read_state: {"entries": [], "partial": false, "version": 0}, // not sure what this is (prob unread dms)
-            relationships: Relations, // friends
+            relationships: [ ...GatewayClient.Account.RelationsFrom.map((R) => R.PackageGateway(true, GatewayClient.Account)), ...GatewayClient.Account.RelationsRegarding.map((R) => R.PackageGateway(true, GatewayClient.Account)) ], // friends
             resume_gateway_url: process.env.OverrideWS || "ws://127.0.0.1:6968",
             session_id: GatewayClient.ID,
             session_type: "normal",

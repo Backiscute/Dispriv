@@ -33,8 +33,7 @@ App.post("/register", async (req, res) => { // so what we do ok look at dis thin
         Bio: "Hey there! I am a new user on Dispriv!",
         Password: HashedPassword,
         DateOfBirth: new Date(DOB),
-        Discriminator: "0000" ,//TODO,
-        Relations: []
+        Discriminator: "0000"//TODO
     });
 
     await NewUser.save();

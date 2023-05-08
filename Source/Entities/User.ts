@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
 import { Relation } from './FriendUser';
@@ -48,11 +48,17 @@ export class User extends BaseEntity {
   @Column({ default: UserFlags.VERIFIED_EMAIL })
   Flags: UserFlags;
 
-  @ManyToOne(() => Message, M => M.Author)
+  @OneToMany(() => Message, M => M.Author)
+  @JoinTable()
   MessagesByUser: Message[];
 
-  @OneToMany(() => Relation, Rel => Rel.From || Rel.Regarding)
-  Relations: Relation[];
+  @OneToMany(() => Relation, Rel => Rel.From)
+  @JoinTable()
+  RelationsFrom: Relation[];
+
+  @OneToMany(() => Relation, Rel => Rel.Regarding)
+  @JoinTable()
+  RelationsRegarding: Relation[];
 
   Package() {
     return {
