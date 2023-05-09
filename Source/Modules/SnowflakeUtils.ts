@@ -94,6 +94,8 @@ export async function GetUserByRequest(req, relations?: object) : Promise<User> 
 
     const UserID = GetTokenUserId(Token);
 
+    if (relations  === undefined) relations = {}; // to prevent crashes
+
     console.log({ where: { ID: UserID }, relations: relations });
     const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
     return TUser;

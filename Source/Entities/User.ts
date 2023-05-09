@@ -3,6 +3,8 @@ import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyTo
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
 import { Relation } from './FriendUser';
+import { Application } from '../Handlers/Server';
+import { DiscordApplication } from './Application';
 
 @Entity()
 export class User extends BaseEntity {
@@ -60,6 +62,14 @@ export class User extends BaseEntity {
   @JoinTable()
   RelationsRegarding: Relation[];
 
+  @OneToMany(() => DiscordApplication, Rel => Rel.Owner)
+  @JoinTable()
+  Applications: DiscordApplication[];
+  
+  HasFlag(Flag: UserFlags) {
+    return (this.Flags & Flag) === Flag;
+  }
+
   Package() {
     return {
       accent_color: null,
@@ -104,7 +114,8 @@ export class User extends BaseEntity {
       global_name: this.Username,
       id: this.ID,
       public_flags: this.Flags,
-      username: this.Username
+      username: this.Username,
+      bot: this.Bot
     }
   }
 }

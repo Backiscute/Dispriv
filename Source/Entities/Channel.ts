@@ -58,13 +58,13 @@ export class Channel extends BaseEntity {
     @ManyToOne(() => Channel, Category => Category.CategoryChannels)
     OwnerCategory: Channel;
 
-    @OneToMany(() => Channel, C => C.OwnerCategory, { eager: true, nullable: true })
+    @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true })
     CategoryChannels?: Channel[];
 
     @Column({ type: "simple-json", nullable: true })
     DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel, { eager: true })
+    @OneToMany(() => Message, M => M.Channel)
     Messages: Message[];
 
     SmallDMPackage() {
@@ -78,6 +78,6 @@ export class Channel extends BaseEntity {
     }
 
     CheckDMAccess(UserData: User) {
-        return this.DMRecipients ? this.DMRecipients.includes(UserData) : false;
+        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) || this.Owner.ID === UserData.ID : false;
     }
 }
