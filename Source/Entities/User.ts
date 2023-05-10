@@ -6,6 +6,7 @@ import { Relation } from './FriendUser';
 import { Application } from '../Handlers/Server';
 import { DiscordApplication } from './Application';
 import { Channel } from './Channel';
+import { Guild } from './Guild';
 
 @Entity()
 export class User extends BaseEntity {
@@ -73,6 +74,10 @@ export class User extends BaseEntity {
   @OneToMany(() => DiscordApplication, Rel => Rel.Owner)
   @JoinTable()
   Applications: DiscordApplication[];
+
+  @OneToMany(() => Guild, G => G.Owner)
+  @JoinTable()
+  OwnedGuilds: Guild[];
   
   HasFlag(Flag: UserFlags) {
     return (this.Flags & Flag) === Flag;
