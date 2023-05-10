@@ -23,7 +23,7 @@ App.post("/UpdateUser/:Username", async (req, res) => {
 
 App.post("/UpdateApp/:AppID", async (req, res) => {
     const Application = await DiscordApplication.findOneBy({
-        ID: req.params.AppID
+        id: req.params.AppID
     });
     if (!Application) return;
 

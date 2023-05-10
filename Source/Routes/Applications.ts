@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
-import { DiscordApplication } from "../Entities/Application";
+import { DiscordApplication, EmbeddedAppConfig } from "../Entities/Application";
+import { ApplicationFlags } from "../Classes/Flags";
+import { Msg } from "../Modules/Logger";
 
 const App = Router();
 
@@ -17,16 +19,55 @@ App.post("/", VerifyAuth, async (req, res) => {
 
    if (!TeamID) {
         const Application = DiscordApplication.create({
-            Name: AppName,
+            name: AppName,
             Owner: await GetUserByRequest(req),
-            ID: GenerateSnowflake()
+            id: GenerateSnowflake()
         });
         await Application.save();
         res.json(Application.Package());
    }
 });
 
-App.get("/applications/public", async (req, res) => {
+App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: true });
+    const Application = UserData.Applications.find((R) => R.id === AppID);
+    if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
+
+    if (!Application.embedded_activity_config)
+    {
+        const NewAppConfig = EmbeddedAppConfig.create({
+            supported_platforms: ["web", "ios", "android"],
+        });
+
+        Application.embedded_activity_config = NewAppConfig;
+
+        await NewAppConfig.save();
+        await Application.save();
+    }
+
+    const AppPackage = Application.Package();
+    res.json(AppPackage.embedded_activity_config);
+});
+
+App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: true });
+    const Application = UserData.Applications.find((R) => R.id === AppID);
+    if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
+
+    Object.keys(req.body).forEach(K => {
+        Application.embedded_activity_config[K] = req.body[K];
+    });
+
+    await Application.save();
+
+    const AppPackage = Application.Package();
+    res.json(AppPackage.embedded_activity_config);
+});
+
+
+App.get("/public", async (req, res) => {
     const AppIDs = req.query.application_ids;
     if (!AppIDs) return res.status(404).json({"message": "Missing query", "code": 0});
 
@@ -34,17 +75,24 @@ App.get("/applications/public", async (req, res) => {
 
     const ApplicationIds = AppIDs.toString().split(",");
 
-    ApplicationIds.forEach(async (AppID) => {
-        const Application = await DiscordApplication.findOneBy({ ID: AppID });
-        if (Application) Apps.push(Application.PackagePublic());
-    });
+    for (const AppID of ApplicationIds) {
+        console.log({ ID: AppID });
+        const Application = await DiscordApplication.findOneBy({ id: AppID });
+
+        if (!Application) continue;
+
+        const AppPackage = Application.PackagePublic();
+        await Apps.unshift(AppPackage);
+        console.log(Apps);
+        console.log(AppPackage);
+    }
 
     res.json(Apps);
 });
 
 App.get("/:ApplicationID/public", async (req, res) => {
     const AppID = req.params.ApplicationID;
-    const Application = await DiscordApplication.findOneBy({ ID: AppID });
+    const Application = await DiscordApplication.findOneBy({ id: AppID });
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
     res.json(Application.PackagePublic());
@@ -53,17 +101,40 @@ App.get("/:ApplicationID/public", async (req, res) => {
 App.get("/:ApplicationID", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
-    const Application = UserData.Applications.find((R) => R.ID === AppID);
+    const Application = UserData.Applications.find((R) => R.id === AppID);
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
     res.json(Application.Package());
 });
 
-
-
 App.patch("/:ApplicationID", VerifyAuth, async (req, res) => {
-    // do funny here
-});
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: true });
+    const Application = UserData.Applications.find((R) => R.id === AppID);
+    if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
+   
+    const DisallowedEdits = ["flags", "owner", "bot", "team", "embedded_activity_config", "hook", "discovery_eligibility_flags"];
 
+    const FilteredBody = {};
+    for (const Key in req.body) 
+    {
+        if (!DisallowedEdits.includes(Key.toLowerCase())) 
+        {
+            FilteredBody[Key] = req.body[Key];
+        }   
+    }
+
+    console.log(FilteredBody);
+
+    Object.keys(FilteredBody).forEach(K => {
+        Msg("Setting " + K + " to " + FilteredBody[K] + " in " + Application.id);
+        Application[K] = FilteredBody[K];
+    });
+
+    await Application.save();
+
+    const AppPackage = Application.Package();
+    res.json(AppPackage);
+});
 
 module.exports = {
     DefaultAPI: "/api/v9/applications",
