@@ -1,10 +1,11 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne } from 'typeorm';
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
 import { Relation } from './FriendUser';
 import { Application } from '../Handlers/Server';
 import { DiscordApplication } from './Application';
+import { Channel } from './Channel';
 
 @Entity()
 export class User extends BaseEntity {
@@ -47,8 +48,15 @@ export class User extends BaseEntity {
   @Column({ default: false })
   Bot: boolean;
 
+  @OneToOne(() => DiscordApplication, DA => DA.Bot, { nullable: true })
+  BotApplication?: DiscordApplication;
+
   @Column({ default: UserFlags.VERIFIED_EMAIL })
   Flags: UserFlags;
+
+  @ManyToMany(() => Channel, C => C.DMRecipients)
+  @JoinTable()
+  AvailableDMs: Channel[];
 
   @OneToMany(() => Message, M => M.Author)
   @JoinTable()
@@ -117,5 +125,19 @@ export class User extends BaseEntity {
       username: this.Username,
       bot: this.Bot
     }
+  }
+
+  PackageSmall() {
+    return {
+      avatar: null,
+      avatar_decoration: null,
+      bot: this.Bot,
+      discriminator: this.Discriminator,
+      display_name: this.Username,
+      global_name: this.Username,
+      id: this.ID,
+      public_flags: this.Flags,
+      username: this.Username
+    };
   }
 }

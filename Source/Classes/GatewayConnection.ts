@@ -6,14 +6,19 @@ export class GatewayConnection {
     ID: string; // Autogenerate
     UserToken: string;
     SocketClient: WebSocket;
+    UseZlib: boolean;
+    Encoding: "etf" | "json";
     Account?: User;
     Deflater: Deflate;
     Inflater: Inflate;
     Intents: number;
 
-    constructor(Socket) {
+    constructor(Socket, Overrides?: { zlib: boolean, encoding: "etf" | "json" }) {
         this.ID = v4();
         this.SocketClient = Socket;
+
+        this.UseZlib = Overrides ? Overrides.zlib : true;
+        this.Encoding = Overrides ? Overrides.encoding : "etf";
 
         this.Deflater = new Deflate();
         this.Inflater = new Inflate();

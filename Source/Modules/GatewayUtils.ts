@@ -21,23 +21,24 @@ export function ConnectionHasIntent(SocketClient: GatewayConnection, Intent: Gat
 }
 
 export function HasIntent(intentNumber: number, intent: GatewayIntents): boolean {
-    return (intentNumber & intent) === intent;
+    return intentNumber === 0 || (intentNumber & intent) === intent;
 }
 
 export function SendOp(SocketClient: GatewayConnection, Opcode, Data = null, s = null, t = null) {
-    const PackedData = pack({
+    const D = {
         t: t,
         s: s,
         op: Opcode,
         d: Data
-    });
-    const Buffer = SocketClient.Deflater.process(PackedData);
+    };
+    const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
+    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
     Msg(`Sending packet to client ${SocketClient.ID.red}: ${JSON.stringify(Data)}`, "Gateway");
-    SocketClient.SocketClient.send(Buffer);
+    SocketClient.SocketClient.send(Bf);
 }
 
 export function SendRawJSON(SocketClient: GatewayConnection, Data) {
-    const PackedData = pack(Data);
-    const Buffer = SocketClient.Deflater.process(PackedData);
-    SocketClient.SocketClient.send(Buffer);
+    const PackedData = SocketClient.Encoding === "etf" ? pack(Data) : Buffer.from(JSON.stringify(Data));
+    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
+    SocketClient.SocketClient.send(Bf);
 }

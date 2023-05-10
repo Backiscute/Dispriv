@@ -1,6 +1,8 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, OneToMany, JoinTable } from 'typeorm';
 import { User } from './User';
+import { DiscordApplication } from './Application';
+
 @Entity()
 export class Team extends BaseEntity {
   @PrimaryColumn()
@@ -8,6 +10,10 @@ export class Team extends BaseEntity {
 
   @Column({ length: 32 })
   Name: string;
+
+  @OneToMany(() => DiscordApplication, Rel => Rel.Team)
+  @JoinTable()
+  Applications: DiscordApplication[];
 
   @Column({ type: "simple-json", nullable: true })
   Owner?: User;

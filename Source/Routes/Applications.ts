@@ -19,9 +19,9 @@ App.post("/", VerifyAuth, async (req, res) => {
 
    if (!TeamID) {
         const Application = DiscordApplication.create({
-            name: AppName,
+            DisplayName: AppName,
             Owner: await GetUserByRequest(req),
-            id: GenerateSnowflake()
+            ID: GenerateSnowflake()
         });
         await Application.save();
         res.json(Application.Package());
@@ -31,16 +31,16 @@ App.post("/", VerifyAuth, async (req, res) => {
 App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
-    const Application = UserData.Applications.find((R) => R.id === AppID);
+    const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
-    if (!Application.embedded_activity_config)
+    if (!Application.EmbeddedConfig)
     {
         const NewAppConfig = EmbeddedAppConfig.create({
-            supported_platforms: ["web", "ios", "android"],
+            SupportsPlatforms: ["web", "ios", "android"],
         });
 
-        Application.embedded_activity_config = NewAppConfig;
+        Application.EmbeddedConfig = NewAppConfig;
 
         await NewAppConfig.save();
         await Application.save();
@@ -53,11 +53,11 @@ App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res)
 App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
-    const Application = UserData.Applications.find((R) => R.id === AppID);
+    const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
     Object.keys(req.body).forEach(K => {
-        Application.embedded_activity_config[K] = req.body[K];
+        Application.EmbeddedConfig[K] = req.body[K];
     });
 
     await Application.save();
@@ -77,7 +77,7 @@ App.get("/public", async (req, res) => {
 
     for (const AppID of ApplicationIds) {
         console.log({ ID: AppID });
-        const Application = await DiscordApplication.findOneBy({ id: AppID });
+        const Application = await DiscordApplication.findOneBy({ ID: AppID });
 
         if (!Application) continue;
 
@@ -92,7 +92,7 @@ App.get("/public", async (req, res) => {
 
 App.get("/:ApplicationID/public", async (req, res) => {
     const AppID = req.params.ApplicationID;
-    const Application = await DiscordApplication.findOneBy({ id: AppID });
+    const Application = await DiscordApplication.findOneBy({ ID: AppID });
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
     res.json(Application.PackagePublic());
@@ -101,7 +101,7 @@ App.get("/:ApplicationID/public", async (req, res) => {
 App.get("/:ApplicationID", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
-    const Application = UserData.Applications.find((R) => R.id === AppID);
+    const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
     res.json(Application.Package());
 });
@@ -109,24 +109,20 @@ App.get("/:ApplicationID", VerifyAuth, async (req, res) => {
 App.patch("/:ApplicationID", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
-    const Application = UserData.Applications.find((R) => R.id === AppID);
+    const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
    
     const DisallowedEdits = ["flags", "owner", "bot", "team", "embedded_activity_config", "hook", "discovery_eligibility_flags"];
 
     const FilteredBody = {};
-    for (const Key in req.body) 
-    {
-        if (!DisallowedEdits.includes(Key.toLowerCase())) 
-        {
+    for (const Key in req.body)
+        if (!DisallowedEdits.includes(Key.toLowerCase()))
             FilteredBody[Key] = req.body[Key];
-        }   
-    }
 
     console.log(FilteredBody);
 
     Object.keys(FilteredBody).forEach(K => {
-        Msg("Setting " + K + " to " + FilteredBody[K] + " in " + Application.id);
+        Msg("Setting " + K + " to " + FilteredBody[K] + " in " + Application.ID);
         Application[K] = FilteredBody[K];
     });
 

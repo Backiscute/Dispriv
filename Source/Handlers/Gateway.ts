@@ -3,16 +3,27 @@ import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
-import { CloseConnection, SendOp, SendRawJSON } from "../Modules/GatewayUtils";
+import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
+import { parse, URLSearchParams } from "url";
 
 const Socket = new WebSocketServer({
   port: parseInt(process.env.WSPORT) || 6968,
 });
 
 export const Connections: GatewayConnection[] = [];
-Socket.on("connection", (Client) => {
-  const GatewayClient = new GatewayConnection(Client); // create new connection
+Socket.on("connection", (Client, req) => {
+  const QueryParams = new URLSearchParams(parse(req.url).query);
+  console.log(QueryParams);
+  console.log({
+    zlib: QueryParams.get("compress") === "zlib-stream",
+    encoding: (QueryParams.get("encoding") === "etf" || QueryParams.get("encoding") === "json") ? QueryParams.get("encoding") : "etf"
+  });
+  const GatewayClient = new GatewayConnection(Client, {
+    zlib: QueryParams.get("compress") === "zlib-stream",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    encoding: (QueryParams.get("encoding") === "etf" || QueryParams.get("encoding") === "json") ? QueryParams.get("encoding") as any : "etf"
+  }); // create new connection
   Connections.push(GatewayClient);
 
   Client.on("close", () => {
@@ -29,7 +40,7 @@ Socket.on("connection", (Client) => {
   });
 
   Client.on("message", async (Data: Buffer) => {
-    const UnpackedData = unpack(Data);
+    const UnpackedData = GatewayClient.Encoding === "etf" ? unpack(Data) : JSON.parse(Data.toString());
     Msg(
       `Received packet from client ${GatewayClient.ID.red}: ${JSON.stringify(
         UnpackedData
@@ -59,7 +70,7 @@ Socket.on("connection", (Client) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { RelationsFrom: true, RelationsRegarding: true });
+        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true });
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;
@@ -91,7 +102,7 @@ Socket.on("connection", (Client) => {
             guild_join_requests: [], // idk what this is but its needed for guilds i think
             guilds: [], // TODO (important for guilds)
             merged_members: [], // YOUR member object in every guild (for roles and stuff)
-            private_channels: [], // group chats and dms
+            private_channels: GatewayClient.Account.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account)), // group chats and dms
             read_state: {"entries": [], "partial": false, "version": 0}, // not sure what this is (prob unread dms)
             relationships: [ ...GatewayClient.Account.RelationsFrom.map((R) => R.PackageGateway(true, GatewayClient.Account)), ...GatewayClient.Account.RelationsRegarding.map((R) => R.PackageGateway(true, GatewayClient.Account)) ], // friends
             resume_gateway_url: process.env.OverrideWS || "ws://127.0.0.1:6968",
@@ -102,7 +113,9 @@ Socket.on("connection", (Client) => {
             user: GatewayClient.Account.Package(),
             user_guild_settings: {"entries": [], "partial": false, "version": 0}, // guild settings for the user (notifications, etc)
             user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is
-            users: [], // EVERY user in EVERY guild (for searching, mentions, etc)
+            users: [
+              ...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat()
+            ], // EVERY user in EVERY guild (for searching, mentions, etc)
             v: 9, // api version (fr)
           },
           1,

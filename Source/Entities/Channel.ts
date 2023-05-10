@@ -1,6 +1,7 @@
-import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne } from "typeorm";
+import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
+import { Msg } from "../Modules/Logger";
 
 export const enum ChannelType {
     GUILD_TEXT = 0,
@@ -55,29 +56,53 @@ export class Channel extends BaseEntity {
     @Column({ type: "simple-json", nullable: true })
     Owner?: User;
 
-    @ManyToOne(() => Channel, Category => Category.CategoryChannels)
-    OwnerCategory: Channel;
+    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true })
+    OwnerCategory?: Channel;
 
     @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true })
     CategoryChannels?: Channel[];
 
-    @Column({ type: "simple-json", nullable: true })
+    @ManyToMany(() => User, U => U.AvailableDMs, { nullable: true })
     DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel)
+    @OneToMany(() => Message, M => M.Channel, { orphanedRowAction: "delete" })
     Messages: Message[];
 
-    SmallDMPackage() {
+    SmallDMPackage(UserContext: User) {
         return {
             id: this.ID,
             type: this.Type,
+            is_spam: false,
+            name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
+            owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
             last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
-            recipients: this.DMRecipients ? this.DMRecipients.map(R => R.PackagePublic()) : undefined,
+            recipients: this.DMRecipients ? this.DMRecipients.map(R => R.PackagePublic()).filter(R => R.id !== UserContext.ID) : undefined,
             flags: 0
         };
     }
 
+    GatewayDMPackage(UserContext: User) {
+        return {
+            id: this.ID,
+            type: this.Type,
+            is_spam: false,
+            name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
+            owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
+            last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
+            recipient_ids: this.DMRecipients ? this.DMRecipients.map(R => R.ID).filter(R => R !== UserContext.ID) : undefined,
+            flags: 0
+        };
+    }
+
+    IsDM() {
+        return this.Type === ChannelType.DM || this.Type === ChannelType.GROUP_DM;
+    }
+
+    AllRecipientsExceptYou(UserToAvoid: User) {
+        return this.DMRecipients?.filter(R => R.ID !== UserToAvoid.ID);
+    }
+
     CheckDMAccess(UserData: User) {
-        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) || this.Owner.ID === UserData.ID : false;
+        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) !== undefined : false || this.Owner.ID === UserData.ID;
     }
 }

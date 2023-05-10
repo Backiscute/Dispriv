@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { ApplicationFlags } from "../Classes/Flags";
 import { User } from './User';
 import { Team } from './ApplicationTeam';
@@ -10,194 +10,194 @@ export class EmbeddedAppConfig extends BaseEntity {
   ID: string;
 
   @Column({ default: -1 })
-  max_participants: number;
+  MaxParticipants: number;
 
   @Column({ default: false })
-  requires_age_gate: boolean;
+  IsEighteenPlus: boolean;
 
   @Column({ nullable: true })
-  premium_tier_requirement?: number;
+  NeedsNitro?: number;
 
   @Column({ nullable: true })
-  free_period_starts_at?: string;
+  FreePeriodStarts?: string; // date?
 
   @Column({ nullable: true })
-  free_period_ends_at?: string;
+  FreePeriodEnds?: string; // date?
 
   @Column({ nullable: true })
-  activity_preview_video_asset_id?: string;
+  ActivityPreviewVideoID?: string;
 
   @Column('simple-array', { nullable: true })
-  supported_platforms: string[];
+  SupportsPlatforms: string[];
 
   @Column({ default: 0 })
-  default_orientation_lock_state: number;
+  DefaultOrientation: number;
 
   @Column({ default: 0 })
-  tablet_default_orientation_lock_state: number;
+  TabletDefaultOrientation: number;
 
   @Column({ default: 0 })
-  shelf_rank: number;
+  ShelfPriority: number;
 }
 
 @Entity()
 export class DiscordApplication extends BaseEntity {
   @PrimaryColumn()
-  id: string;
+  ID: string;
 
   @Column({ length: 32 })
-  name: string;
+  DisplayName: string;
   
   @Column({ nullable: true })
-  icon?: string;
+  IconHash?: string;
 
   @Column({ length: 200, nullable: true })
-  description: string;
+  Description: string;
 
   @Column({ length: 200, nullable: true })
-  summary: string;
+  Summary: string;
 
   @Column({ default: true })
-  hook: boolean;
+  IsHook: boolean;
 
   @Column({ default: ApplicationFlags.NONE })
-  flags: ApplicationFlags;
+  Flags: ApplicationFlags;
 
   @Column({ type: "simple-array", nullable: true })
-  publishers?: object[];
+  Publishers?: object[];
 
   @Column({ type: "simple-array", nullable: true })
-  developers?: object[];
+  Developers?: object[];
 
   @Column({ type: "simple-array", nullable: true })
-  redirect_uris?: string[];
+  RedirectURIs?: string[];
 
   @Column({ default: 0 })
-  rpc_application_state: number;
+  RPCAppState: number;
 
   @Column({ default: 1 })
-  store_application_state: number;
+  StoreAppState: number;
 
   @Column({ default: 1 })
-  creator_monetization_state: number;
+  CreatorMonetizationState: number;
 
   @Column({ default: 1 })
-  verification_state: number;
+  VerificationState: number;
   
   @Column({ nullable: true })
-  interactions_endpoint_url: string;
+  InteractionsEndpoint: string;
 
   @Column({ type: "simple-array", nullable: true })
-  interactions_event_types?: string[];
+  InteractionEventTypes?: string[];
 
   @Column({ default: 1 })
-  interactions_version: number;
+  InteractionsVersion: number;
 
   @Column({ default: true })
-  integration_public: boolean;
+  IsIntegrationPublic: boolean;
 
   @Column({ default: false })
-  integration_require_code_grant: boolean;
+  IntegrationRequiresCodeGrant: boolean;
 
   @Column({ default: 1 })
-  discoverability_state: number;
+  DiscoverabilityState: number;
 
   @Column({ default: 2240 })
-  discovery_eligibility_flags: number;
+  DiscoveryFlags: number;
 
   @Column({ nullable: true })
-  role_connections_verification_url?: string;
+  RoleConnectionsURL?: string;
 
   @Column({ type: "simple-array", nullable: true })
-  tags?: string[];
+  UserTags?: string[];
 
   @Column({ nullable: true })
-  privacy_policy_url?: string;
+  PrivacyPolicy?: string;
 
   @Column({ nullable: true })
-  terms_of_service_url?: string;
+  TermsOfService?: string;
 
   @ManyToOne(() => User, U => U.Applications, { eager: true, nullable: true })
   Owner?: User;
 
-  @Column({ type: "simple-json", nullable: true })
+  @ManyToOne(() => Team, T => T.Applications, { eager: true, nullable: true })
   Team?: Team;
 
-  @Column({ type: "simple-json", nullable: true })
+  @OneToOne(() => User, U => U.BotApplication, { nullable: true })
   Bot?: User;
 
   @Column({ default: -1, nullable: true })
-  max_participants: number;
+  EmbeddedParticipants: number;
 
   @Column({ type: "simple-json", nullable: true })
-  embedded_activity_config?: EmbeddedAppConfig;
+  EmbeddedConfig?: EmbeddedAppConfig;
 
 
   HasFlag(Flag: ApplicationFlags) {
-    return (this.flags & Flag) === Flag;
+    return (this.Flags & Flag) === Flag;
   }
 
   Package() {
     let EmbeddedAppConfig = undefined;
-    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) EmbeddedAppConfig = {embedded_activity_config: this.embedded_activity_config};
+    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) EmbeddedAppConfig = {embedded_activity_config: this.EmbeddedConfig};
 
     return {
-        id: this.id,
-        name: this.name,
-        icon: this.icon,
-        description: this.description,
-        summary: this.summary,
-        hook: this.hook,
+        id: this.ID,
+        name: this.DisplayName,
+        icon: this.IconHash,
+        description: this.Description,
+        summary: this.Summary,
+        hook: this.IsHook,
         verify_key: null,
         owner: this.Team != null ? this.Team.PackageTeamUser() : this.Owner.PackagePublic(),
-        publishers: this.publishers,
-        developers: this.developers,
-        flags: this.flags,
-        redirect_uris: this.redirect_uris,
-        rpc_application_state: this.rpc_application_state,
-        store_application_state: this.store_application_state,
-        creator_monetization_state: this.creator_monetization_state,
-        verification_state: this.verification_state,
-        interactions_endpoint_url: this.interactions_endpoint_url,
-        interactions_event_types: this.interactions_event_types,
-        interactions_version: this.interactions_version,
-        integration_public: this.integration_public,
-        integration_require_code_grant: this.integration_require_code_grant,
-        discoverability_state: this.discoverability_state,
-        discovery_eligibility_flags: this.discovery_eligibility_flags,
-        role_connections_verification_url: this.role_connections_verification_url,
-        privacy_policy_url: this.privacy_policy_url,
-        terms_of_service_url: this.terms_of_service_url,
+        publishers: this.Publishers,
+        developers: this.Developers,
+        flags: this.Flags,
+        redirect_uris: this.RedirectURIs,
+        rpc_application_state: this.RPCAppState,
+        store_application_state: this.StoreAppState,
+        creator_monetization_state: this.CreatorMonetizationState,
+        verification_state: this.VerificationState,
+        interactions_endpoint_url: this.InteractionsEndpoint,
+        interactions_event_types: this.InteractionEventTypes,
+        interactions_version: this.InteractionsVersion,
+        integration_public: this.IsIntegrationPublic,
+        integration_require_code_grant: this.IntegrationRequiresCodeGrant,
+        discoverability_state: this.DiscoverabilityState,
+        discovery_eligibility_flags: this.DiscoveryFlags,
+        role_connections_verification_url: this.RoleConnectionsURL,
+        privacy_policy_url: this.PrivacyPolicy,
+        terms_of_service_url: this.TermsOfService,
         bot: this.Bot?.PackagePublic(),
-        tags: this.tags,
-        max_participants: this.max_participants,
+        tags: this.UserTags,
+        max_participants: this.EmbeddedParticipants,
         ...EmbeddedAppConfig
     }
   }
 
   PackagePublic() {
     let EmbeddedAppConfig = undefined;
-    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT) && this.embedded_activity_config) EmbeddedAppConfig = {embedded_activity_config: this.embedded_activity_config};
+    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT) && this.EmbeddedConfig) EmbeddedAppConfig = {embedded_activity_config: this.EmbeddedConfig};
 
     return {
-        id: this.id,
-        name: this.name,
-        icon: this.icon,
-        description: this.description,
-        summary: this.summary,
+        id: this.ID,
+        name: this.DisplayName,
+        icon: this.IconHash,
+        description: this.Description,
+        summary: this.Summary,
         type: null,
         cover_image: null,
-        hook: this.hook,
-        bot_public: this.integration_public,
-        bot_require_code_grant: this.integration_require_code_grant,
+        hook: this.IsHook,
+        bot_public: this.IsIntegrationPublic,
+        bot_require_code_grant: this.IntegrationRequiresCodeGrant,
         terms_of_service_url: null,
-        privacy_policy_url: this.privacy_policy_url,
+        privacy_policy_url: this.PrivacyPolicy,
         verify_key: null,
-        publishers: this.publishers,
-        developers: this.developers,
-        flags: this.flags,
-        tags: this.tags,
-        max_participants: this.max_participants,
+        publishers: this.Publishers,
+        developers: this.Developers,
+        flags: this.Flags,
+        tags: this.UserTags,
+        max_participants: this.EmbeddedParticipants,
         ...EmbeddedAppConfig
     }
   }

@@ -2,6 +2,7 @@ import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne, OneToMany } from 
 import { User } from "./User";
 import { Channel } from "./Channel";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
+import { MessageFlags } from "../Classes/Flags";
 
 export const enum MessageType {
     DEFAULT = 0,
@@ -50,6 +51,9 @@ export class Message extends BaseEntity {
     @Column({ default: MessageType.DEFAULT })
     Type: MessageType;
 
+    @Column({ default: 0 })
+    Flags: MessageFlags;
+
     @Column()
     Content: string;
 
@@ -59,12 +63,23 @@ export class Message extends BaseEntity {
     @OneToMany(() => Reaction, R => R.ToMessage, { eager: true })
     Reactions: Reaction[];
 
+    @OneToMany(() => Message, M => M.ReplyingTo)
+    Replies: Message[];
+
+    @ManyToOne(() => Message, M => M.Replies, { nullable: true, eager: true })
+    ReplyingTo?: Message;
+
     @ManyToOne(() => Channel, C => C.Messages)
     Channel: Channel;
 
     Package() {
         return {
-            reactions: this.Reactions.map(R => R.Package()),
+            message_reference: this.Type === MessageType.REPLY ? {
+                channel_id: this.ReplyingTo?.Channel?.ID,
+                message_id: this.ReplyingTo?.ID
+            } : undefined,
+            referenced_message: this.Type === MessageType.REPLY ? this.ReplyingTo?.Package() : undefined,
+            reactions: this.Reactions?.map(R => R.Package()),
             attachments: [],
             tts: false,
             embeds: [], // TODO: Embeds
@@ -78,7 +93,8 @@ export class Message extends BaseEntity {
             content: this.Content,
             channel_id: this.Channel.ID,
             mentions: [],
-            type: this.Type
+            type: this.Type,
+            flags: this.Flags
         };
     }
 }
