@@ -2,6 +2,7 @@ import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyTo
 import { User } from "./User";
 import { Message } from "./Message";
 import { Msg } from "../Modules/Logger";
+import { Guild } from "./Guild";
 
 export const enum ChannelType {
     GUILD_TEXT = 0,
@@ -33,8 +34,8 @@ export class Channel extends BaseEntity {
     @Column({ default: "A channel" })
     DisplayName: string;
 
-    //@ManyToOne(() => Guild, G => G.Channels, { eager: true, nullable: true })
-    //OwnerGuild?: Guild
+    @ManyToOne(() => Guild, G => G.Channels, { eager: true, nullable: true })
+    OwnerGuild?: Guild;
 
     @Column({ default: -1 })
     GuildPosition: number;

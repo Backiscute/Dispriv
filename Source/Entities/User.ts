@@ -78,6 +78,10 @@ export class User extends BaseEntity {
   @OneToMany(() => Guild, G => G.Owner)
   @JoinTable()
   OwnedGuilds: Guild[];
+
+  @ManyToMany(() => Guild, G => G.Members)
+  @JoinTable()
+  Guilds: Guild[];
   
   HasFlag(Flag: UserFlags) {
     return (this.Flags & Flag) === Flag;
