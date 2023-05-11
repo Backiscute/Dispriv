@@ -3,10 +3,11 @@ import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/Snow
 import { User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
-import { FindConnection, SendOp } from "../Modules/GatewayUtils";
+import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { FindOptionsWhere } from "typeorm";
+import { GatewayIntents } from "../Classes/GatewayIntents";
 
 const App = Router();
 
@@ -171,6 +172,39 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
     TargetRelation.Type = RelationType.FRIEND;
     await TargetRelation.save();
 
+    const ChannelCheck = await Channel
+        .createQueryBuilder()
+        .leftJoinAndSelect("Channel.DMRecipients", "DMRecipient")
+        .where("DMRecipient.ID IN (:...RecipientIDs)", { RecipientIDs: [RelationTarget.ID] })
+        .having("COUNT(DISTINCT DMRecipient.ID) = 1")
+        .groupBy("Channel.ID")
+        .getOne();
+
+
+    let NChannel = null;
+        
+    if (ChannelCheck) {
+        ChannelCheck.DMRecipients.forEach(D => console.log(D.Username));
+        NChannel = ChannelCheck;
+    }
+    else {
+        const CreatedChannel = await Channel.create({
+            ID: GenerateSnowflake(),
+            Type: ChannelType.DM,
+            Owner: MyUser,
+            DMRecipients: [RelationTarget, MyUser]
+        }).save();
+        NChannel = CreatedChannel;
+    }
+    
+
+    const TargetConnection = FindConnection(RelationTarget.ID);
+    if (TargetConnection != null && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
+    // if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+
+    const MyConnection = FindConnection(MyUser.ID);
+    if (MyConnection != null && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
+   // if (MyConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
     res.status(204).send();
 });
 
@@ -208,10 +242,10 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
 
         const TargetConnection = FindConnection(RelationTarget.ID);
-        if (TargetConnection) SendOp(TargetConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+        if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
 
         const MyConnection = FindConnection(MyUser.ID);
-        if (MyConnection) SendOp(MyConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
+        if (MyConnection != null) SendOp(MyConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
 
         return res.sendStatus(204);
     }

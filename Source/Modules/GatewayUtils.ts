@@ -33,7 +33,7 @@ export function SendOp(SocketClient: GatewayConnection, Opcode, Data = null, s =
     };
     const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
     const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
-    Msg(`Sending packet to client ${SocketClient.ID.red}: ${JSON.stringify(Data)}`, "Gateway");
+    Msg(`Sending packet to client ${SocketClient.ID.red}: ${JSON.stringify(D)}`, "Gateway");
     SocketClient.SocketClient.send(Bf);
 }
 

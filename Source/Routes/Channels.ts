@@ -75,6 +75,27 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
     res.json(RequestedChannel.SmallDMPackage(MyUser));
 });
 
+App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+    // TODO: add permission check here too
+    
+    RequestedChannel.AllRecipientsExceptYou(MyUser).forEach(Recipient => {
+        const Conn = FindConnection(Recipient.ID);
+        //console.log(Conn);
+        if (!Conn) return;
+        if (!HasIntent(Conn.Intents, RequestedChannel.IsDM() ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING)) return;
+
+        if (RequestedChannel.IsDM()) SendOp(Conn, OpCodes.DISPATCH, { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID }, null, "TYPING_START");
+        // TODO: when guilds are added, add typing start for guilds
+    });
+
+    res.sendStatus(204);
+});
+
 App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });
