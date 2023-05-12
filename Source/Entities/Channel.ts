@@ -11,10 +11,10 @@ export const enum ChannelType {
     GROUP_DM = 3,
     GUILD_CATEGORY = 4,
     GUILD_ANNOUNCEMENT = 5,
-    UNKNOWN1 = 6,
-    UNKNOWN2 = 7,
-    UNKNOWN3 = 8,
-    UNKNOWN4 = 9,
+    GUILD_STORE = 6,
+    GUILD_LFG = 7,
+    LFG_GROUP_DM = 8,
+    THREAD_ALPHA = 9,
     ANNOUNCEMENT_THREAD = 10,
     PUBLIC_THREAD = 11,
     PRIVATE_THREAD = 12,
@@ -94,6 +94,19 @@ export class Channel extends BaseEntity {
             flags: 0
         };
     }
+
+	GuildPackage() {
+		return {
+			id: this.ID,
+			type: this.Type,
+			guild_id: this.OwnerGuild.ID,
+			position: this.GuildPosition,
+			permission_overwrites: [],
+			name: this.DisplayName,
+			nsfw: this.IsNSFW,
+			last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
+		};
+	}
 
     IsDM() {
         return this.Type === ChannelType.DM || this.Type === ChannelType.GROUP_DM;

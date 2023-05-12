@@ -70,7 +70,7 @@ Socket.on("connection", (Client, req) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true });
+        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false } });
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;
@@ -100,7 +100,7 @@ Socket.on("connection", (Client, req) => {
             geo_ordered_rtc_regions: ["Dispriv"],
             guild_experiments: [], // TODO (also if you want)
             guild_join_requests: [], // idk what this is but its needed for guilds i think
-            guilds: [], // TODO (important for guilds)
+            guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)), // TODO (important for guilds)
             merged_members: [], // YOUR member object in every guild (for roles and stuff)
             private_channels: GatewayClient.Account.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account)), // group chats and dms
             read_state: {"entries": [], "partial": false, "version": 0}, // not sure what this is (prob unread dms)
