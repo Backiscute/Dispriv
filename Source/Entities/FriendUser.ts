@@ -5,10 +5,11 @@ import { CreateTimestamp } from "../Modules/DiscordUtils";
 export const enum RelationType {
     FRIEND = 1,
     BLOCKED = 2,
-    NOT_YET_ACCEPTED = 5,
-
     INTERNAL_INCOMING = 3,
-    INTERNAL_OUTGOING = 4
+    INTERNAL_OUTGOING = 4,
+	INTERNAL_IMPLICIT = 5,
+	INTERNAL_SUGGESTION = 6,
+    NOT_YET_ACCEPTED = 7
 }
 
 @Entity()

@@ -18,7 +18,7 @@ export const enum MessageType {
     GUILD_BOOST_TIER_2 = 10,
     GUILD_BOOST_TIER_3 = 11,
     CHANNEL_FOLLOW_ADD = 12,
-    UNKNOWN_13 = 13, // unknown
+    //GUILD_STREAM = 13, // removed due to not being used
     GUILD_DISCOVERY_DISQUALIFIED = 14,
     GUILD_DISCOVERY_REQUALIFIED = 15,
     GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
@@ -35,7 +35,7 @@ export const enum MessageType {
     STAGE_START = 27,
     STAGE_END = 28,
     STAGE_SPEAKER = 29,
-    UNKNOWN_30 = 30, // also unknown
+    STAGE_RAISE_HAND = 30,
     STAGE_TOPIC = 31,
     GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32
 }

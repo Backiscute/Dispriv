@@ -133,7 +133,7 @@ export class User extends BaseEntity {
       bio: this.Bio,
       discriminator: this.Discriminator,
       display_name: this.Username,
-      flags: 0,
+      flags: 1 << 1, // 1 << 0 = Nitro Classic, 1 << 1 = Nitro, 1 << 2 = Guild Boost, 1 << 3 = Nitro Basic
       global_name: this.Username,
       id: this.ID,
       public_flags: this.Flags,
