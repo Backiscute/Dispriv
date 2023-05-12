@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { GenerateSnowflake, GenerateToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { Msg } from "../Modules/Logger";
 import { Relation } from "../Entities/FriendUser";
+import { Application } from "../Handlers/Server";
 
 
 const App = Router();
@@ -33,7 +34,8 @@ App.post("/register", async (req, res) => { // so what we do ok look at dis thin
         Bio: "Hey there! I am a new user on Dispriv!",
         Password: HashedPassword,
         DateOfBirth: new Date(DOB),
-        Discriminator: "0000"//TODO
+        Discriminator: "0000", //TODO
+        TutorialReadIndicators: [],
     });
 
     await NewUser.save();
@@ -58,6 +60,10 @@ App.post("/login", async (req, res) => {
     const NewToken = GenerateToken(LoginUser.ID, Date.now(), LoginUser.Password);
     Msg(`User ${LoginUser.Username} logged in!`, "Auth");
     res.json({"token": NewToken, "user_id": LoginUser.ID, "user_settings": {"locale": "en-US", "theme": "dark"}}); // TODO: add user settings cuz i forgor
+});
+
+Application.get("/location-metadata", (req, res) => {
+    res.json({"consent_required": false, "country_code": "US", "promotional_email_opt_in": {"required": false, "pre_checked": false}});
 });
 
 module.exports = {

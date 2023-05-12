@@ -96,6 +96,29 @@ App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
+App.get("/:ChannelID/call", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (!RequestedChannel.IsDM()) return res.status(400).json({ code: 0, message: "No access" });
+    if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+    
+    res.json({"ringable": true});
+});
+
+App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (!RequestedChannel.IsDM()) return res.status(400).json({ code: 0, message: "No access" });
+    if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+    // TODO: call event gateway
+
+    res.sendStatus(204);
+});
+
 App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });

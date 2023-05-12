@@ -66,6 +66,10 @@ App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
     });
 });
 
+App.get("/@me/library", async (req, res) => {
+    res.json([]);
+});
+
 App.get("/@me", VerifyAuth, async (req, res) => {
     const User = await GetUserByRequest(req);
     res.json(User.Package());

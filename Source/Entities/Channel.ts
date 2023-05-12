@@ -34,7 +34,7 @@ export class Channel extends BaseEntity {
     @Column({ default: "A channel" })
     DisplayName: string;
 
-    @ManyToOne(() => Guild, G => G.Channels, { eager: true, nullable: true })
+    @ManyToOne(() => Guild, G => G.Channels, { nullable: true })
     OwnerGuild?: Guild;
 
     @Column({ default: -1 })

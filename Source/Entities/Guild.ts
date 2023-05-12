@@ -57,7 +57,7 @@ export class Guild extends BaseEntity {
     @Column({ nullable: true })
     Description?: string;
 
-    @Column({ type: "simple-array", default: [ GuildFeatures.TEXT_IN_VOICE_ENABLED ] })
+    @Column({ type: "simple-array" })
     Features: GuildFeatures[];
 
     @Column({ default: 1000 })

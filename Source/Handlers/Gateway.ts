@@ -3,7 +3,7 @@ import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
-import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
+import { CloseConnection, SendOp, SendRawJSON } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { parse, URLSearchParams } from "url";
 
@@ -63,7 +63,7 @@ Socket.on("connection", (Client, req) => {
         if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
         SendOp(GatewayClient, OpCodes.DISPATCH, {reason: "user_requested", stream_key: "test:" + GatewayClient.Account.ID}, null, "SPEED_TEST_DELETE");
         break;
-
+        
       case OpCodes.IDENTIFY: {
         const Token = UnpackedData.d.token ?? "";
         const ValidToken = await VerifyToken(Token);
@@ -109,7 +109,7 @@ Socket.on("connection", (Client, req) => {
             session_id: GatewayClient.ID,
             session_type: "normal",
             sessions: [], // sessions so you can see the devices to log them out i think
-            tutorial: { "indicators_confirmed": [], "indicators_suppressed": false },
+            tutorial: { "indicators_confirmed": GatewayClient.Account.TutorialReadIndicators, "indicators_suppressed": GatewayClient.Account.TutorialSuppressed },
             user: GatewayClient.Account.Package(),
             user_guild_settings: {"entries": [], "partial": false, "version": 0}, // guild settings for the user (notifications, etc)
             user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is

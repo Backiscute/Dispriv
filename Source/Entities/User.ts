@@ -82,7 +82,13 @@ export class User extends BaseEntity {
   @ManyToMany(() => Guild, G => G.Members)
   @JoinTable()
   Guilds: Guild[];
-  
+
+  @Column({ default: false })
+  TutorialSuppressed: boolean;
+
+  @Column({ type: "simple-array" })
+  TutorialReadIndicators: string[];
+
   HasFlag(Flag: UserFlags) {
     return (this.Flags & Flag) === Flag;
   }
