@@ -9,7 +9,7 @@ const App = Router();
 
 App.post("/", VerifyAuth, async (req, res) => {
 	if (!req.body.name) return;
-	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false } });
+	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
 
 	if (MyUser.Memberships.length >= 100) return res.status(400).json({ code: 0, message: "You're in too many guilds!" });
 
@@ -31,10 +31,14 @@ App.post("/", VerifyAuth, async (req, res) => {
 		CreatedAt: new Date()
 	}).save();
 
+	console.log(OwnersMembership);
+
+	await CreatedGuild.reload();
+
 	const Conn = FindConnection(MyUser.ID);
 	if (!Conn) return res.json(CreatedGuild.Package(MyUser));
 
-	SendOp(Conn, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 69, "GUILD_CREATE");
+	SendOp(Conn, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");
 	res.json(CreatedGuild.Package(MyUser));
 });
 

@@ -6,7 +6,11 @@ import { Channel } from "../Entities/Channel";
 
 const App = Router();
 
-// a
+App.use((req, res, next) => {
+	if (req.header("authorization") !== process.env.DASHBOARD_KEY) return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
+	next();
+});
+
 App.post("/UpdateUser/:Username", async (req, res) => {
     const UserData = await User.findOneBy({
         Username: req.params.Username

@@ -80,7 +80,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	OwnedGuilds: Guild[];
 
-	@ManyToMany(() => Membership, G => G.Owner)
+	@OneToMany(() => Membership, M => M.Owner)
 	@JoinTable()
 	Memberships: Membership[];
 
@@ -157,6 +157,22 @@ export class User extends BaseEntity {
 		};
 	}
 
+	Gateway(MemberOf: Membership) {
+		return {
+			avatar: null,
+			communication_disabled_until: null,
+			deaf: MemberOf.Deafened,
+			flags: 0,
+			joined_at: MemberOf.CreatedAt,
+			mute: MemberOf.Muted,
+			nick: null,
+			pending: false,
+			premium_since: null,
+			roles: MemberOf.Roles.map(R => R.ID),
+			user: this.PackageSmall()
+		};
+	}
+
 	Partial() {
 		return {
 			id: this.ID,
@@ -191,15 +207,18 @@ export class Membership extends BaseEntity {
 	Deafened: boolean;
 
 	@ManyToOne(() => User, U => U.Memberships, { eager: true })
+	@JoinTable()
 	Owner: User;
 
 	@Column({ nullable: true })
 	GuildNickname?: string;
 
 	@ManyToOne(() => Guild, G => G.Members)
+	@JoinTable()
 	ToGuild: Guild;
 
 	@ManyToMany(() => Role, R => R.Members)
+	@JoinTable()
 	Roles: Role[];
 
 	Package(IncludeUser: boolean = true/*, ChannelContext: Channel*/) {

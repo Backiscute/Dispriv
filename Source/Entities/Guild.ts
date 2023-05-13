@@ -162,7 +162,7 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @ManyToMany(() => Membership, U => U.ToGuild, { eager: true })
+    @ManyToMany(() => Membership, U => U.ToGuild)
     Members: Membership[];
 
     @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true })
@@ -268,24 +268,24 @@ export class Guild extends BaseEntity {
 			//roles: this.Roles?.map(R => R.Package()),
 			roles: [
 				{
-				"color": 0,
-				"flags": 0,
-				"hoist": false,
-				"icon": null,
-				"id": GenerateSnowflake(),
-				"managed": false,
-				"mentionable": false,
-				"name": "@everyone",
-				"permissions": "137411140505153",
-				"position": 0,
-				"tags": {},
-				"unicode_emoji": null
+					"color": 0,
+					"flags": 0,
+					"hoist": false,
+					"icon": null,
+					"id": this.ID, // @everyone is always guild id
+					"managed": false,
+					"mentionable": false,
+					"name": "@everyone",
+					"permissions": "137411140505153",
+					"position": 0,
+					"tags": {},
+					"unicode_emoji": null
 				}
-			], // TEMP!!!!!: mcdoand chang fr!!
+			],
 			stage_instances: [],
 			stickers: [],
 			threads: [],
-			members: this.Members ? this.Members.map(C => C.Package()) : [],
+			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ],
 			presences: [], // TODO
 			embedded_activities: [], // same as ready embedded_activities
 			version: Date.now()
