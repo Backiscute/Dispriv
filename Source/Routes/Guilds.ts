@@ -34,7 +34,7 @@ App.post("/", VerifyAuth, async (req, res) => {
 	const Conn = FindConnection(MyUser.ID);
 	if (!Conn) return res.json(CreatedGuild.Package(MyUser));
 
-	SendOp(Conn, OpCodes.DISPATCH, CreatedGuild.GatewayPackage(MyUser), 69, "GUILD_CREATE");
+	SendOp(Conn, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 69, "GUILD_CREATE");
 	res.json(CreatedGuild.Package(MyUser));
 });
 

@@ -3,6 +3,7 @@ import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel } from "./Channel";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 export const enum GuildFeatures {
     ACTIVITIES_ALPHA = "ACTIVITIES_ALPHA",
@@ -247,6 +248,55 @@ export class Guild extends BaseEntity {
 			stickers: [],
 			threads: [],
 			version: Date.now()
+		};
+	}
+
+	GatewayPackageEvent(UserContext: User) {
+		return {
+			application_command_counts: {},
+			channels: this.Channels ? this.Channels.map(C => C.GuildPackage()) : [],
+			data_mode: "full",
+			emojis: [],
+			guild_scheduled_events: [],
+			id: this.ID,
+			joined_at: CreateTimestamp(new Date()),
+			large: this.Members ? this.Members.length > 100 : false,
+			lazy: true,
+			member_count: this.Members ? this.Members.length : 1,
+			premium_subscription_count: this.Members ? this.Members.filter(M => M.BoostingSince).length : 0,
+			properties: this.Package(UserContext),
+			//roles: this.Roles?.map(R => R.Package()),
+			roles: [
+				{
+				"color": 0,
+				"flags": 0,
+				"hoist": false,
+				"icon": null,
+				"id": GenerateSnowflake(),
+				"managed": false,
+				"mentionable": false,
+				"name": "@everyone",
+				"permissions": "137411140505153",
+				"position": 0,
+				"tags": {},
+				"unicode_emoji": null
+				}
+			], // TEMP!!!!!: mcdoand chang fr!!
+			stage_instances: [],
+			stickers: [],
+			threads: [],
+			members: this.Members ? this.Members.map(C => C.Package()) : [],
+			presences: [], // TODO
+			embedded_activities: [], // same as ready embedded_activities
+			version: Date.now()
+		};
+	}
+
+	GatewaySupplementalPackage() {
+		return {
+			embedded_activities: [],
+			id: this.ID,
+			voice_states: [], // TODO: for voice chats
 		};
 	}
 }

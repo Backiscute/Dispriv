@@ -127,7 +127,7 @@ Socket.on("connection", (Client, req) => {
           OpCodes.DISPATCH,
           {
             disclose: ["pomelo"], // what
-            guilds: [], // embedded_activities array (empty), guild id and voice_states array
+            guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
             lazy_private_channels: [], // not sure but not needed i think
             merged_members: [], // YOUR member object in every guild (for roles and stuff) same as the other ready merged_members
             merged_presences: { friends: [], guilds: [] }, // presences from friends and guilds
