@@ -6,7 +6,7 @@ import { Relation } from './FriendUser';
 import { Application } from '../Handlers/Server';
 import { DiscordApplication } from './Application';
 import { Channel } from './Channel';
-import { Guild, Role } from './Guild';
+import { Guild, Invite, Role } from './Guild';
 import { CreateTimestamp } from '../Modules/DiscordUtils';
 
 @Entity()
@@ -79,6 +79,10 @@ export class User extends BaseEntity {
 	@OneToMany(() => Guild, G => G.Owner)
 	@JoinTable()
 	OwnedGuilds: Guild[];
+
+	@OneToMany(() => Invite, I => I.InviteOwner)
+	@JoinTable()
+	CreatedInvites: Invite[];
 
 	@OneToMany(() => Membership, M => M.Owner)
 	@JoinTable()

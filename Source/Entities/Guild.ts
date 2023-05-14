@@ -5,6 +5,12 @@ import { Channel } from "./Channel";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
+export const enum InviteType {
+	GUILD = 0,
+	GROUP_DM = 1,
+	FRIEND = 2,
+}
+
 export const enum GuildFeatures {
     ACTIVITIES_ALPHA = "ACTIVITIES_ALPHA",
 	ACTIVITIES_EMPLOYEE = "ACTIVITIES_EMPLOYEE",
@@ -171,6 +177,9 @@ export class Guild extends BaseEntity {
 	@OneToMany(() => Role, R => R.InGuild, { eager: true })
 	Roles: Role[];
 
+	@OneToMany(() => Invite, I => I.InGuild, { eager: true })
+	Invites: Role[];
+
 	Partial() {
 		return {
 			id: this.ID,
@@ -265,27 +274,11 @@ export class Guild extends BaseEntity {
 			member_count: this.Members ? this.Members.length : 1,
 			premium_subscription_count: this.Members ? this.Members.filter(M => M.BoostingSince).length : 0,
 			properties: this.Package(UserContext),
-			//roles: this.Roles?.map(R => R.Package()),
-			roles: [
-				{
-					"color": 0,
-					"flags": 0,
-					"hoist": false,
-					"icon": null,
-					"id": this.ID, // @everyone is always guild id
-					"managed": false,
-					"mentionable": false,
-					"name": "@everyone",
-					"permissions": "137411140505153",
-					"position": 0,
-					"tags": {},
-					"unicode_emoji": null
-				}
-			],
+			roles: this.Roles?.map(R => R.Package()),
 			stage_instances: [],
 			stickers: [],
 			threads: [],
-			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ],
+			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ], // fix this cuz ima sleep (returns undefined on creation)
 			presences: [], // TODO
 			embedded_activities: [], // same as ready embedded_activities
 			version: Date.now()
@@ -314,6 +307,9 @@ export class Role extends BaseEntity {
 
 	@Column()
 	Color: number;
+
+	@Column({ default: 0 })
+	Position: number;
 
 	@Column({ default: true })
 	ShownOnMemberlist: boolean;
@@ -345,11 +341,53 @@ export class Role extends BaseEntity {
 			hoist: this.ShownOnMemberlist,
 			icon: this.IconID,
 			unicode_emoji: this.UnicodeEmoji,
-			position: 0,
+			position: this.Position,
 			permissions: this.Permissions.toString(),
 			managed: false,
 			mentionable: this.AnyoneCanMention,
 			tags: {}
+		};
+	}
+}
+
+@Entity()
+export class Invite extends BaseEntity {
+	@PrimaryColumn()
+	InviteCode: string;
+
+	@PrimaryColumn()
+	MaxUses: number;
+
+	@PrimaryColumn()
+	CurrentUses: number;
+
+	@Column()
+	Created: Date;
+
+	@Column({ nullable: true })
+	Expires?: Date;
+
+	@ManyToOne(() => Guild, G => G.Invites)
+	InGuild: Guild;
+
+	@Column({ default: InviteType.GUILD })
+	Type: InviteType;
+
+	@ManyToOne(() => User, U => U.CreatedInvites, { eager: true })
+    InviteOwner: User;
+
+	Package() {
+		return {
+			code: this.InviteCode,
+			guild: this.InGuild.Partial(),
+			type: this.Type,
+			created_at: CreateTimestamp(this.Created),
+			expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
+			uses: this.CurrentUses,
+			max_uses: this.MaxUses,
+			temporary: false,
+			inviter: this.InviteOwner.PackageSmall(),
+			channel: null // TODO
 		};
 	}
 }

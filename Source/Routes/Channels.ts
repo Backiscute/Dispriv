@@ -119,6 +119,7 @@ App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
+
 App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });

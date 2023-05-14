@@ -99,7 +99,7 @@ export class Channel extends BaseEntity {
 		return {
 			id: this.ID,
 			type: this.Type,
-			guild_id: this.OwnerGuild.ID,
+			guild_id: null, // yeah fix this it says OwnerGuild.ID is undefined
 			position: this.GuildPosition,
 			permission_overwrites: [],
 			name: this.DisplayName,
