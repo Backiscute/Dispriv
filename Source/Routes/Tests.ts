@@ -3,12 +3,27 @@ import { User } from "../Entities/User";
 import { VerifyToken } from "../Modules/SnowflakeUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
+import { Guild } from "../Entities/Guild";
 
 const App = Router();
 
 App.use((req, res, next) => {
 	if (req.header("authorization") !== process.env.DASHBOARD_KEY) return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
 	next();
+});
+
+App.post("/Server/:ID", async (req, res) => {
+    const ServerData = await Guild.findOneBy({
+        ID: req.params.ID
+    });
+    if (!ServerData) return;
+
+    Object.keys(req.body).forEach(K => {
+        ServerData[K] = req.body[K];
+    });
+
+    await ServerData.save();
+    res.send(ServerData);
 });
 
 App.post("/UpdateUser/:Username", async (req, res) => {

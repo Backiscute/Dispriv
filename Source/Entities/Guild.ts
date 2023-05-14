@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel } from "./Channel";
@@ -320,10 +320,11 @@ export class Role extends BaseEntity {
 	@Column({ nullable: true })
 	UnicodeEmoji?: string;
 
-	@ManyToOne(() => Guild, G => G.Roles)
+	@ManyToOne(() => Guild, G => G.Roles, { orphanedRowAction: "delete" })
 	InGuild: Guild;
 
 	@ManyToMany(() => Membership, M => M.Roles)
+	@JoinTable()
 	Members: Membership[];
 
 	@Column({ default: Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })

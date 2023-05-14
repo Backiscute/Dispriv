@@ -9,6 +9,16 @@ import { Channel } from "../Entities/Channel";
 
 const App = Router();
 
+App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { OwnedGuilds: true });
+	if (!MyUser.OwnedGuilds.map(G => G.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You don't own that guild." });
+
+	await Guild.createQueryBuilder().delete().where(`"guild"."ID" = "${req.params.GuildID}"`).execute();
+
+	res.status(204).send();
+});
+
 App.post("/", VerifyAuth, async (req, res) => {
 	if (!req.body.name) return;
 	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
@@ -17,16 +27,8 @@ App.post("/", VerifyAuth, async (req, res) => {
 
 	const GuildID = GenerateSnowflake();
 
-	const DefaultRole = await Role.create({
-		ID: GuildID,
-		Name: "@everyone",
-		Color: 0,
-		Position: 0,
-		Permissions: Permissions.SEND_MESSAGES,
-		AnyoneCanMention: false
-	}).save();
-
-	const CreatedGuild = await Guild.create({
+	
+	let CreatedGuild = await Guild.create({
 		ID: GuildID,
 		Name: req.body.name,
 		Owner: MyUser,
@@ -34,8 +36,17 @@ App.post("/", VerifyAuth, async (req, res) => {
 			GuildFeatures.NEWS,
 			GuildFeatures.VANITY_URL,
 			GuildFeatures.COMMERCE
-		],
-		Roles: [DefaultRole]
+		]
+	}).save();
+	
+	const EveryoneRole = await Role.create({
+		ID: GuildID,
+		Name: "@everyone",
+		Color: 0,
+		Position: 0,
+		Permissions: Permissions.SEND_MESSAGES,
+		AnyoneCanMention: false,
+		InGuild: CreatedGuild
 	}).save();
 
 	await Channel.create({
@@ -49,10 +60,19 @@ App.post("/", VerifyAuth, async (req, res) => {
 		Owner: MyUser,
 		ToGuild: CreatedGuild,
 		CreatedAt: new Date(),
-		Roles: [DefaultRole]
+		Roles: [ EveryoneRole ]
 	}).save();
 
 	await CreatedGuild.reload();
+
+	CreatedGuild = await Guild.findOne({
+		where: {
+			ID: GuildID
+		},
+		relations: {
+			Members: true
+		}
+	});
 
 	const Conn = FindConnection(MyUser.ID);
 	if (!Conn) return res.json(CreatedGuild.Package(MyUser));

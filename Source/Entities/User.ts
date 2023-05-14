@@ -210,18 +210,18 @@ export class Membership extends BaseEntity {
 	@Column({ default: false })
 	Deafened: boolean;
 
-	@ManyToOne(() => User, U => U.Memberships, { eager: true })
+	@ManyToOne(() => User, U => U.Memberships, { eager: true, orphanedRowAction: "delete" })
 	@JoinTable()
 	Owner: User;
 
 	@Column({ nullable: true })
 	GuildNickname?: string;
 
-	@ManyToOne(() => Guild, G => G.Members)
+	@ManyToOne(() => Guild, G => G.Members, { orphanedRowAction: "delete" })
 	@JoinTable()
 	ToGuild: Guild;
 
-	@ManyToMany(() => Role, R => R.Members)
+	@ManyToMany(() => Role, R => R.Members, { eager: true })
 	@JoinTable()
 	Roles: Role[];
 

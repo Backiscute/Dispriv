@@ -70,7 +70,7 @@ Socket.on("connection", (Client, req) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false, ToGuild: true } });
+        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true } } } });
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;

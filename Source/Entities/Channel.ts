@@ -34,7 +34,7 @@ export class Channel extends BaseEntity {
     @Column({ default: "A channel" })
     DisplayName: string;
 
-    @ManyToOne(() => Guild, G => G.Channels, { nullable: true })
+    @ManyToOne(() => Guild, G => G.Channels, { nullable: true, orphanedRowAction: "delete" })
     OwnerGuild?: Guild;
 
     @Column({ default: -1 })
@@ -57,7 +57,7 @@ export class Channel extends BaseEntity {
     @Column({ type: "simple-json", nullable: true })
     Owner?: User;
 
-    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true })
+    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true})
     OwnerCategory?: Channel;
 
     @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true })
@@ -99,7 +99,7 @@ export class Channel extends BaseEntity {
 		return {
 			id: this.ID,
 			type: this.Type,
-			guild_id: null, // yeah fix this it says OwnerGuild.ID is undefined
+			guild_id: this.OwnerGuild.ID,
 			position: this.GuildPosition,
 			permission_overwrites: [],
 			name: this.DisplayName,
