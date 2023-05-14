@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel } from "./Channel";
@@ -148,6 +148,7 @@ export class Guild extends BaseEntity {
 	BannerID?: string;
 
     @ManyToOne(() => User, U => U.OwnedGuilds, { eager: true })
+	@JoinColumn()
     Owner: User;
 
     @Column({ nullable: true })
@@ -168,16 +169,20 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @ManyToMany(() => Membership, U => U.ToGuild)
+    @ManyToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+	@JoinTable()
     Members: Membership[];
 
-    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true })
+    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+	@JoinColumn()
     Channels: Channel[];
 
-	@OneToMany(() => Role, R => R.InGuild, { eager: true })
+	@OneToMany(() => Role, R => R.InGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+	@JoinColumn()
 	Roles: Role[];
 
-	@OneToMany(() => Invite, I => I.InGuild, { eager: true })
+	@OneToMany(() => Invite, I => I.InGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+	@JoinColumn()
 	Invites: Role[];
 
 	Partial() {
@@ -320,7 +325,7 @@ export class Role extends BaseEntity {
 	@Column({ nullable: true })
 	UnicodeEmoji?: string;
 
-	@ManyToOne(() => Guild, G => G.Roles, { orphanedRowAction: "delete" })
+	@ManyToOne(() => Guild, G => G.Roles)
 	InGuild: Guild;
 
 	@ManyToMany(() => Membership, M => M.Roles)

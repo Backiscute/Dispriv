@@ -14,7 +14,12 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 	if (!MyUser.OwnedGuilds.map(G => G.ID).includes(req.params.GuildID))
 		return res.status(400).json({ code: 0, message: "You don't own that guild." });
 
-	await Guild.createQueryBuilder().delete().where(`"guild"."ID" = "${req.params.GuildID}"`).execute();
+	const G = MyUser.OwnedGuilds.find(G => G.ID === req.params.GuildID);
+	console.log(G);
+
+	await Guild.query("PRAGMA foreign_keys=OFF");
+	await Guild.remove(G);
+	await Guild.query("PRAGMA foreign_keys=ON");
 
 	res.status(204).send();
 });
@@ -26,7 +31,6 @@ App.post("/", VerifyAuth, async (req, res) => {
 	if (MyUser.Memberships.length >= 100) return res.status(400).json({ code: 0, message: "You're in too many guilds!" });
 
 	const GuildID = GenerateSnowflake();
-
 	
 	let CreatedGuild = await Guild.create({
 		ID: GuildID,
@@ -70,7 +74,10 @@ App.post("/", VerifyAuth, async (req, res) => {
 			ID: GuildID
 		},
 		relations: {
-			Members: true
+			Members: true,
+			Channels: {
+				OwnerGuild: true
+			}
 		}
 	});
 

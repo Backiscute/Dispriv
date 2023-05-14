@@ -137,7 +137,6 @@ Socket.on("connection", (Client, req) => {
           2,
           "READY_SUPPLEMENTAL"
         );
-
         break;
       }
     }

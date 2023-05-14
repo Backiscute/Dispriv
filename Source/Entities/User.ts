@@ -3,7 +3,6 @@ import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, OneToMany, ManyTo
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
 import { Relation } from './FriendUser';
-import { Application } from '../Handlers/Server';
 import { DiscordApplication } from './Application';
 import { Channel } from './Channel';
 import { Guild, Invite, Role } from './Guild';
@@ -60,19 +59,19 @@ export class User extends BaseEntity {
 	@JoinTable()
 	AvailableDMs: Channel[];
 
-	@OneToMany(() => Message, M => M.Author)
+	@OneToMany(() => Message, M => M.Author, { orphanedRowAction: "delete" })
 	@JoinTable()
 	MessagesByUser: Message[];
 
-	@OneToMany(() => Relation, Rel => Rel.From)
+	@OneToMany(() => Relation, Rel => Rel.From, { orphanedRowAction: "delete" })
 	@JoinTable()
 	RelationsFrom: Relation[];
 
-	@OneToMany(() => Relation, Rel => Rel.Regarding)
+	@OneToMany(() => Relation, Rel => Rel.Regarding, { orphanedRowAction: "delete" })
 	@JoinTable()
 	RelationsRegarding: Relation[];
 
-	@OneToMany(() => DiscordApplication, Rel => Rel.Owner)
+	@OneToMany(() => DiscordApplication, Rel => Rel.Owner, { orphanedRowAction: "delete" })
 	@JoinTable()
 	Applications: DiscordApplication[];
 
@@ -84,7 +83,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	CreatedInvites: Invite[];
 
-	@OneToMany(() => Membership, M => M.Owner)
+	@OneToMany(() => Membership, M => M.Owner, { orphanedRowAction: "delete" })
 	@JoinTable()
 	Memberships: Membership[];
 
@@ -210,14 +209,14 @@ export class Membership extends BaseEntity {
 	@Column({ default: false })
 	Deafened: boolean;
 
-	@ManyToOne(() => User, U => U.Memberships, { eager: true, orphanedRowAction: "delete" })
+	@ManyToOne(() => User, U => U.Memberships, { eager: true })
 	@JoinTable()
 	Owner: User;
 
 	@Column({ nullable: true })
 	GuildNickname?: string;
 
-	@ManyToOne(() => Guild, G => G.Members, { orphanedRowAction: "delete" })
+	@ManyToOne(() => Guild, G => G.Members)
 	@JoinTable()
 	ToGuild: Guild;
 

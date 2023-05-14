@@ -6,8 +6,8 @@ import "./Handlers/RTCSocket";
 export const DisprivDataSource = new DataSource({
     type: "sqlite",
     database: "Dispriv.db",
-    synchronize: false,
-    logging: true,
+    synchronize: true,
+    logging: false,
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
     migrations: []
