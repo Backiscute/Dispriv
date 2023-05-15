@@ -70,7 +70,7 @@ Socket.on("connection", (Client, req) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true } } } });
+        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true }, Members: true } } });
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;
@@ -103,7 +103,7 @@ Socket.on("connection", (Client, req) => {
             guild_experiments: [], // TODO (also if you want)
             guild_join_requests: [], // idk what this is but its needed for guilds i think
             guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)), // TODO (important for guilds)
-            merged_members: [], // YOUR member object in every guild (for roles and stuff)
+            merged_members: GatewayClient.Account.Memberships.map(M => M.PackageGateway()), // YOUR member object in every guild (for roles and stuff)
             private_channels: GatewayClient.Account.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account)), // group chats and dms
             read_state: {"entries": [], "partial": false, "version": 0}, // not sure what this is (prob unread dms)
             relationships: [ ...GatewayClient.Account.RelationsFrom.map((R) => R.PackageGateway(true, GatewayClient.Account)), ...GatewayClient.Account.RelationsRegarding.map((R) => R.PackageGateway(true, GatewayClient.Account)) ], // friends
@@ -116,7 +116,9 @@ Socket.on("connection", (Client, req) => {
             user_guild_settings: {"entries": [], "partial": false, "version": 0}, // guild settings for the user (notifications, etc)
             user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is
             users: [
-              ...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat()
+              GatewayClient.Account.PackageSmall(),
+              ...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat(),
+              ...GatewayClient.Account.Memberships.map(M => M.ToGuild.Members.map(M => M.Owner.PackageSmall())).flat()
             ], // EVERY user in EVERY guild (for searching, mentions, etc)
             v: 9, // api version (fr)
           },
@@ -124,6 +126,7 @@ Socket.on("connection", (Client, req) => {
           "READY"
         );
 
+        console.log(GatewayClient.Account.Memberships[0].ToGuild);
         SendOp(
           GatewayClient,
           OpCodes.DISPATCH,
@@ -131,7 +134,9 @@ Socket.on("connection", (Client, req) => {
             disclose: ["pomelo"], // what
             guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
             lazy_private_channels: [], // not sure but not needed i think
-            merged_members: [], // YOUR member object in every guild (for roles and stuff) same as the other ready merged_members
+            merged_members: [
+              ...GatewayClient.Account.Memberships.map(M => M.ToGuild.Members.map(M => M.PackageGateway())).flat()
+            ], // OTHER members object in every guild (for roles and stuff)
             merged_presences: { friends: [], guilds: [] }, // presences from friends and guilds
           },
           2,

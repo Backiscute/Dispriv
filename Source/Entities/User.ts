@@ -237,4 +237,19 @@ export class Membership extends BaseEntity {
 			/*permissions: ChannelContext.CalculatePermissions(this.Roles[0])*/
 		}
 	}
+
+	PackageGateway() {
+		return [{
+			avatar: this.Owner.AvatarID,
+			nick: this.GuildNickname,
+			roles: this.Roles ? this.Roles.map(R => R.ID) : [],
+			joined_at: CreateTimestamp(this.CreatedAt),
+			deaf: this.Deafened,
+			mute: this.Muted,
+			premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
+			pending: false,
+			communication_disabled_until: null,
+			user_id: this.Owner.ID
+		}]
+	}
 }

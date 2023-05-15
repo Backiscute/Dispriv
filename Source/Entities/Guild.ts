@@ -185,6 +185,10 @@ export class Guild extends BaseEntity {
 	@JoinColumn()
 	Invites: Role[];
 
+	DefaultRole() {
+		return this.Roles.find(R => R.Name === "@everyone");
+	}
+
 	Partial() {
 		return {
 			id: this.ID,
@@ -283,7 +287,7 @@ export class Guild extends BaseEntity {
 			stage_instances: [],
 			stickers: [],
 			threads: [],
-			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ], // fix this cuz ima sleep (returns undefined on creation)
+			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ],
 			presences: [], // TODO
 			embedded_activities: [], // same as ready embedded_activities
 			version: Date.now()
@@ -361,10 +365,10 @@ export class Invite extends BaseEntity {
 	@PrimaryColumn()
 	InviteCode: string;
 
-	@PrimaryColumn()
+	@Column()
 	MaxUses: number;
 
-	@PrimaryColumn()
+	@Column({ default: 0 })
 	CurrentUses: number;
 
 	@Column()
@@ -393,6 +397,18 @@ export class Invite extends BaseEntity {
 			max_uses: this.MaxUses,
 			temporary: false,
 			inviter: this.InviteOwner.PackageSmall(),
+			channel: null // TODO
+		};
+	}
+
+	PackagePublic() {
+		return {
+			code: this.InviteCode,
+			guild: this.InGuild.Partial(),
+			type: this.Type,
+			expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
+			aproximate_member_count: 0,
+			aproximate_presence_count: 0, // TODO
 			channel: null // TODO
 		};
 	}

@@ -7,6 +7,8 @@ import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/OpCodes";
 import { Relation, RelationType } from "../Entities/FriendUser";
+import { Invite } from "../Entities/Guild";
+import { GenerateInviteCode } from "../Modules/DiscordUtils";
 
 const App = Router();
 
@@ -117,6 +119,25 @@ App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
     // TODO: call event gateway
 
     res.sendStatus(204);
+});
+
+App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true } } } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: { Members: true } } });
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    // TODO: Permissions check
+    const NewInvite = await Invite.create({
+        InviteOwner: MyUser,
+        InviteCode: GenerateInviteCode(),
+        MaxUses: req.body["max_uses"] || 0,
+        InGuild: RequestedChannel.OwnerGuild,
+        Created: new Date()
+    }).save();
+
+    await RequestedChannel.OwnerGuild.reload();
+
+    res.json(NewInvite.Package());
 });
 
 

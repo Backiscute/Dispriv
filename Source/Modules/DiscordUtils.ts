@@ -10,3 +10,12 @@ export function GenerateExperimentHash(Name: string): number {
   const Hash = MurmurHash3.x86.hash32(Name);
   return Hash >>> 0;
 }
+
+export function GenerateInviteCode(): string {
+  let Result = "";
+  const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  for (let I = 0; I < 8; I++) {
+    Result += Characters.charAt(Math.floor(Math.random() * Characters.length));
+  }
+  return Result;
+}
