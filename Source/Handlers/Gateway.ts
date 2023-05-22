@@ -70,7 +70,21 @@ Socket.on("connection", (Client, req) => {
 
         if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
-        GatewayClient.Account = await GetUserByToken(Token, { AvailableDMs: { DMRecipients: true }, RelationsFrom: true, RelationsRegarding: true, Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true }, Members: true } } });
+        GatewayClient.Account = await GetUserByToken(Token, {
+			AvailableDMs: {
+				DMRecipients: true
+			},
+			RelationsFrom: true,
+			RelationsRegarding: true,
+			Memberships: {
+				Owner: false,
+				ToGuild: {
+					Channels: {
+						OwnerGuild: true
+					}
+				}
+			}
+		});
         GatewayClient.UserToken = Token;
 
         const ConnectionIntents = UnpackedData.d.intents ?? 0;
@@ -111,7 +125,10 @@ Socket.on("connection", (Client, req) => {
             session_id: GatewayClient.ID,
             session_type: "normal",
             sessions: [], // sessions so you can see the devices to log them out i think
-            tutorial: { "indicators_confirmed": GatewayClient.Account.TutorialReadIndicators, "indicators_suppressed": GatewayClient.Account.TutorialSuppressed },
+            tutorial: {
+				indicators_confirmed: GatewayClient.Account.TutorialReadIndicators,
+				indicators_suppressed: GatewayClient.Account.TutorialSuppressed
+			},
             user: GatewayClient.Account.Package(),
             user_guild_settings: {"entries": [], "partial": false, "version": 0}, // guild settings for the user (notifications, etc)
             user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is
