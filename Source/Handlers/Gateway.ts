@@ -79,6 +79,10 @@ Socket.on("connection", (Client, req) => {
 			Memberships: {
 				Owner: false,
 				ToGuild: {
+					Members: {
+						Owner: true,
+						Roles: true
+					},
 					Channels: {
 						OwnerGuild: true
 					}
@@ -143,12 +147,12 @@ Socket.on("connection", (Client, req) => {
           "READY"
         );
 
-        console.log(GatewayClient.Account.Memberships[0].ToGuild);
+        //console.log(GatewayClient.Account.Memberships[0].ToGuild);
         SendOp(
           GatewayClient,
           OpCodes.DISPATCH,
           {
-            disclose: ["pomelo"], // what
+            disclose: ["pomelo"], // username system?
             guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
             lazy_private_channels: [], // not sure but not needed i think
             merged_members: [
