@@ -2,7 +2,7 @@ import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOn
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel } from "./Channel";
-import { CreateTimestamp } from "../Modules/DiscordUtils";
+import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 export const enum InviteType {
@@ -186,7 +186,7 @@ export class Guild extends BaseEntity {
 	Invites: Role[];
 
 	DefaultRole() {
-		return this.Roles.find(R => R.Name === "@everyone");
+		return this.Roles.find(R => R.ID === this.ID);
 	}
 
 	Partial() {
@@ -209,6 +209,7 @@ export class Guild extends BaseEntity {
 
 	Package(UserContext: User) {
 		const Boosters = this.Members?.filter(M => M.BoostingSince).length;
+		const UserMembershipHere = UserContext.Memberships?.find(x => x.ToGuild.ID === this.ID);
 
 		return {
 			id: this.ID,
@@ -218,7 +219,7 @@ export class Guild extends BaseEntity {
 			discovery_splash: this.BannerID,
 			owner: UserContext.ID === this.Owner.ID,
 			owner_id: this.Owner.ID,
-			permissions: "1",
+			permissions: UserMembershipHere ? GetHighestRole(UserMembershipHere).Permissions.toString() : "0",
 			afk_channel_id: "",
 			afk_timeout: 0,
 			widget_enabled: true,
@@ -336,7 +337,7 @@ export class Role extends BaseEntity {
 	@JoinTable()
 	Members: Membership[];
 
-	@Column({ default: Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
+	@Column({ default: Permissions.CONNECT | Permissions.SPEAK | Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
 	Permissions: Permissions;
 
 	@Column()
@@ -348,6 +349,7 @@ export class Role extends BaseEntity {
 			name: this.Name,
 			description: this.Description,
 			color: this.Color,
+			flags: 0,
 			hoist: this.ShownOnMemberlist,
 			icon: this.IconID,
 			unicode_emoji: this.UnicodeEmoji,

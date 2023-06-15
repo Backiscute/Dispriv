@@ -10,6 +10,15 @@ import { GatewayIntents } from "../Classes/GatewayIntents";
 
 const App = Router();
 
+App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req);
+	if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
+
+	MyUser.SettingsProto = req.body.settings;
+	await MyUser.save();
+	res.sendStatus(204);
+});
+
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
 	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
 	

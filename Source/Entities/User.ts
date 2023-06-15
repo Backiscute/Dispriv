@@ -6,7 +6,7 @@ import { Relation } from './FriendUser';
 import { DiscordApplication } from './Application';
 import { Channel } from './Channel';
 import { Guild, Invite, Role } from './Guild';
-import { CreateTimestamp } from '../Modules/DiscordUtils';
+import { CreateTimestamp, GetHighestRole, GetHighestRoleInArr } from '../Modules/DiscordUtils';
 
 @Entity()
 export class User extends BaseEntity {
@@ -92,6 +92,9 @@ export class User extends BaseEntity {
 
 	@Column({ type: "simple-array" })
 	TutorialReadIndicators: string[];
+
+	@Column({ default: "CgIYAWIJCgcKBWVuLVVT" })
+	SettingsProto: string;
 
 	HasFlag(Flag: UserFlags) {
 		return (this.Flags & Flag) === Flag;
@@ -209,14 +212,14 @@ export class Membership extends BaseEntity {
 	@Column({ default: false })
 	Deafened: boolean;
 
-	@ManyToOne(() => User, U => U.Memberships, { eager: true })
+	@ManyToOne(() => User, U => U.Memberships, { eager: true, orphanedRowAction: "delete" })
 	@JoinTable()
 	Owner: User;
 
 	@Column({ nullable: true })
 	GuildNickname?: string;
 
-	@ManyToOne(() => Guild, G => G.Members)
+	@ManyToOne(() => Guild, G => G.Members, { orphanedRowAction: "delete" })
 	@JoinTable()
 	ToGuild: Guild;
 
@@ -234,7 +237,7 @@ export class Membership extends BaseEntity {
 			mute: this.Muted,
 			premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
 			pending: false,
-			/*permissions: ChannelContext.CalculatePermissions(this.Roles[0])*/
+			permissions: GetHighestRoleInArr(this.Roles).Permissions.toString()
 		}
 	}
 

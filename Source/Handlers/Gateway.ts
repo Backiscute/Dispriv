@@ -84,7 +84,8 @@ Socket.on("connection", (Client, req) => {
 								Roles: true
 							},
 							Channels: {
-								OwnerGuild: true
+								OwnerGuild: true,
+								OwnerCategory: true
 							}
 						}
 					}
@@ -120,7 +121,7 @@ Socket.on("connection", (Client, req) => {
 						geo_ordered_rtc_regions: ["Dispriv"],
 						guild_experiments: [], // TODO (also if you want)
 						guild_join_requests: [], // idk what this is but its needed for guilds i think
-						guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)), // TODO (important for guilds)
+						guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)),
 						merged_members: GatewayClient.Account.Memberships.map(M => M.PackageGateway()), // YOUR member object in every guild (for roles and stuff)
 						private_channels: GatewayClient.Account.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account)), // group chats and dms
 						read_state: { "entries": [], "partial": false, "version": 0 }, // not sure what this is (prob unread dms)
@@ -135,7 +136,7 @@ Socket.on("connection", (Client, req) => {
 						},
 						user: GatewayClient.Account.Package(),
 						user_guild_settings: { "entries": [], "partial": false, "version": 0 }, // guild settings for the user (notifications, etc)
-						user_settings_proto: "CgIYAWIJCgcKBWVuLVVT", // idk what this is
+						user_settings_proto: GatewayClient.Account.SettingsProto, // idk what this is
 						users: [
 							GatewayClient.Account.PackageSmall(),
 							...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat(),

@@ -26,7 +26,21 @@ App.post("/Server/:ID", async (req, res) => {
     res.send(ServerData);
 });
 
-App.post("/UpdateUser/:Username", async (req, res) => {
+App.post("/Channel/:ID", async (req, res) => {
+    const ChannelData = await Channel.findOneBy({
+        ID: req.params.ID
+    });
+    if (!ChannelData) return;
+
+    Object.keys(req.body).forEach(K => {
+        ChannelData[K] = req.body[K];
+    });
+
+    await ChannelData.save();
+    res.send(ChannelData);
+});
+
+App.post("/User/:Username", async (req, res) => {
     const UserData = await User.findOneBy({
         Username: req.params.Username
     });

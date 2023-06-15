@@ -1,7 +1,6 @@
 import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
-import { Msg } from "../Modules/Logger";
 import { Guild } from "./Guild";
 
 export const enum ChannelType {
@@ -100,6 +99,7 @@ export class Channel extends BaseEntity {
 			id: this.ID,
 			type: this.Type,
 			guild_id: this.OwnerGuild.ID,
+			parent_id: this.OwnerCategory?.ID,
 			position: this.GuildPosition,
 			permission_overwrites: [],
 			name: this.DisplayName,
