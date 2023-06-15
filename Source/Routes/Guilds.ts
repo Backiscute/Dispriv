@@ -7,6 +7,7 @@ import { OpCodes } from "../Classes/OpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GetHighestRole, HasPermission, SendToMembers } from "../Modules/DiscordUtils";
+import { Upload, ValidBaseURL } from "../Modules/AssetUtils";
 
 const App = Router();
 
@@ -91,7 +92,7 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 
 	for await (const Chnl of req.body) {
 		if (typeof Chnl.id !== "string" || typeof Chnl.position !== "number")
-			return;
+			continue;
 
 		const ChnlEntry = await Channel.findOne({ where: { OwnerGuild: { ID: G.ID }, ID: Chnl.id }, relations: { OwnerGuild: true, OwnerCategory: true } });
 		ChnlEntry.GuildPosition = Chnl.position;
@@ -196,6 +197,48 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
 		code: req.body.code,
 		uses: 0
 	});
+});
+
+App.patch("/:GuildID", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
+	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+		
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	const G = Mmbr.ToGuild;
+
+	if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD))
+		return res.status(403).json({ code: 10013, message: "Missing Access" });
+
+	for (const PropKey of Object.keys(req.body)) {
+		const Value = req.body[PropKey];
+		switch (PropKey) {
+			case "name":
+				G.Name = Value;
+				continue;
+			case "description":
+				G.Description = Value;
+				continue;
+			case "icon":
+				if (Value === null)
+				{
+					G.IconID = null;
+					continue;
+				}
+
+				if (!ValidBaseURL(Value))
+					continue;
+
+				G.IconID = await Upload(Value);
+				continue;
+		}
+	}
+
+	await G.save();
+
+	res.json(G.Package(MyUser));
+
+	SendToMembers(G.ID, OpCodes.DISPATCH, G.Package(MyUser), 1337, "GUILD_UPDATE");
 });
 
 App.post("/", VerifyAuth, async (req, res) => {

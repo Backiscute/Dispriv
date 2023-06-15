@@ -56,7 +56,7 @@ export class Channel extends BaseEntity {
     @Column({ type: "simple-json", nullable: true })
     Owner?: User;
 
-    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true})
+    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true, orphanedRowAction: "nullify" })
     OwnerCategory?: Channel;
 
     @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true })
@@ -65,7 +65,7 @@ export class Channel extends BaseEntity {
     @ManyToMany(() => User, U => U.AvailableDMs, { nullable: true })
     DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel, { orphanedRowAction: "delete" })
+    @OneToMany(() => Message, M => M.Channel)
     Messages: Message[];
 
     SmallDMPackage(UserContext: User) {

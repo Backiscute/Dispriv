@@ -9,7 +9,9 @@ export const Application = express.default();
 Application.disable("etag");
 Application.disable("x-powered-by");
 
-Application.use(express.json());
+Application.use(express.json({
+	limit: "5mb"
+}));
 
 const Files = fs.readdirSync("./bin/Routes");
 

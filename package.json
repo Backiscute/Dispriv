@@ -39,7 +39,7 @@
   "homepage": "https://github.com/McMistrzYT/Dispriv-TS#readme",
   "dependencies": {
     "@types/murmurhash3js": "^3.0.3",
-    "@types/uuid": "^9.0.1",
+    "@types/uuid": "^9.0.2",
     "@types/ws": "^8.5.4",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",

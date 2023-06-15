@@ -7,7 +7,6 @@ import { Msg } from "../Modules/Logger";
 import { Relation } from "../Entities/FriendUser";
 import { Application } from "../Handlers/Server";
 
-
 const App = Router();
 
 App.post("/register", async (req, res) => { // so what we do ok look at dis thing look my screen

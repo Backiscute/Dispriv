@@ -20,7 +20,11 @@ export function GenerateExperimentHash(Name: string): number {
 }
 
 export async function HasPermission(Usr: Membership, Permission: Permissions) {
-	return (GetHighestRole(Usr).Permissions & Permission) === Permission;
+	const HR = GetHighestRole(Usr);
+	if ((HR.Permissions & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR)
+		return true;
+
+	return (HR.Permissions & Permission) === Permission;
 }
 
 export function MembershipFromGuild(Usr: User, Server: Guild) {
@@ -49,35 +53,37 @@ export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data = nu
 	});
 }
 
-export async function SendMessage(Msg: Message) {
-	const PMessage = Msg.Package();
-
-	if (Msg.Channel.IsDM()) {
-		Msg.Channel.DMRecipients.forEach(Recipient => {
+export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data = null, s = null, t = null) {
+	if (Chnl.IsDM()) {
+		Chnl.DMRecipients.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.ID);
-			//console.log(Conn);
+
 			if (!Conn) return;
 			if (!HasIntent(Conn.Intents, GatewayIntents.DIRECT_MESSAGES)) return;
 
-			SendOp(Conn, OpCodes.DISPATCH, PMessage, 14, "MESSAGE_CREATE");
+			SendOp(Conn, Opcode, Data, s, t);
 		});
 	} else {
-		const SentGuild = await Guild.findOne({ where: { ID: Msg.Channel.OwnerGuild.ID }, relations: { Members: true } });
+		const SentGuild = await Guild.findOne({ where: { ID: Chnl.OwnerGuild.ID }, relations: { Members: true } });
 		
 		SentGuild.Members.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.Owner.ID);
 			if (!Conn) return;
 			if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
 
-			SendOp(Conn, OpCodes.DISPATCH, PMessage, 14, "MESSAGE_CREATE");
+			SendOp(Conn, Opcode, Data, s, t);
 		});
 	}
 }
 
-export function GenerateInviteCode(): string {
+export async function SendMessage(Msg: Message) {
+	SendToDMOrServer(Msg.Channel, OpCodes.DISPATCH, Msg.Package(), 69420, "MESSAGE_CREATE");
+}
+
+export function GenerateRandomString(Count = 8): string {
   let Result = "";
-  const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  for (let I = 0; I < 8; I++) {
+  const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let I = 0; I < Count; I++) {
     Result += Characters.charAt(Math.floor(Math.random() * Characters.length));
   }
   return Result;

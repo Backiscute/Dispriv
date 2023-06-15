@@ -8,7 +8,7 @@ import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/OpCodes";
 import { Relation, RelationType } from "../Entities/FriendUser";
 import { Guild, Invite } from "../Entities/Guild";
-import { GenerateInviteCode, HasPermission, MembershipFromGuild, SendMessage } from "../Modules/DiscordUtils";
+import { GenerateRandomString, HasPermission, MembershipFromGuild, SendMessage, SendToDMOrServer } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 
 const App = Router();
@@ -31,48 +31,54 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     res.json(RequestedChannel.Messages.map(M => M.Package()).reverse());
 });
 
-App.delete("/:ChannelID", VerifyAuth, (req, res) => {
-    // TODO: leaving groups
-    res.send();
+App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } } } });
+
+	if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+	if (!RequestedChannel.IsDM() && !HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild), Permissions.MANAGE_CHANNELS)) return res.status(400).json({ code: 0, message: "No access" });
+
+	await Channel.delete({ ID: RequestedChannel.ID });
+
+	res.send();
 });
 
 App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
-    const MyUser = await GetUserByRequest(req);
-    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true, Messages: { Channel: { Messages: false } } } });
+    const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { Channel: { Messages: false } } } });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
-    if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+    if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(403).json({ code: 0, message: "Missing Access" });
+	if (!RequestedChannel.IsDM() && !HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild), Permissions.MANAGE_CHANNELS)) return res.status(403).json({ code: 0, message: "Missing Access" });
 
-    (Object.keys(req.body).forEach(async Key => {
+	for await (const Key of Object.keys(req.body)) {
+		const Value = req.body[Key];
         switch (Key) {
             case "name":
-                if (req.body[Key].length > 64) break;
+				if (typeof Value !== "string") break;
+                if (Value.length > 64) break;
 
-                RequestedChannel.DisplayName = req.body[Key];
-                const ChannelNameChangedMessage = await Message.create({
-                    ID: GenerateSnowflake(),
-                    Author: MyUser,
-                    Type: MessageType.CHANNEL_NAME_CHANGE,
-                    Content: RequestedChannel.DisplayName,
-                    CreationDate: new Date(),
-                    Channel: RequestedChannel
-                }).save();
+                RequestedChannel.DisplayName = Value;
+				if (RequestedChannel.IsDM())
+                {
+					const ChannelNameChangedMessage = await Message.create({
+						ID: GenerateSnowflake(),
+						Author: MyUser,
+						Type: MessageType.CHANNEL_NAME_CHANGE,
+						Content: RequestedChannel.DisplayName,
+						CreationDate: new Date(),
+						Channel: RequestedChannel
+					}).save();
+	
+					await SendMessage(ChannelNameChangedMessage);
+				}
 
-                await SendMessage(ChannelNameChangedMessage);
                 break;
         }
-    }));
+	}
 
-    RequestedChannel.DMRecipients.forEach(Recipient => {
-        const RCMessage = RequestedChannel.SmallDMPackage(Recipient);
-        const Conn = FindConnection(Recipient.ID);
-        //console.log(Conn);
-        if (!Conn) return;
-        if (!HasIntent(Conn.Intents, RequestedChannel.IsDM() ? GatewayIntents.DIRECT_MESSAGES : GatewayIntents.GUILD_MESSAGES)) return;
-
-        SendOp(Conn, OpCodes.DISPATCH, RCMessage, 41, "CHANNEL_UPDATE");
-    });
-
+    SendToDMOrServer(RequestedChannel, OpCodes.DISPATCH, RequestedChannel.IsDM() ? RequestedChannel.GatewayDMPackage(MyUser) : RequestedChannel.GuildPackage(), 23423, "CHANNEL_UPDATE");
     await RequestedChannel.save();
 
     res.json(RequestedChannel.SmallDMPackage(MyUser));
@@ -134,7 +140,7 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
 
     const NewInvite = await Invite.create({
         InviteOwner: MyUser,
-        InviteCode: GenerateInviteCode(),
+        InviteCode: GenerateRandomString(),
         MaxUses: req.body["max_uses"] || 0,
         InGuild: RequestedChannel.OwnerGuild,
         Created: new Date()

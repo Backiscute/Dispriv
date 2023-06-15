@@ -69,7 +69,7 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Message, M => M.Replies, { nullable: true, eager: true })
     ReplyingTo?: Message;
 
-    @ManyToOne(() => Channel, C => C.Messages)
+    @ManyToOne(() => Channel, C => C.Messages, { orphanedRowAction: "delete" })
     Channel: Channel;
 
     Package() {
