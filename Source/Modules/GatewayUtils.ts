@@ -3,6 +3,7 @@ import { GatewayConnection } from "../Classes/GatewayConnection";
 import { Connections } from "../Handlers/Gateway";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "./Logger";
+import { OpCodes } from "../Classes/OpCodes";
 
 export function CloseConnection(SocketClient: GatewayConnection, Code: number, Reason: string) {
     SocketClient.Deflater.close();
@@ -24,7 +25,7 @@ export function HasIntent(intentNumber: number, intent: GatewayIntents): boolean
     return intentNumber === 0 || (intentNumber & intent) === intent;
 }
 
-export function SendOp(SocketClient: GatewayConnection, Opcode, Data = null, s = null, t = null) {
+export function SendOp(SocketClient: GatewayConnection, Opcode: OpCodes, Data = null, s = null, t = null) {
     const D = {
         t: t,
         s: s,

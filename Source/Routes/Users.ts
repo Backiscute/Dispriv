@@ -1,15 +1,25 @@
 import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
-import { User } from "../Entities/User";
+import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { FindOptionsWhere } from "typeorm";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 
 const App = Router();
+
+App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+	
+	const MembershipT = MyUser.Memberships.find(x => x.ToGuild.ID === req.params.ServerID);
+	if (!MembershipT)
+		return res.status(400).json({ code: 404, message: "You don't have a valid membership inside that guild." });
+
+	await Membership.createQueryBuilder("memberships").delete().where("ID = :ID", { ID: MembershipT.ID }).execute();
+	res.send();
+});
 
 App.post("/@me/channels", VerifyAuth, async (req, res) => {
     if (!Array.isArray(req.body.recipients)) return res.status(400).json({ code: 0, message: "400: Bad Request" });
@@ -183,7 +193,6 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
         .having("COUNT(DISTINCT DMRecipient.ID) = 1")
         .groupBy("Channel.ID")
         .getOne();
-
 
     let NChannel = null;
         

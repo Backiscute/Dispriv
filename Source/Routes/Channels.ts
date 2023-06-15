@@ -7,7 +7,7 @@ import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/OpCodes";
 import { Relation, RelationType } from "../Entities/FriendUser";
-import { Invite } from "../Entities/Guild";
+import { Guild, Invite } from "../Entities/Guild";
 import { GenerateInviteCode } from "../Modules/DiscordUtils";
 
 const App = Router();
@@ -143,7 +143,7 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
 
 App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
-    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { DMRecipients: true, OwnerGuild: true } });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
@@ -205,10 +205,24 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         const Conn = FindConnection(Recipient.ID);
         //console.log(Conn);
         if (!Conn) return;
-        if (!HasIntent(Conn.Intents, RequestedChannel.IsDM() ? GatewayIntents.DIRECT_MESSAGES : GatewayIntents.GUILD_MESSAGES)) return;
+        if (!HasIntent(Conn.Intents, GatewayIntents.DIRECT_MESSAGES)) return;
 
         SendOp(Conn, OpCodes.DISPATCH, PMessage, 14, "MESSAGE_CREATE");
     });
+
+	console.log(RequestedChannel.IsDM());
+	if (!RequestedChannel.IsDM()) {
+		const SentGuild = await Guild.findOne({ where: { ID: RequestedChannel.OwnerGuild.ID }, relations: { Members: true } });
+		
+		console.log(SentGuild.Members);
+		SentGuild.Members.forEach(Recipient => {
+			const Conn = FindConnection(Recipient.Owner.ID);
+			if (!Conn) return;
+			if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
+
+			SendOp(Conn, OpCodes.DISPATCH, PMessage, 14, "MESSAGE_CREATE");
+		});
+	}
 
     res.json({
         ...PMessage,

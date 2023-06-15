@@ -15,13 +15,25 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 		return res.status(400).json({ code: 0, message: "You don't own that guild." });
 
 	const G = MyUser.OwnedGuilds.find(G => G.ID === req.params.GuildID);
-	console.log(G);
+	//console.log(G);
 
 	await Guild.query("PRAGMA foreign_keys=OFF");
 	await Guild.remove(G);
 	await Guild.query("PRAGMA foreign_keys=ON");
 
 	res.status(204).send();
+});
+
+App.get("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+
+	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	res.json({
+		code: G.ToGuild.VanityInviteURL,
+		uses: 0
+	});
 });
 
 App.post("/", VerifyAuth, async (req, res) => {

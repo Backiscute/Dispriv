@@ -169,7 +169,7 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @ManyToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
 	@JoinTable()
     Members: Membership[];
 
@@ -200,7 +200,7 @@ export class Guild extends BaseEntity {
 			discovery_splash: this.BannerID,
 			home_header: this.BannerID,
 			features: this.Features,
-			approximate_member_count: this.Members.length,
+			approximate_member_count: 0,
 			approximate_presence_count: 0,
 			emojis: [],
 			stickers: []
@@ -332,11 +332,11 @@ export class Role extends BaseEntity {
 	@ManyToOne(() => Guild, G => G.Roles)
 	InGuild: Guild;
 
-	@ManyToMany(() => Membership, M => M.Roles)
+	@ManyToMany(() => Membership, M => M.ToGuild)
 	@JoinTable()
 	Members: Membership[];
 
-	@Column({ default: Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
+	@Column({ default: Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
 	Permissions: Permissions;
 
 	@Column()
