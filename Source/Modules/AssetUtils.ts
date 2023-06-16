@@ -1,6 +1,7 @@
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 import { v4 } from "uuid";
+import sharp from "sharp";
 
 export function ValidBaseURL(URL: string) {
 	return /^data:image\/png;base64,/g.test(URL);
@@ -14,7 +15,14 @@ export async function Upload(RawImageString: string) {
 	const ImgBlob = URLToBuffer(RawImageString);
 	const ID = v4().replaceAll("-", "");
 
-	await writeFileSync(path.join(__dirname + `\\..\\Assets/${ID}.png`), ImgBlob);
+	const Buffer = await sharp(ImgBlob).webp({ quality: 80 }).toBuffer();
+
+	console.log(Buffer);
+
+	if (!existsSync(path.join(__dirname + "\\..\\Assets/")))
+		mkdirSync(path.join(__dirname + "\\..\\Assets/"));
+
+	await writeFileSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`), Buffer);
 
 	return ID;
 }
