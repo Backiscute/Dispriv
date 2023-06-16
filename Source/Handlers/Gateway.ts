@@ -6,6 +6,9 @@ import { OpCodes } from "../Classes/OpCodes";
 import { CloseConnection, SendOp, SendRawJSON } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { parse, URLSearchParams } from "url";
+import { Presence } from "../Classes/Presence";
+import { SendToConnections } from "../Modules/DiscordUtils";
+import { time, timeEnd } from "console";
 
 const Socket = new WebSocketServer({
 	port: parseInt(process.env.WSPORT) || 6968,
@@ -29,6 +32,10 @@ Socket.on("connection", (Client, req) => {
 	Client.on("close", () => {
 		// brain damage generator
 		GatewayClient.Dispose();
+
+		if (GatewayClient.Account) 
+			GatewayClient.Account.Presence = Presence.OFFLINE;
+
 		const Idx = Connections.findIndex((C) => C.ID === GatewayClient.ID);
 		if (Idx !== -1)
 			Connections.splice(Idx, 1);
@@ -53,6 +60,27 @@ Socket.on("connection", (Client, req) => {
 			case OpCodes.HEARTBEAT:
 				return SendOp(GatewayClient, OpCodes.HEARTBEAT_ACK);
 
+			case OpCodes.PRESENCE_UPDATE:
+				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+				
+				switch (UnpackedData.d.status) {
+					case "online":
+						GatewayClient.Account.Presence = Presence.ONLINE;
+						break;
+					case "idle":
+						GatewayClient.Account.Presence = Presence.IDLE;
+						break;
+					case "dnd":
+						GatewayClient.Account.Presence = Presence.DND;
+						break;
+					case "invisible":
+						GatewayClient.Account.Presence = Presence.INVISIBLE;
+						break;
+				}
+
+				SendToConnections(GatewayClient.Account, OpCodes.DISPATCH, GatewayClient.Account.PackagePublic(), 6969, "GUILD_MEMBER_UPDATE");
+				break;
+
 			case OpCodes.CLIENT_SPEEDTEST_CREATE:
 				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
 				SendOp(GatewayClient, OpCodes.DISPATCH, { paused: false, region: "Dispriv", rtc_server_id: "1", stream_key: "test:" + GatewayClient.Account.ID, stream_server_id: "1", viewer_ids: [] }, null, "SPEED_TEST_CREATE");
@@ -65,11 +93,13 @@ Socket.on("connection", (Client, req) => {
 				break;
 
 			case OpCodes.IDENTIFY: {
+				time(`identify-${GatewayClient.ID}`);
 				const Token = UnpackedData.d.token ?? "";
 				const ValidToken = await VerifyToken(Token);
 
 				if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
 
+				console.log("--- GETTING ACCOUNT");
 				GatewayClient.Account = await GetUserByToken(Token, {
 					AvailableDMs: {
 						DMRecipients: true
@@ -92,6 +122,7 @@ Socket.on("connection", (Client, req) => {
 				});
 				GatewayClient.UserToken = Token;
 
+				console.log("--- ACCOUNT GOTTEN");
 				const ConnectionIntents = UnpackedData.d.intents ?? 0;
 				GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
@@ -100,9 +131,10 @@ Socket.on("connection", (Client, req) => {
 					"Gateway"
 				);
 
-				console.log(GatewayClient.Account);
+				const PresenceSet = UnpackedData.d.presence.status ?? Presence.ONLINE;
+				GatewayClient.Account.Presence = PresenceSet;
 
-
+				console.log("--- SENDING READY DISPATCH");
 				SendOp(
 					GatewayClient,
 					OpCodes.DISPATCH,
@@ -136,7 +168,7 @@ Socket.on("connection", (Client, req) => {
 						},
 						user: GatewayClient.Account.Package(),
 						user_guild_settings: { "entries": [], "partial": false, "version": 0 }, // guild settings for the user (notifications, etc)
-						user_settings_proto: GatewayClient.Account.SettingsProto, // idk what this is
+						user_settings_proto: GatewayClient.Account.SettingsProto, // settings of the client
 						users: [
 							GatewayClient.Account.PackageSmall(),
 							...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat(),
@@ -149,6 +181,7 @@ Socket.on("connection", (Client, req) => {
 				);
 
 				//console.log(GatewayClient.Account.Memberships[0].ToGuild);
+				console.log("--- SENDING READY_SUPPLIMENTAL DISPATCH");
 				SendOp(
 					GatewayClient,
 					OpCodes.DISPATCH,
@@ -164,6 +197,8 @@ Socket.on("connection", (Client, req) => {
 					2,
 					"READY_SUPPLEMENTAL"
 				);
+				console.log("--- CLIENT READY'IED");
+				timeEnd(`identify-${GatewayClient.ID}`);
 				break;
 			}
 		}

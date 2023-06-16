@@ -7,6 +7,7 @@ import { DiscordApplication } from './Application';
 import { Channel } from './Channel';
 import { Guild, Invite, Role } from './Guild';
 import { CreateTimestamp, GetHighestRole, GetHighestRoleInArr } from '../Modules/DiscordUtils';
+import { Presence } from '../Classes/Presence';
 
 @Entity()
 export class User extends BaseEntity {
@@ -54,6 +55,9 @@ export class User extends BaseEntity {
 
 	@Column({ default: UserFlags.VERIFIED_EMAIL })
 	Flags: UserFlags;
+
+	@Column({ default: Presence.OFFLINE })
+	Presence: Presence;
 
 	@ManyToMany(() => Channel, C => C.DMRecipients)
 	@JoinTable()
@@ -103,9 +107,9 @@ export class User extends BaseEntity {
 	Package() {
 		return {
 			accent_color: null,
-			avatar: null,
+			avatar: this.AvatarID,
 			avatar_decoration: null,
-			banner: null,
+			banner: this.BannerID,
 			banner_color: null,
 			bio: this.Bio,
 			desktop: true,
@@ -133,9 +137,9 @@ export class User extends BaseEntity {
 	PackagePublic() {
 		return {
 			accent_color: null,
-			avatar: null,
+			avatar: this.AvatarID,
 			avatar_decoration: null,
-			banner: null,
+			banner: this.BannerID,
 			banner_color: null,
 			bio: this.Bio,
 			discriminator: this.Discriminator,
@@ -151,7 +155,7 @@ export class User extends BaseEntity {
 
 	PackageSmall() {
 		return {
-			avatar: null,
+			avatar: this.AvatarID,
 			avatar_decoration: null,
 			bot: this.Bot,
 			discriminator: this.Discriminator,
@@ -165,7 +169,7 @@ export class User extends BaseEntity {
 
 	Gateway(MemberOf: Membership) {
 		return {
-			avatar: null,
+			avatar: this.AvatarID,
 			communication_disabled_until: null,
 			deaf: MemberOf.Deafened,
 			flags: 0,
@@ -243,7 +247,7 @@ export class Membership extends BaseEntity {
 
 	PackageGateway() {
 		return [{
-			avatar: this.Owner.AvatarID,
+			avatar: null,
 			nick: this.GuildNickname,
 			roles: this.Roles ? this.Roles.map(R => R.ID) : [],
 			joined_at: CreateTimestamp(this.CreatedAt),

@@ -7,8 +7,51 @@ import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
+import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
+import { SendToConnections, SendToSelf } from "../Modules/DiscordUtils";
 
 const App = Router();
+
+App.patch(["/@me", "/@me/profile"], VerifyAuth, async (req, res) => {
+	const U = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
+
+	for (const PropKey of Object.keys(req.body)) {
+		const Value = req.body[PropKey];
+		switch (PropKey) {
+			case "username":
+				if (Value.length >= 32) return res.status(403).json({ code: 0, message: "username too large" });
+				U.Username = Value;
+				continue;
+			case "discriminator":
+				if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+
+				U.Discriminator = Value;
+				continue;
+			case "bio":
+				U.Bio = Value;
+				continue;
+			case "avatar":
+				if (U.AvatarID !== null && U.AvatarID !== Value)
+				{
+					await Remove(U.AvatarID);
+					U.AvatarID = null;
+				}
+
+				if (!ValidBaseURL(Value))
+					continue;
+
+				U.AvatarID = await Upload(Value);
+				continue;
+		}
+	}
+
+	await U.save();
+
+	res.json(U.Package());
+
+	SendToSelf(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
+	//SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");
+});
 
 App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
 	const MyUser = await GetUserByRequest(req);

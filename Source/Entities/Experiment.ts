@@ -11,6 +11,24 @@ export enum ExperimentPopulationFilterType {
 }
 
 @Entity()
+export class UserExperiment extends BaseEntity {
+	@PrimaryColumn()
+	ID: string;
+
+	@Column()
+	DisplayName: string;
+
+	@Column()
+	Version: number;
+
+	@Column()
+	Bucket: number;
+
+	@Column()
+	Population: number;
+}
+
+@Entity()
 export class GuildExperiment extends BaseEntity {
 	@PrimaryColumn()
 	ID: string;

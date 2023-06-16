@@ -6,8 +6,8 @@ import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { GetHighestRole, HasPermission, SendToMembers } from "../Modules/DiscordUtils";
-import { Upload, ValidBaseURL } from "../Modules/AssetUtils";
+import { GetHighestRole, HasPermission, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
+import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 
 const App = Router();
 
@@ -220,10 +220,10 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
 				G.Description = Value;
 				continue;
 			case "icon":
-				if (Value === null)
+				if (G.IconID !== null && G.IconID !== Value)
 				{
+					await Remove(G.IconID);
 					G.IconID = null;
-					continue;
 				}
 
 				if (!ValidBaseURL(Value))
@@ -297,11 +297,8 @@ App.post("/", VerifyAuth, async (req, res) => {
 		}
 	});
 
-	const Conn = FindConnection(MyUser.ID);
-	if (!Conn) return res.json(CreatedGuild.Package(MyUser));
-
-	SendOp(Conn, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");
 	res.json(CreatedGuild.Package(MyUser));
+	SendToSelf(MyUser, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");
 });
 
 module.exports = {

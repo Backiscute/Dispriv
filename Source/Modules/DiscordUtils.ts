@@ -39,6 +39,35 @@ export function GetHighestRole(Usr: Membership) {
 	return GetHighestRoleInArr(Usr.Roles);
 }
 
+export async function SendToSelf(Usr: User, Opcode: OpCodes, Data = null, s = null, t = null) {
+	const Conn = FindConnection(Usr.ID);
+	if (!Conn) return;
+
+	SendOp(Conn, Opcode, Data, s, t);
+}
+
+export async function SendToConnections(Usr: User, Opcode: OpCodes, Data = null, s = null, t = null) {
+	[...Usr.RelationsFrom, ...Usr.RelationsRegarding].forEach(R => {
+		const OtherUser = R.From.ID === Usr.ID ? R.Regarding : R.From;
+
+		const Conn = FindConnection(OtherUser.ID);
+		if (!Conn) return;
+
+		SendOp(Conn, Opcode, Data, s, t);
+	});
+
+	Usr.Memberships.forEach(R => {
+		const SentGuild = R.ToGuild;
+		SentGuild.Members.forEach(Recipient => {
+			const Conn = FindConnection(Recipient.Owner.ID);
+			if (!Conn) return;
+			//if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
+	
+			SendOp(Conn, Opcode, Data, s, t);
+		});
+	});
+}
+
 export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data = null, s = null, t = null) {
 	const SentGuild = await Guild.findOne({ where: { ID: ServerID }, relations: { Members: true } });
 

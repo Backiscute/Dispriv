@@ -40,7 +40,15 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 			return res.status(404).json({"message": "Unknown Invite", "code": 10006});
 
 		if (MyUser.Memberships.find(x => x.ToGuild.ID === VanityGuild.ID))
-			return res.json(RequestedInvite.Package());
+			return res.json({
+				code: VanityGuild.VanityInviteURL,
+				guild: VanityGuild.Partial(),
+				type: "GUILD",
+				expires_at: null,
+				aproximate_member_count: 0,
+				aproximate_presence_count: 0,
+				channel: null
+			});
 
 		await Membership.create({
 			ID: GenerateSnowflake(),
