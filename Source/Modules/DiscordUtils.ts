@@ -46,23 +46,52 @@ export async function SendToSelf(Usr: User, Opcode: OpCodes, Data = null, s = nu
 	SendOp(Conn, Opcode, Data, s, t);
 }
 
+export async function SendGuildMemberUpdate(Usr: User) {
+	const AlreadySentTo: string[] = [];
+	
+	Usr.Memberships.forEach(R => {
+		const SentGuild = R.ToGuild;
+
+		SentGuild.Members.forEach(Recipient => {
+			if (AlreadySentTo.includes(Recipient.Owner.ID)) return;
+
+			const Conn = FindConnection(Recipient.Owner.ID);
+			if (!Conn) return;
+			//if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
+	
+			AlreadySentTo.push(Recipient.Owner.ID);
+			SendOp(Conn, OpCodes.DISPATCH, {
+				...R.Package(),
+				guild_id: SentGuild.ID
+			}, 666, "GUILD_MEMBER_UPDATE");
+		});
+	});
+}
+
 export async function SendToConnections(Usr: User, Opcode: OpCodes, Data = null, s = null, t = null) {
+	const AlreadySentTo: string[] = [];
+
 	[...Usr.RelationsFrom, ...Usr.RelationsRegarding].forEach(R => {
 		const OtherUser = R.From.ID === Usr.ID ? R.Regarding : R.From;
+		if (AlreadySentTo.includes(OtherUser.ID)) return;
 
 		const Conn = FindConnection(OtherUser.ID);
 		if (!Conn) return;
 
+		AlreadySentTo.push(OtherUser.ID);
 		SendOp(Conn, Opcode, Data, s, t);
 	});
 
 	Usr.Memberships.forEach(R => {
 		const SentGuild = R.ToGuild;
 		SentGuild.Members.forEach(Recipient => {
+			if (AlreadySentTo.includes(Recipient.Owner.ID)) return;
+
 			const Conn = FindConnection(Recipient.Owner.ID);
 			if (!Conn) return;
 			//if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
 	
+			AlreadySentTo.push(Recipient.Owner.ID);
 			SendOp(Conn, Opcode, Data, s, t);
 		});
 	});
@@ -109,9 +138,9 @@ export async function SendMessage(Msg: Message) {
 	SendToDMOrServer(Msg.Channel, OpCodes.DISPATCH, Msg.Package(), 69420, "MESSAGE_CREATE");
 }
 
-export function GenerateRandomString(Count = 8): string {
+export function GenerateRandomString(Count = 8, OverrideChars = ""): string {
   let Result = "";
-  const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const Characters = OverrideChars === "" ? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" : OverrideChars;
   for (let I = 0; I < Count; I++) {
     Result += Characters.charAt(Math.floor(Math.random() * Characters.length));
   }

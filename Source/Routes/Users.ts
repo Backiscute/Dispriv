@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
 import { Membership, User } from "../Entities/User";
@@ -8,7 +9,7 @@ import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
-import { SendToSelf } from "../Modules/DiscordUtils";
+import { GenerateRandomString, SendToSelf } from "../Modules/DiscordUtils";
 
 const App = Router();
 
@@ -19,15 +20,31 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 		const Value = req.body[PropKey];
 		switch (PropKey) {
 			case "username":
-				if (Value.length >= 32) return res.status(403).json({ code: 0, message: "username too large" });
-				U.Username = Value;
+				if (!/^[a-z 0-9]{2,32}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Username failed validation" });
+				let ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: U.Discriminator } });
+				let DiscrimRandom = U.Discriminator;
+
+				console.log(ExistingUserU);
+				while (ExistingUserU !== null) {
+					DiscrimRandom = GenerateRandomString(4, "0123456789");
+					ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: DiscrimRandom } });
+				}
+
+				U.Username = Value.trim();
+				U.Discriminator = DiscrimRandom;
 				continue;
 			case "discriminator":
 				if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+				const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
+				console.log(ExistingUserD);
+				if (ExistingUserD)
+					return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
 
 				U.Discriminator = Value;
 				continue;
 			case "bio":
+				if (!/^[a-z 0-9!?,.*]{0,250}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Bio failed validation" });
+
 				U.Bio = Value;
 				continue;
 			case "avatar":
@@ -42,6 +59,18 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 
 				U.AvatarID = await Upload(Value);
 				continue;
+			case "banner":
+				if (U.BannerID !== null && U.BannerID !== Value)
+				{
+					await Remove(U.BannerID);
+					U.BannerID = null;
+				}
+
+				if (!ValidBaseURL(Value))
+					continue;
+
+				U.BannerID = await Upload(Value, false);
+				break;
 		}
 	}
 

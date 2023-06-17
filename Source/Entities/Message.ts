@@ -72,13 +72,13 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Channel, C => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     Channel: Channel;
 
-    Package() {
+    Package(IncludeReplyData = true) {
         return {
-            message_reference: this.Type === MessageType.REPLY ? {
+            message_reference: this.Type === MessageType.REPLY  && IncludeReplyData ? {
                 channel_id: this.ReplyingTo?.Channel?.ID,
                 message_id: this.ReplyingTo?.ID
             } : undefined,
-            referenced_message: this.Type === MessageType.REPLY ? this.ReplyingTo?.Package() : undefined,
+            referenced_message: this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
             reactions: this.Reactions?.map(R => R.Package()),
             attachments: [],
             tts: false,

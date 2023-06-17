@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
-import { Guild, Invite } from "../Entities/Guild";
+import { Guild, Invite, InviteType } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
 import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
@@ -30,12 +30,12 @@ App.get("/:InviteCode", VerifyAuth, async (req, res) => {
 });
 
 App.post("/:InviteCode", VerifyAuth, async (req, res) => {
-    const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: { OwnerGuild: true } } } });
+    const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
 	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
     
 	if (!RequestedInvite)
 	{
-		const VanityGuild = await Guild.findOne({ where: { VanityInviteURL: req.params.InviteCode }, relations: { Members: true, Channels: { OwnerGuild: true } } });
+		const VanityGuild = await Guild.findOne({ where: { VanityInviteURL: req.params.InviteCode }, relations: { Members: true, Channels: true } });
 		if (!VanityGuild)
 			return res.status(404).json({"message": "Unknown Invite", "code": 10006});
 
@@ -43,10 +43,10 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 			return res.json({
 				code: VanityGuild.VanityInviteURL,
 				guild: VanityGuild.Partial(),
-				type: "GUILD",
+				type: InviteType.GUILD,
 				expires_at: null,
-				aproximate_member_count: 0,
-				aproximate_presence_count: 0,
+				approximate_member_count: 0,
+				approximate_presence_count: 0,
 				channel: null
 			});
 
@@ -61,10 +61,10 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 		res.json({
 			code: VanityGuild.VanityInviteURL,
 			guild: VanityGuild.Partial(),
-			type: "GUILD",
+			type: InviteType.GUILD,
 			expires_at: null,
-			aproximate_member_count: 0,
-			aproximate_presence_count: 0,
+			approximate_member_count: 0,
+			approximate_presence_count: 0,
 			channel: null
 		});
 		

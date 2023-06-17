@@ -168,21 +168,21 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "DEFAULT" })
+    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
 	@JoinTable()
     Members: Membership[];
 
-    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, orphanedRowAction: "delete" })
+    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
 	@JoinColumn()
     Channels: Channel[];
 
-	@OneToMany(() => Role, R => R.InGuild, { eager: true, orphanedRowAction: "delete" })
+	@OneToMany(() => Role, R => R.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
 	@JoinColumn()
 	Roles: Role[];
 
-	@OneToMany(() => Invite, I => I.InGuild, { eager: true, orphanedRowAction: "delete" })
+	@OneToMany(() => Invite, I => I.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
 	@JoinColumn()
-	Invites: Role[];
+	Invites: Invite[];
 
 	DefaultRole() {
 		return this.Roles.find(R => R.ID === this.ID);
@@ -411,8 +411,8 @@ export class Invite extends BaseEntity {
 			guild: this.InGuild.Partial(),
 			type: this.Type,
 			expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
-			aproximate_member_count: 0,
-			aproximate_presence_count: 0, // TODO
+			approximate_member_count: 0,
+			approximate_presence_count: 0, // TODO
 			channel: null // TODO
 		};
 	}

@@ -7,7 +7,7 @@ import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { SendToConnections } from "../Modules/DiscordUtils";
+import { SendGuildMemberUpdate } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 
 const Socket = new WebSocketServer({
@@ -15,7 +15,7 @@ const Socket = new WebSocketServer({
 });
 
 export const Connections: GatewayConnection[] = [];
-Socket.on("connection", (Client, req) => {
+Socket.on("connection", async (Client, req) => {
 	const QueryParams = new URLSearchParams(parse(req.url).query);
 	console.log(QueryParams);
 	console.log({
@@ -78,7 +78,9 @@ Socket.on("connection", (Client, req) => {
 						break;
 				}
 
-				SendToConnections(GatewayClient.Account, OpCodes.DISPATCH, GatewayClient.Account.PackagePublic(), 6969, "GUILD_MEMBER_UPDATE");
+				await GatewayClient.Account.save();
+
+				SendGuildMemberUpdate(GatewayClient.Account);
 				break;
 
 			case OpCodes.CLIENT_SPEEDTEST_CREATE:
