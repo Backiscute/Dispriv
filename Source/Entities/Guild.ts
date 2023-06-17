@@ -235,7 +235,7 @@ export class Guild extends BaseEntity {
 			large: this.Members?.length > 100,
 			unavailable: this.Disabled,
 			member_count: this.Members?.length,
-			channels: this.Channels?.map(C => C.GuildPackage()),
+			channels: this.Channels?.map(C => C.GuildPackage(this.ID)),
 			threads: [],
 			max_members: this.MaximumMembers,
 			vanity_url: this.VanityInviteURL,
@@ -251,7 +251,7 @@ export class Guild extends BaseEntity {
 	GatewayPackage(UserContext: User) {
 		return {
 			application_command_counts: {},
-			channels: this.Channels ? this.Channels.map(C => C.GuildPackage()) : [],
+			channels: this.Channels ? this.Channels.map(C => C.GuildPackage(this.ID)) : [],
 			data_mode: "full",
 			emojis: [],
 			guild_scheduled_events: [],
@@ -273,7 +273,7 @@ export class Guild extends BaseEntity {
 	GatewayPackageEvent(UserContext: User) {
 		return {
 			application_command_counts: {},
-			channels: this.Channels ? this.Channels.map(C => C.GuildPackage()) : [],
+			channels: this.Channels ? this.Channels.map(C => C.GuildPackage(this.ID)) : [],
 			data_mode: "full",
 			emojis: [],
 			guild_scheduled_events: [],

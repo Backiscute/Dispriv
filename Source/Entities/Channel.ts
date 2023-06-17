@@ -97,11 +97,11 @@ export class Channel extends BaseEntity {
         };
     }
 
-	GuildPackage() {
+	GuildPackage(OverrideOwnerGuildID: string = null) {
 		return {
 			id: this.ID,
 			type: this.Type,
-			guild_id: this.OwnerGuild.ID,
+			guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild.ID,
 			parent_id: this.OwnerCategory?.ID ?? null,
 			position: this.GuildPosition,
 			permission_overwrites: [],

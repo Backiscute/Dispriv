@@ -114,7 +114,6 @@ Socket.on("connection", (Client, req) => {
 								Roles: true
 							},
 							Channels: {
-								OwnerGuild: true,
 								OwnerCategory: true
 							}
 						}
