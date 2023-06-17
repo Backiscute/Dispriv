@@ -146,7 +146,7 @@ App.post("/:GuildID/channels", VerifyAuth, async (req, res) => {
 
 	await Chnl.save();
 
-	res.json(Chnl.GuildPackage());
+	res.status(201).json(Chnl.GuildPackage());
 
 	SendToMembers(G.ID, OpCodes.DISPATCH, Chnl.GuildPackage(), 69, "CHANNEL_CREATE");
 });

@@ -31,6 +31,23 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     res.json(RequestedChannel.Messages.map(M => M.Package()).reverse());
 });
 
+App.get("/:ChannelID", VerifyAuth, async (req, res) => {
+    const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } } } });
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+
+    if (RequestedChannel.IsDM())
+    {
+        if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+        return res.json(RequestedChannel.SmallDMPackage(MyUser));
+    }
+
+    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild), Permissions.VIEW_CHANNEL)) return res.status(400).json({ code: 0, message: "No access" });
+
+    res.json(RequestedChannel.GuildPackage());
+});
+
 App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } } } });
@@ -69,7 +86,9 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 						Content: RequestedChannel.DisplayName,
 						CreationDate: new Date(),
 						Channel: RequestedChannel
-					}).save();
+					});
+
+                    Message.insert(ChannelNameChangedMessage);
 	
 					await SendMessage(ChannelNameChangedMessage);
 				}
@@ -144,7 +163,9 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
         MaxUses: req.body["max_uses"] || 0,
         InGuild: RequestedChannel.OwnerGuild,
         Created: new Date()
-    }).save();
+    });
+
+    Invite.insert(NewInvite);
 
     await RequestedChannel.OwnerGuild.reload();
 

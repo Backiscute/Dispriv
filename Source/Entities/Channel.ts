@@ -1,7 +1,7 @@
 import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
-import { Guild } from "./Guild";
+import { Guild, Invite } from "./Guild";
 
 export const enum ChannelType {
     GUILD_TEXT = 0,
@@ -68,6 +68,9 @@ export class Channel extends BaseEntity {
     @OneToMany(() => Message, M => M.Channel)
     Messages: Message[];
 
+    @OneToMany(() => Invite, I => I.LinkedChannel, { orphanedRowAction: "delete" })
+    Invites: Invite[];
+
     SmallDMPackage(UserContext: User) {
         return {
             id: this.ID,
@@ -99,12 +102,15 @@ export class Channel extends BaseEntity {
 			id: this.ID,
 			type: this.Type,
 			guild_id: this.OwnerGuild.ID,
-			parent_id: this.OwnerCategory?.ID,
+			parent_id: this.OwnerCategory?.ID ?? null,
 			position: this.GuildPosition,
 			permission_overwrites: [],
 			name: this.DisplayName,
 			nsfw: this.IsNSFW,
 			last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
+            flags: 0,
+            topic: null,
+            rate_limit_per_user: 0 // slowmode??
 		};
 	}
 

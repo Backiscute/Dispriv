@@ -12,7 +12,7 @@ import { SendToConnections, SendToSelf } from "../Modules/DiscordUtils";
 
 const App = Router();
 
-App.patch(["/@me", "/@me/profile"], VerifyAuth, async (req, res) => {
+App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
 	const U = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
 
 	for (const PropKey of Object.keys(req.body)) {

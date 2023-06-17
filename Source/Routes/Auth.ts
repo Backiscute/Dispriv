@@ -37,7 +37,7 @@ App.post("/register", async (req, res) => { // so what we do ok look at dis thin
         TutorialReadIndicators: [],
     });
 
-    await NewUser.save();
+    await User.insert(NewUser);
 
     const NewToken = GenerateToken(NewUser.ID, Date.now(), HashedPassword);
     Msg(`Generated token ${NewToken} for user ${Username}, Registered`, "Auth");

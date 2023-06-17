@@ -385,6 +385,9 @@ export class Invite extends BaseEntity {
 	@Column({ default: InviteType.GUILD })
 	Type: InviteType;
 
+	@ManyToOne(() => Channel, C => C.Invites, { eager: true, nullable: true })
+	LinkedChannel?: Channel;
+
 	@ManyToOne(() => User, U => U.CreatedInvites, { eager: true })
     InviteOwner: User;
 
