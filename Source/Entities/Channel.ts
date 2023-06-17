@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany } from "typeorm";
+import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinColumn } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
 import { Guild, Invite } from "./Guild";
@@ -33,8 +33,9 @@ export class Channel extends BaseEntity {
     @Column({ default: "A channel" })
     DisplayName: string;
 
-    @ManyToOne(() => Guild, G => G.Channels, { nullable: true, orphanedRowAction: "delete" })
-    OwnerGuild?: Guild;
+    @ManyToOne(() => Guild, G => G.Channels, { nullable: true, onDelete: "CASCADE" })
+    @JoinColumn()
+	OwnerGuild?: Guild;
 
     @Column({ default: -1 })
     GuildPosition: number;
@@ -56,20 +57,25 @@ export class Channel extends BaseEntity {
     @Column({ type: "simple-json", nullable: true })
     Owner?: User;
 
-    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true, orphanedRowAction: "nullify" })
-    OwnerCategory?: Channel;
+    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true, orphanedRowAction: "nullify", onDelete: "SET NULL" })
+    @JoinColumn()
+	OwnerCategory?: Channel;
 
-    @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true })
-    CategoryChannels?: Channel[];
+    @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true, onDelete: "SET NULL" })
+    @JoinColumn()
+	CategoryChannels?: Channel[];
 
-    @ManyToMany(() => User, U => U.AvailableDMs, { nullable: true })
-    DMRecipients?: User[];
+    @ManyToMany(() => User, U => U.AvailableDMs, { nullable: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
+	DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel)
-    Messages: Message[];
+    @OneToMany(() => Message, M => M.Channel, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
+	Messages: Message[];
 
-    @OneToMany(() => Invite, I => I.LinkedChannel, { orphanedRowAction: "delete" })
-    Invites: Invite[];
+    @OneToMany(() => Invite, I => I.LinkedChannel, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
+	Invites: Invite[];
 
     SmallDMPackage(UserContext: User) {
         return {

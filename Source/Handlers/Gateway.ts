@@ -3,7 +3,7 @@ import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
-import { CloseConnection, SendOp, SendRawJSON } from "../Modules/GatewayUtils";
+import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";

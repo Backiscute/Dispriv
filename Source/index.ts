@@ -11,4 +11,4 @@ export const DisprivDataSource = new DataSource({
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
     migrations: []
-}).initialize();
+}).initialize()/*.then(async (d) => await d.query("PRAGMA foreign_keys=OFF"))*/;

@@ -6,12 +6,46 @@ import { Message, MessageType } from "../Entities/Message";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/OpCodes";
-import { Relation, RelationType } from "../Entities/FriendUser";
-import { Guild, Invite } from "../Entities/Guild";
-import { GenerateRandomString, HasPermission, MembershipFromGuild, SendMessage, SendToDMOrServer } from "../Modules/DiscordUtils";
+import { RelationType } from "../Entities/FriendUser";
+import { Invite } from "../Entities/Guild";
+import { GenerateRandomString, HasPermission, MembershipFromGuild, SendMessage, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 
 const App = Router();
+
+App.patch("/*/messages/:MessageID", async (req, res) => {
+	res.status(403).send();
+});
+
+App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+	console.log("user");
+	const RequestedMessage = await Message.findOne({
+		where: {
+			ID: req.params.MessageID
+		},
+		relations: {
+			Author: false
+		}
+	});
+
+	console.log("message");
+
+	if (!RequestedMessage)
+		return res.status(400).json({ code: 10015, message: "Unknown Message" });
+
+	if (!RequestedMessage.Channel.IsDM() && !HasPermission(MembershipFromGuild(MyUser, RequestedMessage.Channel.OwnerGuild), Permissions.MANAGE_MESSAGES))
+		return res.status(403).json({ code: 0, message: "Missing Access" });
+
+	await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, {
+		id: RequestedMessage.ID,
+		channel_id: RequestedMessage.Channel.ID,
+		guild_id: RequestedMessage.Channel.IsDM() ? undefined : RequestedMessage.Channel.OwnerGuild.ID
+	});
+
+	await Message.delete({ ID: RequestedMessage.ID });
+	res.sendStatus(204);
+});
 
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
@@ -39,7 +73,9 @@ App.get("/:ChannelID", VerifyAuth, async (req, res) => {
 
     if (RequestedChannel.IsDM())
     {
-        if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+        if (!RequestedChannel.CheckDMAccess(MyUser))
+			return res.status(400).json({ code: 0, message: "No access" });
+
         return res.json(RequestedChannel.SmallDMPackage(MyUser));
     }
 
@@ -56,9 +92,11 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
     if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
 	if (!RequestedChannel.IsDM() && !HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild), Permissions.MANAGE_CHANNELS)) return res.status(400).json({ code: 0, message: "No access" });
 
-	await Channel.delete({ ID: RequestedChannel.ID });
-
 	res.send();
+	if (!RequestedChannel.IsDM())
+		await SendToMembers(RequestedChannel.OwnerGuild.ID, OpCodes.DISPATCH, RequestedChannel.GuildPackage(), 1, "CHANNEL_DELETE");
+	
+	await Channel.delete({ ID: RequestedChannel.ID });
 });
 
 App.patch("/:ChannelID", VerifyAuth, async (req, res) => {

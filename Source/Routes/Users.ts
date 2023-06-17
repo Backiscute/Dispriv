@@ -8,7 +8,7 @@ import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
-import { SendToConnections, SendToSelf } from "../Modules/DiscordUtils";
+import { SendToSelf } from "../Modules/DiscordUtils";
 
 const App = Router();
 
@@ -144,9 +144,8 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
     const FoundUser = await User.findOneBy({ ID: UserID });
     if (!FoundUser) return res.status(404).json({ message: "Unknown User", code: 10013 });
 
-    const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
-    const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;
-
+    /*const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
+    const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;*/
     res.json({
         badges: [], // TODO
         connected_accounts: [], // TODO

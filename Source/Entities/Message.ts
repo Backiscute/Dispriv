@@ -66,10 +66,10 @@ export class Message extends BaseEntity {
     @OneToMany(() => Message, M => M.ReplyingTo)
     Replies: Message[];
 
-    @ManyToOne(() => Message, M => M.Replies, { nullable: true, eager: true })
+    @ManyToOne(() => Message, M => M.Replies, { nullable: true, eager: true, onDelete: "SET NULL", orphanedRowAction: "nullify" })
     ReplyingTo?: Message;
 
-    @ManyToOne(() => Channel, C => C.Messages, { orphanedRowAction: "delete" })
+    @ManyToOne(() => Channel, C => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     Channel: Channel;
 
     Package() {

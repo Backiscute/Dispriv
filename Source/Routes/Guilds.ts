@@ -2,7 +2,6 @@ import { Router } from "express";
 import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
 import { Guild, GuildFeatures, Role } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
-import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
@@ -14,14 +13,17 @@ const App = Router();
 App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 	const MyUser = await GetUserByRequest(req, { OwnedGuilds: true });
 	if (!MyUser.OwnedGuilds.map(G => G.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You don't own that guild." });
+		return res.status(403).json({ code: 0, message: "Missing Access" });
 
 	const G = MyUser.OwnedGuilds.find(G => G.ID === req.params.GuildID);
 	//console.log(G);
 
-	await Guild.query("PRAGMA foreign_keys=OFF");
-	await Guild.remove(G);
-	await Guild.query("PRAGMA foreign_keys=ON");
+	if (G.IconID)
+		await Remove(G.IconID);
+
+	await SendToMembers(G.ID, OpCodes.DISPATCH, { id: G.ID }, 69, "GUILD_DELETE");
+
+	await Guild.delete({ ID: G.ID });
 
 	res.status(204).send();
 });
@@ -283,17 +285,13 @@ App.post("/", VerifyAuth, async (req, res) => {
 		Roles: [ EveryoneRole ]
 	}).save();
 
-	await CreatedGuild.reload();
-
 	CreatedGuild = await Guild.findOne({
 		where: {
 			ID: GuildID
 		},
 		relations: {
 			Members: true,
-			Channels: {
-				OwnerGuild: true
-			}
+			Channels: true
 		}
 	});
 

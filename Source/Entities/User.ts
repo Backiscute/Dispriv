@@ -50,7 +50,7 @@ export class User extends BaseEntity {
 	@Column({ default: false })
 	Bot: boolean;
 
-	@OneToOne(() => DiscordApplication, DA => DA.Bot, { nullable: true })
+	@OneToOne(() => DiscordApplication, DA => DA.Bot, { nullable: true, onDelete: "CASCADE" })
 	BotApplication?: DiscordApplication;
 
 	@Column({ default: UserFlags.VERIFIED_EMAIL })
@@ -79,7 +79,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	Applications: DiscordApplication[];
 
-	@OneToMany(() => Guild, G => G.Owner)
+	@OneToMany(() => Guild, G => G.Owner, { onDelete: "DEFAULT", orphanedRowAction: "delete" })
 	@JoinTable()
 	OwnedGuilds: Guild[];
 
@@ -87,7 +87,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	CreatedInvites: Invite[];
 
-	@OneToMany(() => Membership, M => M.Owner, { orphanedRowAction: "delete" })
+	@OneToMany(() => Membership, M => M.Owner, { onDelete: "DEFAULT", orphanedRowAction: "delete" })
 	@JoinTable()
 	Memberships: Membership[];
 
@@ -216,18 +216,18 @@ export class Membership extends BaseEntity {
 	@Column({ default: false })
 	Deafened: boolean;
 
-	@ManyToOne(() => User, U => U.Memberships, { eager: true, orphanedRowAction: "delete" })
+	@ManyToOne(() => User, U => U.Memberships, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
 	@JoinTable()
 	Owner: User;
 
 	@Column({ nullable: true })
 	GuildNickname?: string;
 
-	@ManyToOne(() => Guild, G => G.Members, { orphanedRowAction: "delete" })
+	@ManyToOne(() => Guild, G => G.Members, { onDelete: "CASCADE", orphanedRowAction: "delete" })
 	@JoinTable()
 	ToGuild: Guild;
 
-	@ManyToMany(() => Role, R => R.Members, { eager: true })
+	@ManyToMany(() => Role, R => R.Members, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
 	@JoinTable()
 	Roles: Role[];
 

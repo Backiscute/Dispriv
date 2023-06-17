@@ -3,7 +3,6 @@ import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel } from "./Channel";
 import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
-import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 export const enum InviteType {
 	GUILD = 0,
@@ -147,7 +146,7 @@ export class Guild extends BaseEntity {
 	@Column({ nullable: true })
 	BannerID?: string;
 
-    @ManyToOne(() => User, U => U.OwnedGuilds, { eager: true })
+    @ManyToOne(() => User, U => U.OwnedGuilds, { eager: true, onDelete: "CASCADE", orphanedRowAction: "nullify" })
 	@JoinColumn()
     Owner: User;
 
@@ -169,19 +168,19 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "DEFAULT" })
 	@JoinTable()
     Members: Membership[];
 
-    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, orphanedRowAction: "delete" })
 	@JoinColumn()
     Channels: Channel[];
 
-	@OneToMany(() => Role, R => R.InGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+	@OneToMany(() => Role, R => R.InGuild, { eager: true, orphanedRowAction: "delete" })
 	@JoinColumn()
 	Roles: Role[];
 
-	@OneToMany(() => Invite, I => I.InGuild, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
+	@OneToMany(() => Invite, I => I.InGuild, { eager: true, orphanedRowAction: "delete" })
 	@JoinColumn()
 	Invites: Role[];
 
@@ -330,10 +329,10 @@ export class Role extends BaseEntity {
 	@Column({ nullable: true })
 	UnicodeEmoji?: string;
 
-	@ManyToOne(() => Guild, G => G.Roles)
+	@ManyToOne(() => Guild, G => G.Roles, { onDelete: "CASCADE", orphanedRowAction: "delete" })
 	InGuild: Guild;
 
-	@ManyToMany(() => Membership, M => M.ToGuild)
+	@ManyToMany(() => Membership, M => M.ToGuild, { orphanedRowAction: "nullify" })
 	@JoinTable()
 	Members: Membership[];
 

@@ -93,7 +93,7 @@ export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data = nu
 			SendOp(Conn, Opcode, Data, s, t);
 		});
 	} else {
-		const SentGuild = await Guild.findOne({ where: { ID: Chnl.OwnerGuild.ID }, relations: { Members: true } });
+		const SentGuild = await Guild.findOne({ where: { ID: Chnl.OwnerGuild.ID }, relations: { Roles: false, Invites: false, Channels: false, Members: true } });
 		
 		SentGuild.Members.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.Owner.ID);
