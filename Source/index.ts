@@ -5,9 +5,11 @@ import "./Handlers/Server";
 import "./Handlers/Gateway";
 import "./Handlers/RTCSocket";
 
+const UsePublicTestsDB = true;
+
 export const DisprivDataSource = new DataSource({
     type: "sqlite",
-    database: "Dispriv.db",
+    database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",
     synchronize: true,
     logging: false,
     entities: [__dirname + "/Entities/*{.js,.ts}"],

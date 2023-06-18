@@ -6,7 +6,7 @@ import { Membership } from "../Entities/User";
 import { OpCodes } from "../Classes/OpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { GetHighestRole, HasPermission, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
+import { GetHighestRole, GetHighestRoleInArr, HasPermission, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 
 const App = Router();
@@ -29,7 +29,7 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 	res.status(204).send();
 });
 
-App.patch("/:GuildID/roles/:RoleID", VerifyAuth, async (req, res) => {
+App.post("/:GuildID/roles", VerifyAuth, async (req, res) => {
 	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
 	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
@@ -40,43 +40,92 @@ App.patch("/:GuildID/roles/:RoleID", VerifyAuth, async (req, res) => {
 	if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
 		return res.status(403).json({ code: 10013, message: "Missing Access" });
 
-	const Rl = await Role.findOne({ where: { InGuild: { ID: G.ID }, ID: req.params.RoleID }, relations: { InGuild: true } });
-
-	if (GetHighestRole(Mmbr).Position <= Rl.Position && G.Owner.ID !== MyUser.ID)
-		return res.status(403).json({ code: 10013, message: "Missing Access" });
-
-	for (const PropKey of Object.keys(req.body)) {
-		const Value = req.body[PropKey];
-		switch (PropKey) {
-			case "name":
-				Rl.Name = Value;
-				continue;
-			case "permissions":
-				Rl.Permissions = Number.parseInt(Value);
-				continue;
-			case "color":
-				Rl.Color = Value;
-				continue;
-			case "hoist":
-				Rl.ShownOnMemberlist = Value;
-				continue;
-			case "mentionable":
-				Rl.AnyoneCanMention = Value;
-				continue;
-			case "unicode_emoji":
-				Rl.UnicodeEmoji = Value;
-				continue;
-		}
-	}
-
-	await Rl.save();
-
-	res.json(Rl.Package());
+	const CreatedRole = await Role.create({
+		ID: GenerateSnowflake(),
+		Name: req.body.name ?? "new role",
+		Color: req.body.color ?? 0,
+		InGuild: G,
+		Position: 1
+	}).save();
 
 	SendToMembers(G.ID, OpCodes.DISPATCH, {
 		guild_id: G.ID,
-		role: Rl.Package()
-	}, 1337, "GUILD_ROLE_UPDATE");
+		role: CreatedRole.Package()
+	}, 6942, "GUILD_ROLE_CREATE");
+	res.json(CreatedRole.Package());
+});
+
+App.patch([
+	"/:GuildID/roles/:RoleID",
+	"/:GuildID/roles"
+], VerifyAuth, async (req, res) => {
+	const SingleRole = typeof req.params.RoleID === "string";
+
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+		
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	const G = Mmbr.ToGuild;
+
+	if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
+		return res.status(403).json({ code: 10013, message: "Missing Access" });
+
+	const RoleArray: Role[] = SingleRole ? [
+		await Role.findOne({ where: { InGuild: { ID: G.ID }, ID: req.params.RoleID }, relations: { InGuild: true } })
+	] : await Promise.all(req.body.map(s => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: s.id }, relations: { InGuild: true } })));
+
+	const ResponseBody = [];
+
+	if (GetHighestRole(Mmbr).Position <= GetHighestRoleInArr(RoleArray).Position && G.Owner.ID !== MyUser.ID)
+		return res.status(403).json({ code: 10013, message: "Missing Access" });
+
+	for (let I = 0; I < RoleArray.length; I++) {
+		const Body = SingleRole ? req.body : req.body[I];
+		const Rl = RoleArray[I];
+
+		for (const PropKey of Object.keys(Body)) {
+			const Value = Body[PropKey];
+			switch (PropKey) {
+				case "name":
+					Rl.Name = Value;
+					continue;
+				case "permissions":
+					Rl.Permissions = Number.parseInt(Value);
+					continue;
+				case "position":
+					Rl.Position = Number.parseInt(Value);
+					continue;
+				case "color":
+					Rl.Color = Value;
+					continue;
+				case "hoist":
+					Rl.ShownOnMemberlist = Value;
+					continue;
+				case "mentionable":
+					Rl.AnyoneCanMention = Value;
+					continue;
+				case "unicode_emoji":
+					Rl.UnicodeEmoji = Value;
+					continue;
+			}
+
+			await Rl.save();
+		}
+
+		SendToMembers(G.ID, OpCodes.DISPATCH, {
+			guild_id: G.ID,
+			role: Rl.Package()
+		}, 1337, "GUILD_ROLE_UPDATE");
+	
+		if (SingleRole)
+			res.json(Rl.Package());
+		else
+			ResponseBody.push(Rl.Package());
+	}
+
+	if (!res.headersSent)
+		res.json(ResponseBody);
 });
 
 App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {

@@ -12,7 +12,10 @@ App.get("/discoverable-guilds", VerifyAuth, async (req, res) => {
 	const Guilds = await Guild.find({
 		order: { ID: "DESC" },
 		take: Limit,
-		skip: Offset
+		skip: Offset,
+		relations: {
+			Members: true
+		}
 	});
 
 	res.json({

@@ -90,6 +90,9 @@ Socket.on("connection", async (Client, req) => {
 				SendOp(GatewayClient, OpCodes.DISPATCH, { endpoint: "127.0.0.1:" + process.env.RTCWSPORT || "6967", guild_id: null, stream_key: "test:" + GatewayClient.Account.ID, token: GatewayClient.UserToken }, null, "SPEED_TEST_SERVER_UPDATE");
 				break;
 
+			case OpCodes.REQUEST_GUILD_MEMBERS:
+				break;
+
 			case OpCodes.CLIENT_SPEEDTEST_DELETE:
 				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
 				SendOp(GatewayClient, OpCodes.DISPATCH, { reason: "user_requested", stream_key: "test:" + GatewayClient.Account.ID }, null, "SPEED_TEST_DELETE");

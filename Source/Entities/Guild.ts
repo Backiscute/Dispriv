@@ -374,14 +374,14 @@ export class Role extends BaseEntity {
 	@ManyToOne(() => Guild, G => G.Roles, { onDelete: "CASCADE", orphanedRowAction: "delete" })
 	InGuild: Guild;
 
-	@ManyToMany(() => Membership, M => M.ToGuild, { orphanedRowAction: "nullify" })
+	@ManyToMany(() => Membership, M => M.Roles, { orphanedRowAction: "nullify" })
 	@JoinTable()
 	Members: Membership[];
 
 	@Column({ default: Permissions.CONNECT | Permissions.SPEAK | Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
 	Permissions: Permissions;
 
-	@Column()
+	@Column({ default: false })
 	AnyoneCanMention: boolean;
 
 	Package() {

@@ -190,7 +190,7 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
         user_profile: {
             bio: FoundUser.Bio,
             accent_color: null,
-            banner: null,
+            banner: FoundUser.BannerID,
             emoji: null,
             popout_animation_particle_type: null,
             theme_colors: null
