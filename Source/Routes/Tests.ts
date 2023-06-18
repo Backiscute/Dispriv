@@ -4,8 +4,6 @@ import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
-import { SendToMembers } from "../Modules/DiscordUtils";
-import { OpCodes } from "../Classes/OpCodes";
 
 const App = Router();
 

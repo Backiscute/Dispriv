@@ -2,11 +2,11 @@ import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Guild, GuildFeatures, Role } from "../Entities/Guild";
-import { Membership } from "../Entities/User";
+import { Membership, User } from "../Entities/User";
 import { OpCodes } from "../Classes/OpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { GetHighestRole, GetHighestRoleInArr, HasPermission, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
+import { GetHighestRole, GetHighestRoleInArr, HasPermission, MembershipFromGuild, SendGuildMemberUpdate, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 
 const App = Router();
@@ -53,6 +53,81 @@ App.post("/:GuildID/roles", VerifyAuth, async (req, res) => {
 		role: CreatedRole.Package()
 	}, 6942, "GUILD_ROLE_CREATE");
 	res.json(CreatedRole.Package());
+});
+
+App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
+	//if (req.params.MemberID === "@me") return res.sendStatus(403);
+	const IsMe = req.params.MemberID === "@me";
+
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true } } });
+	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+		
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	const G = Mmbr.ToGuild;
+
+	const UserTo = IsMe ? MyUser : await User.findOne({
+		where: {
+			ID: req.params.MemberID,
+			Memberships: {
+				ToGuild: {
+					ID: G.ID
+				}
+			}
+		},
+		relations: {
+			Memberships: {
+				Owner: false,
+				ToGuild: {
+					Members: true
+				}
+			}
+		}
+	});
+
+	const GuildMember = IsMe ? Mmbr : MembershipFromGuild(UserTo, G);
+
+	for (const PropKey of Object.keys(req.body)) {
+		const Value = req.body[PropKey];
+		switch (PropKey) {
+			case "nick":
+				if (!HasPermission(Mmbr, IsMe ? Permissions.CHANGE_NICKNAME : Permissions.MANAGE_NICKNAMES))
+					return res.status(403).json({ code: 40003, message: "Missing Access" });
+
+				if (!/^[a-z 0-9]{1,32}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Nickname failed validation" });
+
+				GuildMember.GuildNickname = Value;
+				break;
+			case "roles": {
+				if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
+					return res.status(403).json({ code: 40003, message: "Missing Access" });
+
+				const AllRoles: Role[] = await Promise.all(req.body.roles.map(RID => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: RID } })));
+				const HR = GetHighestRole(Mmbr);
+				const RolesToSet: Role[] = [];
+
+				RolesToSet.push(G.DefaultRole());
+
+				for (const Role of AllRoles) {
+					if (Role.Position >= HR.Position && G.Owner.ID !== MyUser.ID)
+						continue;
+
+					if (Role.ID === G.ID)
+						continue;
+
+					RolesToSet.push(Role);
+				}
+
+				GuildMember.Roles = RolesToSet;
+				break;
+			}
+		}
+	}
+
+	await GuildMember.save();
+	res.json(GuildMember.Package());
+
+	SendGuildMemberUpdate(UserTo);
 });
 
 App.patch([
@@ -109,10 +184,10 @@ App.patch([
 					Rl.UnicodeEmoji = Value;
 					continue;
 			}
-
-			await Rl.save();
 		}
-
+		
+		await Rl.save();
+		
 		SendToMembers(G.ID, OpCodes.DISPATCH, {
 			guild_id: G.ID,
 			role: Rl.Package()

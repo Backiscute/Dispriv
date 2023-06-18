@@ -6,7 +6,7 @@ const App = Router();
 
 App.get([
 	"/*/*/:FileName",
-	"/*/*/:FileName"
+	"/*/:FileName"
 ], (req, res) => {
 	if (!/^[a-z0-9.]+$/g.test(req.params.FileName))
 		return res.status(403).json({ code: 0, message: "nuh uh" });

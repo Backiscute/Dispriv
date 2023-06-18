@@ -10,7 +10,8 @@ import { OpCodes } from "../Classes/OpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
-import { GenerateRandomString, SendToSelf } from "../Modules/DiscordUtils";
+import { GenerateRandomString, SendGuildMemberUpdate, SendToSelf } from "../Modules/DiscordUtils";
+import { PreloadedUserSettings } from "discord-protos";
 
 const App = Router();
 
@@ -44,7 +45,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 				U.Discriminator = Value;
 				continue;
 			case "bio":
-				if (!/^[a-z 0-9!?,.*]{0,250}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Bio failed validation" });
+				if (!/^[a-z 0-9!?,.*`]{0,250}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Bio failed validation" });
 
 				U.Bio = Value;
 				continue;
@@ -80,16 +81,19 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 	res.json(U.Package());
 
 	SendToSelf(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
-	//SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");
+	SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
 App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
 	const MyUser = await GetUserByRequest(req);
 	if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
 
+    //console.log(PreloadedUserSettings.fromBase64(req.body.settings));
+
+	// ok after i finish nicknames and roles on memberships i come k
 	MyUser.SettingsProto = req.body.settings;
 	await MyUser.save();
-	res.sendStatus(204);
+	//res.send(PreloadedUserSettings.fromBase64(req.body.settings));
 });
 
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
@@ -177,7 +181,7 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
     /*const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
     const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;*/
     res.json({
-        badges: [], // TODO
+        badges: FoundUser.Badges.map(B => B.Package()),
         connected_accounts: [], // TODO
         guild_badges: [],
         mutual_friends_count: 0, // TODO

@@ -8,6 +8,7 @@ import { Channel } from './Channel';
 import { Guild, Invite, Role } from './Guild';
 import { CreateTimestamp, GetHighestRole, GetHighestRoleInArr } from '../Modules/DiscordUtils';
 import { Presence } from '../Classes/Presence';
+import { Badge } from './Badge';
 
 @Entity()
 export class User extends BaseEntity {
@@ -50,6 +51,10 @@ export class User extends BaseEntity {
 	@Column({ default: false })
 	Bot: boolean;
 
+	@ManyToMany(() => Badge, B => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
+	@JoinTable()
+	Badges: Badge[];
+
 	@OneToOne(() => DiscordApplication, DA => DA.Bot, { nullable: true, onDelete: "CASCADE" })
 	BotApplication?: DiscordApplication;
 
@@ -79,7 +84,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	Applications: DiscordApplication[];
 
-	@OneToMany(() => Guild, G => G.Owner, { onDelete: "DEFAULT", orphanedRowAction: "delete" })
+	@OneToMany(() => Guild, G => G.Owner, { orphanedRowAction: "delete" })
 	@JoinTable()
 	OwnedGuilds: Guild[];
 
@@ -87,7 +92,7 @@ export class User extends BaseEntity {
 	@JoinTable()
 	CreatedInvites: Invite[];
 
-	@OneToMany(() => Membership, M => M.Owner, { onDelete: "DEFAULT", orphanedRowAction: "delete" })
+	@OneToMany(() => Membership, M => M.Owner, { orphanedRowAction: "delete" })
 	@JoinTable()
 	Memberships: Membership[];
 

@@ -7,7 +7,7 @@ const App = Router();
 App.get("/discoverable-guilds", VerifyAuth, async (req, res) => {
 	const Limit = Number(req.query.limit ?? 30);
 	const Offset = Number(req.query.offset ?? 0);
-	const MyUser = await GetUserByRequest(req);
+	//const MyUser = await GetUserByRequest(req);
 
 	const Guilds = await Guild.find({
 		order: { ID: "DESC" },
