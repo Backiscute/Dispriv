@@ -4,11 +4,12 @@ import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
 import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
-import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
+import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import { SendGuildMemberUpdate } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
+import chalk from "chalk";
 
 const Socket = new WebSocketServer({
 	port: parseInt(process.env.WSPORT) || 6968,
@@ -49,7 +50,7 @@ Socket.on("connection", async (Client, req) => {
 	Client.on("message", async (Data: Buffer) => {
 		const UnpackedData = GatewayClient.Encoding === "etf" ? unpack(Data) : JSON.parse(Data.toString());
 		Msg(
-			`Received packet from client ${GatewayClient.ID.red}: ${JSON.stringify(
+			`Received packet from client ${chalk.red(GatewayClient.ID)}: ${JSON.stringify(
 				UnpackedData
 			)}`,
 			"Gateway"
@@ -128,7 +129,7 @@ Socket.on("connection", async (Client, req) => {
 				GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
 				Msg(
-					`Client ${GatewayClient.ID.red} identified as ${GatewayClient.Account.Username} successfully`,
+					`Client ${chalk.red(GatewayClient.ID)} identified as ${GatewayClient.Account.Username} successfully`,
 					"Gateway"
 				);
 

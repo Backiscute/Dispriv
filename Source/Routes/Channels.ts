@@ -1,6 +1,7 @@
 /* eslint-disable no-case-declarations */
 import { Router } from "express";
-import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
+import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Message, MessageType } from "../Entities/Message";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";

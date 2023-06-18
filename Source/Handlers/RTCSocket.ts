@@ -3,7 +3,7 @@ import { Msg } from "../Modules/Logger";
 import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
 import { RTCOpCodes } from "../Classes/RTCOpCodes";
-import { GetUserByToken, VerifyToken } from "../Modules/SnowflakeUtils";
+import chalk from "chalk";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.RTCWSPORT) || 6967,
@@ -22,12 +22,12 @@ Socket.on("connection", (Client) => {
 
     SendOp(RTCClient, RTCOpCodes.HELLO, {v: 7, heartbeat_interval: 13750});
 
-    Msg(`Client ${RTCClient.ID.red} connected to WebRTC!`, "RTCSocket");
+    Msg(`Client ${chalk.red(RTCClient.ID)} connected to WebRTC!`, "RTCSocket");
     Client.on("message", async (Data) => {
         const Payload = JSON.parse(Data.toString()); // buffer to json
         if (!Payload) return Client.close(4002, "Failed to decode payload");
 
-        Msg(`Received packet from client ${RTCClient.ID.red}: ${JSON.stringify(Payload)}`, "RTCSocket");
+        Msg(`Received packet from client ${chalk.red(RTCClient.ID)}: ${JSON.stringify(Payload)}`, "RTCSocket");
         switch (Payload.op) {
             case RTCOpCodes.HEARTBEAT:
                 return SendOp(RTCClient, RTCOpCodes.HEARTBEAT_ACK, Date.now());

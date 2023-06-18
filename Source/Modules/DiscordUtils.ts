@@ -8,6 +8,8 @@ import { Guild, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { Permissions } from "../Classes/Flags";
 
+export const DISCORD_EPOCH = 1420070400000;
+
 export function CreateTimestamp(DateToConvert?: Date) { // Creates a timestamp in ISO 8601 format (Discord uses timezone offset +00:00)
     const NewDate = DateToConvert ?? new Date();
     const IsoStringInUTC = NewDate.toISOString().replace("Z", "+00:00");

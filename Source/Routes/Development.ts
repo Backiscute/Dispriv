@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { User } from "../Entities/User";
-import { GetUserByRequest, VerifyAuth, VerifyToken } from "../Modules/SnowflakeUtils";
+import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { UserFlags } from "../Classes/Flags";
 
 const App = Router();

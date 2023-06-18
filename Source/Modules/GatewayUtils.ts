@@ -4,6 +4,7 @@ import { Connections } from "../Handlers/Gateway";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "./Logger";
 import { OpCodes } from "../Classes/OpCodes";
+import chalk from "chalk";
 
 export function CloseConnection(SocketClient: GatewayConnection, Code: number, Reason: string) {
     SocketClient.Deflater.close();
@@ -34,7 +35,7 @@ export function SendOp(SocketClient: GatewayConnection, Opcode: OpCodes, Data = 
     };
     const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
     const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
-    Msg(`Sending packet to client ${SocketClient.ID.red}: ${JSON.stringify(D)}`, "Gateway");
+    Msg(`Sending packet to client ${chalk.red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
     SocketClient.SocketClient.send(Bf);
 }
 

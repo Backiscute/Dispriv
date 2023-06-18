@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
+import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 
 const App = Router();
 

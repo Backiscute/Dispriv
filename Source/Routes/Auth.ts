@@ -2,9 +2,9 @@ import { Router } from "express";
 import { GenAccountErrorLogin, GenAccountErrorLoginAll } from "../Modules/ErrorUtils";
 import { User } from "../Entities/User";
 import bcrypt from "bcrypt";
-import { GenerateSnowflake, GenerateToken, VerifyToken } from "../Modules/SnowflakeUtils";
+import { GenerateToken } from "../Modules/AuthUtils";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Msg } from "../Modules/Logger";
-import { Relation } from "../Entities/FriendUser";
 import { Application } from "../Handlers/Server";
 
 const App = Router();

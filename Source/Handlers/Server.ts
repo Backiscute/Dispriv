@@ -5,6 +5,8 @@ import * as fs from "fs";
 import { Msg } from "../Modules/Logger";
 env.config();
 
+import chalk from "chalk";
+
 export const Application = express.default();
 Application.disable("etag");
 Application.disable("x-powered-by");
@@ -25,10 +27,10 @@ const Files = fs.readdirSync("./bin/Routes");
         if (!Contents.default.App) continue;
         Application.use(Contents.default.DefaultAPI || "/", Contents.default.App);
     
-        Msg(`Loaded file ${V.italic}!`);
+        Msg(`Loaded file ${chalk.italic(V)}!`);
     }
     
     Application.use((req, res) => res.status(404).json({"message": "404: Not Found", "code": 0}));
 
-    Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${process.env.PORT.green}`));
+    Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${chalk.green(process.env.PORT)}`));
 })();

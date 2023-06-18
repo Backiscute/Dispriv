@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { User } from "../Entities/User";
-import { VerifyToken } from "../Modules/SnowflakeUtils";
+import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
@@ -54,17 +54,17 @@ App.post("/User/:Username", async (req, res) => {
     res.send(UserData);
 });
 
-App.delete("/Channels/:ChannelID", async (req, res) => {
+/*App.delete("/Channels/:ChannelID", async (req, res) => {
     const ChannelData = await Channel.findOne({
         where: {
             ID: req.params.ChannelID as string
         }
     });
 
-    //if (ChannelData) await Channel.createQueryBuilder().delete().where("ID = :ID", { ID: ChannelData.ID }).execute();
+    if (ChannelData) await Channel.createQueryBuilder().delete().where("ID = :ID", { ID: ChannelData.ID }).execute();
 
     res.send();
-});
+});*/
 
 App.post("/UpdateApp/:AppID", async (req, res) => {
     const Application = await DiscordApplication.findOneBy({

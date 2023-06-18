@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { GenerateSnowflake, GetUserByRequest, VerifyAuth } from "../Modules/SnowflakeUtils";
+import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Guild, GuildFeatures, Role } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
 import { OpCodes } from "../Classes/OpCodes";
