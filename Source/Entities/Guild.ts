@@ -289,6 +289,28 @@ export class Guild extends BaseEntity {
 		};
 	}
 
+	DiscoveryPackage() {
+		return {
+			approximate_member_count: this.Members?.length,
+			approximate_presence_count: 0,
+			auto_removed: false,
+			banner: this.BannerID,
+			description: this.Description,
+			discovery_splash: this.BannerID,
+			features: this.Features,
+			icon: this.IconID,
+			id: this.ID,
+			is_published: true,
+			keywords: [],
+			name: this.Name,
+			preferred_locale: "en-US",
+			premium_subscription_count: this.Members?.filter(M => M.BoostingSince).length,
+			primary_category_id: 0,
+			splash: this.BannerID,
+			vanity_url_code: this.VanityInviteURL
+		};
+	}
+
 	GatewayPackageEvent(UserContext: User) {
 		return {
 			application_command_counts: {},

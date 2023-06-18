@@ -4,6 +4,8 @@ import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
+import { SendToMembers } from "../Modules/DiscordUtils";
+import { OpCodes } from "../Classes/OpCodes";
 
 const App = Router();
 
@@ -23,6 +25,7 @@ App.post("/Server/:ID", async (req, res) => {
     });
 
     await ServerData.save();
+	//SendToMembers(ServerData.ID, OpCodes.DISPATCH, ServerData.GatewayPackage(null), 6969, "GUILD_UPDATE");
     res.send(ServerData);
 });
 

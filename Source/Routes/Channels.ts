@@ -103,7 +103,7 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
 
 App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { Channel: { Messages: false } } } });
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerCategory: true, OwnerGuild: true, DMRecipients: true, Messages: { Channel: { Messages: false } } } });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(403).json({ code: 0, message: "Missing Access" });

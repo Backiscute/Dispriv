@@ -95,6 +95,44 @@ Socket.on("connection", async (Client, req) => {
 				SendOp(GatewayClient, OpCodes.DISPATCH, { reason: "user_requested", stream_key: "test:" + GatewayClient.Account.ID }, null, "SPEED_TEST_DELETE");
 				break;
 
+			case OpCodes.RESUME: {
+				const Token = UnpackedData.d.token ?? "";
+				const ValidToken = await VerifyToken(Token);
+
+				if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
+				console.log("--- GETTING RESUME ACCOUNT");
+
+				GatewayClient.Account = await GetUserByToken(Token, {
+					AvailableDMs: {
+						DMRecipients: true
+					},
+					RelationsFrom: true,
+					RelationsRegarding: true,
+					Memberships: {
+						Owner: false,
+						ToGuild: {
+							Members: {
+								Owner: true,
+								Roles: true
+							},
+							Channels: {
+								OwnerCategory: true
+							}
+						}
+					}
+				});
+				GatewayClient.UserToken = Token;
+
+				console.log("--- RESUME ACCOUNT GOTTEN");
+				GatewayClient.Intents = 0; // TODO: add check for privileged intents
+
+				Msg(
+					`Client ${chalk.red(GatewayClient.ID)} re-identified as ${chalk.red(GatewayClient.Account.Username + "#" + GatewayClient.Account.Discriminator)}`,
+					"Gateway"
+				);
+				break;
+			}
+
 			case OpCodes.IDENTIFY: {
 				time(`identify-${GatewayClient.ID}`);
 				const Token = UnpackedData.d.token ?? "";
@@ -129,12 +167,14 @@ Socket.on("connection", async (Client, req) => {
 				GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
 				Msg(
-					`Client ${chalk.red(GatewayClient.ID)} identified as ${GatewayClient.Account.Username} successfully`,
+					`Client ${chalk.red(GatewayClient.ID)} identified as ${chalk.red(GatewayClient.Account.Username + "#" + GatewayClient.Account.Discriminator)}`,
 					"Gateway"
 				);
 
 				const PresenceSet = UnpackedData.d.presence.status ?? Presence.ONLINE;
 				GatewayClient.Account.Presence = PresenceSet;
+
+				await GatewayClient.Account.save();
 
 				console.log("--- SENDING READY DISPATCH");
 				SendOp(
