@@ -33,4 +33,5 @@ const Files = fs.readdirSync("./bin/Routes");
     Application.use((req, res) => res.status(404).json({"message": "404: Not Found", "code": 0}));
 
     Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${chalk.green(process.env.PORT)}`));
+    
 })();

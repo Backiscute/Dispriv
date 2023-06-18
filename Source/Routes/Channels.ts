@@ -134,6 +134,12 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 				}
 
                 break;
+            case "topic":
+                if (typeof Value !== "string") break;
+                if (Value.length > 1024) break;
+
+                RequestedChannel.Topic = Value;
+                break;
         }
 	}
 
@@ -188,6 +194,9 @@ App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
 });
 
 App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
+
+    if (typeof req.body.flags !== "number") return res.sendStatus(204);
+
     const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: { Channels: { OwnerGuild: true } } } });
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: { Members: true } } });
 
@@ -202,7 +211,8 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
         InviteCode: GenerateRandomString(),
         MaxUses: req.body["max_uses"] || 0,
         InGuild: RequestedChannel.OwnerGuild,
-        Created: new Date()
+        Created: new Date(),
+        LinkedChannel: RequestedChannel
     });
 
     Invite.insert(NewInvite);

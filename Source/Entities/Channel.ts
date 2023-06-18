@@ -33,6 +33,9 @@ export class Channel extends BaseEntity {
     @Column({ default: "A channel" })
     DisplayName: string;
 
+    @Column({ length: 1024, nullable: true })
+    Topic?: string;
+
     @ManyToOne(() => Guild, G => G.Channels, { nullable: true, onDelete: "CASCADE" })
     @JoinColumn()
 	OwnerGuild?: Guild;
@@ -115,7 +118,7 @@ export class Channel extends BaseEntity {
 			nsfw: this.IsNSFW,
 			last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
             flags: 0,
-            topic: null,
+            topic: this.Topic ?? null,
             rate_limit_per_user: 0 // slowmode??
 		};
 	}

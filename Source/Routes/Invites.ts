@@ -5,6 +5,8 @@ import { Guild, Invite, InviteType } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
 import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/OpCodes";
+import { HasPermission } from "../Modules/DiscordUtils";
+import { Permissions } from "../Classes/Flags";
 
 const App = Router();
 
@@ -28,6 +30,22 @@ App.get("/:InviteCode", VerifyAuth, async (req, res) => {
 	}
 
     res.json(RequestedInvite.PackagePublic());
+});
+
+App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
+	const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
+	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+
+	if (!RequestedInvite) return res.status(404).json({"message": "Unknown Invite", "code": 10006});
+
+	const Membership = MyUser.Memberships.find(x => x.ToGuild.ID === RequestedInvite.InGuild.ID);
+	if (!Membership) return res.status(403).json({"message": "You are not a member of this guild", "code": 0});
+
+	if (!HasPermission(Membership, Permissions.MANAGE_GUILD)) return res.status(403).json({"message": "Missing Access", "code": 0});
+
+	await RequestedInvite.remove();
+
+	res.sendStatus(204);
 });
 
 App.post("/:InviteCode", VerifyAuth, async (req, res) => {
@@ -90,6 +108,9 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 	}).save();
 
     res.json(RequestedInvite.PackagePublic());
+
+	RequestedInvite.CurrentUses++;
+	RequestedInvite.save();
 
 	const Conn = FindConnection(MyUser.ID);
 	if (!Conn) return;

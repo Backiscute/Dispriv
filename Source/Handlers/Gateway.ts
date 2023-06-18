@@ -207,4 +207,4 @@ Socket.on("connection", async (Client, req) => {
 	});
 });
 
-Msg("Gateway initialized!", "Gateway");
+Msg(`Gateway initialized! Listening on port ${chalk.green(Socket.options.port)}`, "Gateway");

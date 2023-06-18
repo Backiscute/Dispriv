@@ -147,11 +147,26 @@ App.post("/:GuildID/channels", VerifyAuth, async (req, res) => {
 			Chnl.OwnerCategory = Parent;
 	}
 
+	if (typeof req.body.topic === "string" && req.body.topic.length <= 1024)
+		Chnl.Topic = req.body.topic;
+
 	await Chnl.save();
 
 	res.status(201).json(Chnl.GuildPackage());
 
 	SendToMembers(G.ID, OpCodes.DISPATCH, Chnl.GuildPackage(), 69, "CHANNEL_CREATE");
+});
+
+App.get("/:GuildID/invites", VerifyAuth, async (req, res) => {
+	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Invites: { InGuild: true } } } });
+	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+
+	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+
+	if (!HasPermission(G, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
+
+	res.json(G.ToGuild.Invites.map(I => I.Package()));
 });
 
 App.get("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
@@ -171,12 +186,13 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
 	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-	// TODO: permission check
-
 	if (typeof req.body.code !== "string")
 		return res.status(400).json({ code: 0, message: "Invalid request" });
 	
 	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+
+	if (!HasPermission(G, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
+
 	if (req.body.code === "")
 	{
 		G.ToGuild.VanityInviteURL = null;
@@ -272,11 +288,7 @@ App.post("/", VerifyAuth, async (req, res) => {
 		InGuild: CreatedGuild
 	}).save();
 
-	await Channel.create({
-		ID: GenerateSnowflake(),
-		DisplayName: "general",
-		OwnerGuild: CreatedGuild
-	}).save();
+	await CreatedGuild.CreateDefaultChannels();
 
 	await Membership.create({
 		ID: CreatedGuild.ID,

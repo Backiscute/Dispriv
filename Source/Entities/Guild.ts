@@ -1,8 +1,9 @@
 import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
-import { Channel } from "./Channel";
+import { Channel, ChannelType } from "./Channel";
 import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 export const enum InviteType {
 	GUILD = 0,
@@ -186,6 +187,25 @@ export class Guild extends BaseEntity {
 
 	DefaultRole() {
 		return this.Roles.find(R => R.ID === this.ID);
+	}
+
+	async CreateDefaultChannels()
+	{
+		// categories made the thing logout for osme rason
+		await Channel.create({
+			ID: GenerateSnowflake(),
+			DisplayName: "general",
+			OwnerGuild: this,
+			//OwnerCategory: TextCategory,
+		}).save();
+
+		await Channel.create({
+			ID: GenerateSnowflake(),
+			DisplayName: "General",
+			Type: ChannelType.GUILD_VOICE,
+			OwnerGuild: this,
+			//OwnerCategory: VoiceCategory,
+		}).save();
 	}
 
 	Partial() {
@@ -401,7 +421,7 @@ export class Invite extends BaseEntity {
 			max_uses: this.MaxUses,
 			temporary: false,
 			inviter: this.InviteOwner.PackageSmall(),
-			channel: null // TODO
+			channel: this.LinkedChannel?.GuildPackage(this.InGuild.ID) ?? null
 		};
 	}
 
@@ -413,7 +433,7 @@ export class Invite extends BaseEntity {
 			expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
 			approximate_member_count: 0,
 			approximate_presence_count: 0, // TODO
-			channel: null // TODO
+			channel: this.LinkedChannel?.GuildPackage(this.InGuild.ID) ?? null
 		};
 	}
 }
