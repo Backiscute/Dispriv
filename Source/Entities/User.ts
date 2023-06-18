@@ -190,16 +190,30 @@ export class User extends BaseEntity {
 
 	Partial() {
 		return {
-			id: this.ID,
-			username: this.Username,
-			discriminator: this.Discriminator,
+		  id: this.ID,
+		  username: this.Username,
+		  discriminator: this.Discriminator,
+		  avatar: this.AvatarID,
+		  avatar_decoration: this.AvatarDecoration,
+		  bot: this.Bot,
+		  system: this.HasFlag(UserFlags.SYSTEM),
+		  banner: this.BannerID,
+		  accent_color: 0,
+		  public_flags: this.Flags
+		}
+	}
+
+	PartialVoice() {
+		return {
 			avatar: this.AvatarID,
 			avatar_decoration: this.AvatarDecoration,
 			bot: this.Bot,
-			system: this.HasFlag(UserFlags.SYSTEM),
-			banner: this.BannerID,
-			accent_color: 0,
-			public_flags: this.Flags
+			discriminator: this.Discriminator,
+			display_name: null,
+			global_name: null,
+			id: this.ID,
+			public_flags: this.Flags,
+			username: this.Username
 		}
 	}
 }
@@ -247,6 +261,22 @@ export class Membership extends BaseEntity {
 			premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
 			pending: false,
 			permissions: GetHighestRoleInArr(this.Roles).Permissions.toString()
+		}
+	}
+
+	PackageGatewayVoice() {
+		return {
+		  avatar: null,
+		  communication_disabled_until: null,
+		  deaf: this.Deafened,
+		  flags: 0,
+		  joined_at: CreateTimestamp(this.CreatedAt),
+		  mute: this.Muted,
+		  nick: this.GuildNickname,
+		  pending: false,
+		  premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : null,
+		  roles: this.Roles ? this.Roles.map(R => R.ID) : [],
+		  user: this.Owner.PartialVoice()
 		}
 	}
 

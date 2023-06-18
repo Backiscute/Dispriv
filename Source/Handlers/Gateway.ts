@@ -7,9 +7,11 @@ import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { SendGuildMemberUpdate } from "../Modules/DiscordUtils";
+import { MembershipFromGuild, SendGuildMemberUpdate, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import chalk from "chalk";
+import { ChannelType } from "../Entities/Channel";
+import { VoiceSessions } from "./RTCSocket";
 
 const Socket = new WebSocketServer({
 	port: parseInt(process.env.WSPORT) || 6968,
@@ -86,9 +88,115 @@ Socket.on("connection", async (Client, req) => {
 
 			case OpCodes.CLIENT_SPEEDTEST_CREATE:
 				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
-				SendOp(GatewayClient, OpCodes.DISPATCH, { paused: false, region: "Dispriv", rtc_server_id: "1", stream_key: "test:" + GatewayClient.Account.ID, stream_server_id: "1", viewer_ids: [] }, null, "SPEED_TEST_CREATE");
+				SendOp(GatewayClient, OpCodes.DISPATCH, { paused: false, region: "us-south", rtc_server_id: "1", stream_key: "test:" + GatewayClient.Account.ID, stream_server_id: "1", viewer_ids: [] }, null, "SPEED_TEST_CREATE");
 				SendOp(GatewayClient, OpCodes.DISPATCH, { endpoint: "127.0.0.1:" + process.env.RTCWSPORT || "6967", guild_id: null, stream_key: "test:" + GatewayClient.Account.ID, token: GatewayClient.UserToken }, null, "SPEED_TEST_SERVER_UPDATE");
 				break;
+			
+			case OpCodes.VOICE_STATE_UPDATE:
+			{
+				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+
+				// {"op":4,"d":{"guild_id":null,"channel_id":null,"self_mute":true,"self_deaf":false,"self_video":false,"flags":0}}
+				// {"op":4,"d":{"guild_id":"1119711696458481664","channel_id":"1120028684745572352","self_mute":true,"self_deaf":false,"self_video":false,"flags":2}}
+				const ChannelID = UnpackedData.d.channel_id;
+				const GuildID = UnpackedData.d.guild_id;
+
+				if (GuildID && ChannelID)
+				{
+					const UserMembership = GatewayClient.Account.Memberships.find((M) => M.ToGuild.ID === GuildID);
+					if (!UserMembership) return;
+
+					const Guild = UserMembership.ToGuild;
+
+					const LinkedChannel = Guild.Channels.find((C) => C.ID === ChannelID);
+					if (!LinkedChannel) return;
+
+					if (LinkedChannel.Type != ChannelType.GUILD_VOICE) return;
+
+					// add permissions to check if can connect to voice channel
+
+					const VoiceSession = VoiceSessions.find((S) => S.guild_id === GuildID && S.channel_id === ChannelID);
+
+					const VoiceState = {
+						channel_id: ChannelID,
+						deaf: UserMembership.Deafened,
+						guild_id: GuildID,
+						mute: UserMembership.Muted,
+						request_to_speak_timestamp: null,
+						self_deaf: UnpackedData.d.self_deaf,
+						self_mute: UnpackedData.d.self_mute,
+						self_video: UnpackedData.d.self_video,
+						session_id: GatewayClient.ID,
+						suppress: false,
+						user_id: GatewayClient.Account.ID,
+						member: UserMembership.PackageGatewayVoice()
+					};
+
+					if (VoiceSession)
+					{	
+
+						if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account.ID && state.session_id === GatewayClient.ID)) 
+						{
+							// user is already in the voice session, edit muted and deaf (self)
+							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
+							UserVoiceState.self_mute = UnpackedData.d.self_mute;
+							UserVoiceState.self_deaf = UnpackedData.d.self_deaf;
+							UserVoiceState.self_video = UnpackedData.d.self_video;
+
+							await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+
+							return;
+						}
+						else if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account.ID && state.session_id != GatewayClient.ID))
+						{
+							// user is in another client, remove old client
+							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
+							VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(UserVoiceState), 1);
+
+							await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+						}
+
+						Msg(`Connecting User ${chalk.red(GatewayClient.Account.Username)} to voice channel ${chalk.red(LinkedChannel.DisplayName)} in guild ${chalk.red(Guild.Name)}`, "Voice");
+						VoiceSession.voice_states.push(VoiceState);
+
+						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token":"4decafd241e9264d"}, null, "VOICE_SERVER_UPDATE");
+					}
+					else
+					{
+						Msg(`Creating new voice session for guild ${chalk.red(Guild.Name)} in channel ${chalk.red(LinkedChannel.DisplayName)}`, "Voice");
+						VoiceSessions.push({
+							channel_id: ChannelID,
+							guild_id: GuildID,
+							voice_states: [VoiceState],
+						});
+
+						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token":"4decafd241e9264d"}, null, "VOICE_SERVER_UPDATE");
+					}
+
+				}
+				else if (!GuildID && !ChannelID && VoiceSessions.some((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account.ID)))
+				{
+					// disconnect from voice
+					const VoiceSession = VoiceSessions.find((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account.ID));
+					const VoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
+
+					VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(VoiceState), 1);
+
+					VoiceState.channel_id = null;
+
+					await SendToMembers(VoiceState.guild_id, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+
+					if (VoiceSession.voice_states.length === 0)
+					{
+						VoiceSessions.splice(VoiceSessions.indexOf(VoiceSession), 1);
+					}
+				}
+
+				break;
+			}
+
 
 			case OpCodes.REQUEST_GUILD_MEMBERS:
 				break;
@@ -195,7 +303,7 @@ Socket.on("connection", async (Client, req) => {
 						country_code: "US",
 						experiments: [], // TODO (if u want lol)
 						friend_suggestion_count: 0,
-						geo_ordered_rtc_regions: ["Dispriv"],
+						geo_ordered_rtc_regions: ["dispriv"],
 						guild_experiments: [], // TODO (also if you want)
 						guild_join_requests: [], // idk what this is but its needed for guilds i think
 						guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)),

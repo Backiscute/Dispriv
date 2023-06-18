@@ -4,6 +4,9 @@ import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
 import { RTCOpCodes } from "../Classes/RTCOpCodes";
 import chalk from "chalk";
+import { VoiceSession } from "../Classes/VoiceSession";
+
+export const VoiceSessions: VoiceSession[] = [];
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.RTCWSPORT) || 6967,

@@ -108,6 +108,10 @@ export class Channel extends BaseEntity {
 
 	GuildPackage(OverrideOwnerGuildID: string = null) {
 		return {
+            bitrate: this.Type === ChannelType.GUILD_VOICE ? 64000 : undefined,
+            user_limit: this.Type === ChannelType.GUILD_VOICE ? this.VCUserLimit : undefined,
+            video_quality_mode: this.Type === ChannelType.GUILD_VOICE ? 1 : undefined,
+            rtc_region: this.Type === ChannelType.GUILD_VOICE ? "dispriv" : undefined,
 			id: this.ID,
 			type: this.Type,
 			guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild.ID,
