@@ -7,11 +7,12 @@ import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { MembershipFromGuild, SendGuildMemberUpdate, SendToMembers } from "../Modules/DiscordUtils";
+import { SendGuildMemberUpdate, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import chalk from "chalk";
 import { ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "./RTCSocket";
+import bcrypt from "bcrypt";
 
 const Socket = new WebSocketServer({
 	port: parseInt(process.env.WSPORT) || 6968,
@@ -160,7 +161,7 @@ Socket.on("connection", async (Client, req) => {
 						VoiceSession.voice_states.push(VoiceState);
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token":"4decafd241e9264d"}, null, "VOICE_SERVER_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
 					}
 					else
 					{
@@ -172,7 +173,7 @@ Socket.on("connection", async (Client, req) => {
 						});
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token":"4decafd241e9264d"}, null, "VOICE_SERVER_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
 					}
 
 				}
