@@ -4,6 +4,7 @@ import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
+import { Badge } from "../Entities/Badge";
 
 const App = Router();
 
@@ -12,7 +13,7 @@ App.use((req, res, next) => {
 	next();
 });
 
-App.post("/Server/:ID", async (req, res) => {
+App.patch("/Server/:ID", async (req, res) => {
     const ServerData = await Guild.findOneBy({
         ID: req.params.ID
     });
@@ -27,7 +28,26 @@ App.post("/Server/:ID", async (req, res) => {
     res.send(ServerData);
 });
 
-App.post("/Channel/:ID", async (req, res) => {
+App.post("/Badge", async (req, res) => {
+	if (typeof req.body.ID !== "string" || typeof req.body.Name !== "string" || typeof req.body.IconID !== "string") return res.status(400).json({
+		errorMessage: "One or more fields missing: ID, Name, IconID",
+		success: false
+	});
+
+	const CreatedBadge = await Badge.create({
+		ID: req.body.ID,
+		DisplayName: req.body.Name,
+		IconID: req.body.IconID
+	}).save();
+
+	res.json({
+		errorMessage: null,
+		success: true,
+		data: CreatedBadge.Package()
+	});
+});
+
+App.patch("/Channel/:ID", async (req, res) => {
     const ChannelData = await Channel.findOneBy({
         ID: req.params.ID
     });
@@ -41,9 +61,38 @@ App.post("/Channel/:ID", async (req, res) => {
     res.send(ChannelData);
 });
 
-App.post("/User/:Username", async (req, res) => {
+App.patch("/UserBadges/:Username/:Discriminator", async (req, res) => {
+	const UserData = await User.findOneBy({
+        Username: req.params.Username,
+		Discriminator: req.params.Discriminator
+    });
+    if (!UserData) return;
+
+	const Badges: Badge[] = [];
+	for (const BadgeID of req.body) {
+		const BadgeFound = await Badge.findOne({ where: { ID: BadgeID } });
+		if (!BadgeFound) continue;
+
+		Badges.push(BadgeFound);
+	}
+
+	// i have no clue how this works i found it on google
+	Badges.sort((A, B) => A.ID.localeCompare(B.ID, "en", { sensitivity: "base" }));
+
+	UserData.Badges = Badges;
+	await UserData.save();
+
+	res.json({
+		errorMessage: null,
+		success: true,
+		data: Badges.map(B => B.Package())
+	});
+});
+
+App.patch("/User/:Username/:Discriminator", async (req, res) => {
     const UserData = await User.findOneBy({
-        Username: req.params.Username
+        Username: req.params.Username,
+		Discriminator: req.params.Discriminator
     });
     if (!UserData) return;
 

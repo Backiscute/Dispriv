@@ -5,7 +5,7 @@ import "./Handlers/Server";
 import "./Handlers/Gateway";
 import "./Handlers/RTCSocket";
 
-const UsePublicTestsDB = true;
+const UsePublicTestsDB = false;
 
 export const DisprivDataSource = new DataSource({
     type: "sqlite",
