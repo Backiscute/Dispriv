@@ -9,7 +9,7 @@ const App = Router();
 
 App.get("/", VerifyAuth, async (req, res) => {
     const UserData = await GetUserByRequest(req, { Applications: true });
-    res.json([ ...UserData.Applications.map((R) => R.Package()) ]);
+    res.json([ ...UserData.Applications.map(async (R) => await R.Package()) ]);
 });
 
 App.post("/", VerifyAuth, async (req, res) => {
@@ -31,23 +31,11 @@ App.post("/", VerifyAuth, async (req, res) => {
 
 App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
-    const UserData = await GetUserByRequest(req, { Applications: true });
+    const UserData = await GetUserByRequest(req, { Applications: { EmbeddedConfig: true } });
     const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
-    if (!Application.EmbeddedConfig)
-    {
-        const NewAppConfig = EmbeddedAppConfig.create({
-            SupportsPlatforms: ["web", "ios", "android"],
-        });
-
-        Application.EmbeddedConfig = NewAppConfig;
-
-        await NewAppConfig.save();
-        await Application.save();
-    }
-
-    const AppPackage = Application.Package();
+    const AppPackage = await Application.Package();
     res.json(AppPackage.embedded_activity_config);
 });
 
@@ -63,7 +51,7 @@ App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, re
 
     await Application.save();
 
-    const AppPackage = Application.Package();
+    const AppPackage = await Application.Package();
     res.json(AppPackage.embedded_activity_config);
 });
 

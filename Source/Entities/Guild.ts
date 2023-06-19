@@ -4,6 +4,7 @@ import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "./Channel";
 import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
+import { VoiceSessions } from "../Handlers/RTCSocket";
 
 export const enum InviteType {
 	GUILD = 0,
@@ -337,10 +338,26 @@ export class Guild extends BaseEntity {
 	}
 
 	GatewaySupplementalPackage() {
+		const FilteredVoiceSessions = VoiceSessions.filter(V => V.guild_id === this.ID);
+		const VoiceStates = FilteredVoiceSessions.map((V) => V.voice_states)
+      .flat()
+      .map((voiceState) => ({
+        channel_id: voiceState.channel_id,
+        deaf: voiceState.deaf,
+        mute: voiceState.mute,
+        request_to_speak_timestamp: voiceState.request_to_speak_timestamp,
+        self_deaf: voiceState.self_deaf,
+        self_mute: voiceState.self_mute,
+        self_video: voiceState.self_video,
+        session_id: voiceState.session_id,
+        suppress: voiceState.suppress,
+        user_id: voiceState.user_id,
+      }));
+
 		return {
 			embedded_activities: [],
 			id: this.ID,
-			voice_states: [], // TODO: for voice chats
+			voice_states: VoiceStates,
 		};
 	}
 }

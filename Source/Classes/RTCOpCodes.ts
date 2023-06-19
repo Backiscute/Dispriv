@@ -12,3 +12,18 @@ export enum RTCOpCodes {
     CLIENT_DISCONNECT = 13,
     REQUEST_VERSIONS = 16
 }
+
+export enum RTCCloseCodes {
+    UnknownOpcode = 4001,
+    FailedToDecodePayload,
+    NotAuthenticated,
+    AuthenticationFailed,
+    AlreadyAuthenticated,
+    SessionNoLongerValid,
+    SessionTimeout = 4009,
+    ServerNotFound = 4011,
+    UnknownProtocol,
+    Disconnected = 4014,
+    VoiceServerCrashed,
+    UnknownEncryptionMode,
+}

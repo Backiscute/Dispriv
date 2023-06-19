@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { BaseEntity, Entity, PrimaryColumn, Column, ManyToOne, PrimaryGeneratedColumn, OneToOne, Relation } from 'typeorm';
 import { ApplicationFlags } from "../Classes/Flags";
 import { User } from './User';
 import { Team } from './ApplicationTeam';
@@ -38,8 +38,26 @@ export class EmbeddedAppConfig extends BaseEntity {
 
   @Column({ default: 0 })
   ShelfPriority: number;
-}
 
+  @OneToOne(() => DiscordApplication, DA => DA.EmbeddedConfig)
+  Application: Relation<DiscordApplication>;
+
+  Package()
+  {
+    return {
+      max_participants: this.MaxParticipants,
+      requires_age_gate: this.IsEighteenPlus,
+      premium_tier_requirement: this.NeedsNitro,
+      free_period_starts_at: this.FreePeriodStarts,
+      free_period_ends_at: this.FreePeriodEnds,
+      activity_preview_video_asset_id: this.ActivityPreviewVideoID,
+      supported_platforms: this.SupportsPlatforms,
+      default_orientation_lock_state: this.DefaultOrientation,
+      tablet_default_orientation_lock_state: this.TabletDefaultOrientation,
+      shelf_rank: this.ShelfPriority
+    }
+  } 
+}
 @Entity()
 export class DiscordApplication extends BaseEntity {
   @PrimaryColumn()
@@ -129,7 +147,7 @@ export class DiscordApplication extends BaseEntity {
   @Column({ default: -1, nullable: true })
   EmbeddedParticipants: number;
 
-  @Column({ type: "simple-json", nullable: true })
+  @OneToOne(() => EmbeddedAppConfig, EAP => EAP.Application, { nullable: true })
   EmbeddedConfig?: EmbeddedAppConfig;
 
 
@@ -137,9 +155,22 @@ export class DiscordApplication extends BaseEntity {
     return (this.Flags & Flag) === Flag;
   }
 
-  Package() {
-    let EmbeddedAppConfig = undefined;
-    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) EmbeddedAppConfig = {embedded_activity_config: this.EmbeddedConfig};
+  async Package() {
+    let EAppConfig = undefined;
+    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) {
+      console.log(this.EmbeddedConfig);
+      if (this.EmbeddedConfig !== undefined)
+        EAppConfig = {embedded_activity_config: this.EmbeddedConfig.Package()};
+      else
+      {
+        const EAP = await EmbeddedAppConfig.create({
+          SupportsPlatforms: ["web", "ios", "android"],
+          Application: this
+        }).save()
+
+        EAppConfig = {embedded_activity_config: EAP.Package()};
+      }
+    }
 
     return {
         id: this.ID,
@@ -171,13 +202,27 @@ export class DiscordApplication extends BaseEntity {
         bot: this.Bot?.PackagePublic(),
         tags: this.UserTags,
         max_participants: this.EmbeddedParticipants,
-        ...EmbeddedAppConfig
+        ...EAppConfig
     }
   }
 
-  PackagePublic() {
-    let EmbeddedAppConfig = undefined;
-    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT) && this.EmbeddedConfig) EmbeddedAppConfig = {embedded_activity_config: this.EmbeddedConfig};
+  async PackagePublic() {
+    let EAppConfig = undefined;
+    if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) {
+      if (this.EmbeddedConfig !== undefined)
+        EAppConfig = {embedded_activity_config: this.EmbeddedConfig.Package()};
+      else
+      {
+        const EAP = EmbeddedAppConfig.create({
+          SupportsPlatforms: ["web", "ios", "android"],
+          Application: this
+        })
+
+        await EAP.save();
+
+        EAppConfig = {embedded_activity_config: EAP.Package()};
+      }
+    }
 
     return {
         id: this.ID,
@@ -198,7 +243,7 @@ export class DiscordApplication extends BaseEntity {
         flags: this.Flags,
         tags: this.UserTags,
         max_participants: this.EmbeddedParticipants,
-        ...EmbeddedAppConfig
+        ...EAppConfig
     }
   }
 }
