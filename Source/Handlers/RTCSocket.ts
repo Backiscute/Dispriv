@@ -36,7 +36,6 @@ Socket.on("connection", (Client) => {
                 return SendOp(RTCClient, RTCOpCodes.HEARTBEAT_ACK, Date.now());
             case RTCOpCodes.REQUEST_VERSIONS:
                 return SendOp(RTCClient, RTCOpCodes.REQUEST_VERSIONS, {voice: "0.0.1", rtc_worker: "0.3.42"});
-                break;
             default:
                 console.log("unknown op"); // TODO FOR VOICE CHANNELS
         }
