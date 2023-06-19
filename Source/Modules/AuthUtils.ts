@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import { User } from "../Entities/User";
 import { DISCORD_EPOCH } from "./DiscordUtils";
+import { NextFunction, Request, Response } from "express";
 
 export function GenerateToken(Snowflake: string, Timestamp: number, HashedPassword: string): string {
     const EncodedId = Buffer.from(Snowflake).toString("base64url");
@@ -50,18 +51,19 @@ export async function VerifyToken(token: string) : Promise<boolean> {
     return Parts[2] === Signature;
 }
 
-export async function GetUserByToken(token: string, relations?: object) : Promise<User> {
+export async function GetUserByToken(token: string, relations?: object) {
     const ValidToken = await VerifyToken(token);
-    if (!ValidToken) return null;
+    if (!ValidToken) return undefined;
 
     const UserID = GetTokenUserId(token);
 
     const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
-    return TUser;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return TUser!;
 }
 
-export async function GetUserByRequest(req, relations?: object) : Promise<User> {
-    let Token = req.headers.authorization;
+export async function GetUserByRequest(req: Request, relations?: object) {
+    let Token = req.headers.authorization ?? "";
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
 
     const ValidToken = await VerifyToken(Token);
@@ -73,10 +75,11 @@ export async function GetUserByRequest(req, relations?: object) : Promise<User> 
 
     //console.log({ where: { ID: UserID }, relations: relations });
     const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
-    return TUser;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return TUser!;
 }
 
-export function VerifyAuth(req, res, next) {
+export function VerifyAuth(req: Request, res: Response, next: NextFunction) {
     let Auth = req.headers.authorization;
     if (!Auth) return res.status(401).json({"code": 0, "message": "401: Unauthorized"});
 

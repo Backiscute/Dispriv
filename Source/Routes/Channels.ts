@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-case-declarations */
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
@@ -50,15 +51,15 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
 });
 
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
-    const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } } } });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM() && !RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
 
 	if (!RequestedChannel.IsDM()) {
-		const Server = RequestedChannel.OwnerGuild;
-		const Mmbr = MembershipFromGuild(MyUser, Server);
+		const Server = RequestedChannel.OwnerGuild!;
+		const Mmbr = MembershipFromGuild(MyUser, Server)!;
 
 		if (!HasPermission(Mmbr, Permissions.READ_MESSAGE_HISTORY))
 			return res.json([]);
@@ -68,7 +69,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 });
 
 App.get("/:ChannelID", VerifyAuth, async (req, res) => {
-    const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, DMRecipients: true, Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } } } });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
@@ -81,7 +82,7 @@ App.get("/:ChannelID", VerifyAuth, async (req, res) => {
         return res.json(RequestedChannel.SmallDMPackage(MyUser));
     }
 
-    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild), Permissions.VIEW_CHANNEL)) return res.status(400).json({ code: 0, message: "No access" });
+    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.VIEW_CHANNEL)) return res.status(400).json({ code: 0, message: "No access" });
 
     res.json(RequestedChannel.GuildPackage());
 });

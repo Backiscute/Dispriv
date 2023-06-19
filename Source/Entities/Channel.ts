@@ -106,7 +106,7 @@ export class Channel extends BaseEntity {
         };
     }
 
-	GuildPackage(OverrideOwnerGuildID: string = null) {
+	GuildPackage(OverrideOwnerGuildID?: string) {
 		return {
             bitrate: this.Type === ChannelType.GUILD_VOICE ? 64000 : undefined,
             user_limit: this.Type === ChannelType.GUILD_VOICE ? this.VCUserLimit : undefined,
@@ -114,7 +114,8 @@ export class Channel extends BaseEntity {
             rtc_region: this.Type === ChannelType.GUILD_VOICE ? "dispriv" : undefined,
 			id: this.ID,
 			type: this.Type,
-			guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild.ID,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
 			parent_id: this.OwnerCategory?.ID ?? null,
 			position: this.GuildPosition,
 			permission_overwrites: [],
@@ -136,6 +137,7 @@ export class Channel extends BaseEntity {
     }
 
     CheckDMAccess(UserData: User) {
-        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) !== undefined : false || this.Owner.ID === UserData.ID;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) !== undefined : false || this.Owner!.ID === UserData.ID;
     }
 }

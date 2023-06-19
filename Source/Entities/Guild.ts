@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
@@ -330,7 +331,8 @@ export class Guild extends BaseEntity {
 			stage_instances: [],
 			stickers: [],
 			threads: [],
-			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ],
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID)!.Package() ],
 			presences: [], // TODO
 			embedded_activities: [], // same as ready embedded_activities
 			version: Date.now()

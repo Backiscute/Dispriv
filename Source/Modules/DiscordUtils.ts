@@ -41,7 +41,7 @@ export function GetHighestRole(Usr: Membership) {
 	return GetHighestRoleInArr(Usr.Roles);
 }
 
-export async function SendToSelf(Usr: User, Opcode: OpCodes, Data = null, s = null, t = null) {
+export async function SendToSelf(Usr: User, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
 	const Conn = FindConnection(Usr.ID);
 	if (!Conn) return;
 
@@ -70,7 +70,7 @@ export async function SendGuildMemberUpdate(Usr: User) {
 	});
 }
 
-export async function SendToConnections(Usr: User, Opcode: OpCodes, Data = null, s = null, t = null) {
+export async function SendToConnections(Usr: User, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
 	const AlreadySentTo: string[] = [];
 
 	[...Usr.RelationsFrom, ...Usr.RelationsRegarding].forEach(R => {
@@ -99,7 +99,7 @@ export async function SendToConnections(Usr: User, Opcode: OpCodes, Data = null,
 	});
 }
 
-export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data = null, s = null, t = null) {
+export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
 	const SentGuild = await Guild.findOne({ where: { ID: ServerID }, relations: { Members: true } });
 
 	if (!SentGuild) return;
@@ -113,9 +113,10 @@ export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data = nu
 	});
 }
 
-export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data = null, s = null, t = null) {
+export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
 	if (Chnl.IsDM()) {
-		Chnl.DMRecipients.forEach(Recipient => {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		Chnl.DMRecipients!.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.ID);
 
 			if (!Conn) return;
@@ -124,9 +125,10 @@ export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data = nu
 			SendOp(Conn, Opcode, Data, s, t);
 		});
 	} else {
-		const SentGuild = await Guild.findOne({ where: { ID: Chnl.OwnerGuild.ID }, relations: { Roles: false, Invites: false, Channels: false, Members: true } });
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const SentGuild = await Guild.findOne({ where: { ID: Chnl.OwnerGuild!.ID }, relations: { Roles: false, Invites: false, Channels: false, Members: true } });
 		
-		SentGuild.Members.forEach(Recipient => {
+		if (SentGuild) SentGuild.Members.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.Owner.ID);
 			if (!Conn) return;
 			if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;

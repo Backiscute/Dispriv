@@ -12,7 +12,8 @@ App.post("/create_build_override_link", VerifyAuth, async (req, res) => {
    const BuildOverrideMeta = req.body.meta;
    if (!BuildOverrideMeta) return res.sendStatus(403).send("The maze wasn't meant for you.");
 
-   const User = await GetUserByRequest(req);
+   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   const User = (await GetUserByRequest(req))!;
 
     if (!User.HasFlag(UserFlags.STAFF)) return res.sendStatus(403).send("The maze wasn't meant for you.");
 

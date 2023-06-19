@@ -1,4 +1,6 @@
-export function GenAccountErrorLogin(code, message, res) {
+import { Response } from "express";
+
+export function GenAccountErrorLogin(code: number | string, message: string, res: Response) {
     res.status(400).json(
         {
             "message": "Invalid Form Body",
@@ -17,7 +19,7 @@ export function GenAccountErrorLogin(code, message, res) {
     );
 }
 
-export function GenAccountErrorLoginAll(code, message, res) {
+export function GenAccountErrorLoginAll(code: number | string, message: string, res: Response) {
     res.status(400).json(
         {
             "message": "Invalid Form Body",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WebSocketServer } from "ws";
 import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
@@ -5,14 +6,15 @@ import { GatewayConnection } from "../Classes/GatewayConnection";
 import { OpCodes } from "../Classes/OpCodes";
 import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
-import { parse, URLSearchParams } from "url";
+import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import { SendGuildMemberUpdate, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
-import chalk from "chalk";
 import { ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "./RTCSocket";
 import bcrypt from "bcrypt";
+import { green, red } from "colorette";
+import { VoiceState } from "../Classes/VoiceSession";
 
 const Socket = new WebSocketServer({
 	port: parseInt(process.env.WSPORT) || 6968,
@@ -20,7 +22,7 @@ const Socket = new WebSocketServer({
 
 export const Connections: GatewayConnection[] = [];
 Socket.on("connection", async (Client, req) => {
-	const QueryParams = new URLSearchParams(parse(req.url).query);
+	const QueryParams = new URLSearchParams(req.url);
 	console.log(QueryParams);
 	console.log({
 		zlib: QueryParams.get("compress") === "zlib-stream",
@@ -53,13 +55,13 @@ Socket.on("connection", async (Client, req) => {
 	Client.on("message", async (Data: Buffer) => {
 		const UnpackedData = GatewayClient.Encoding === "etf" ? unpack(Data) : JSON.parse(Data.toString());
 		Msg(
-			`Received packet from client ${chalk.red(GatewayClient.ID)}: ${JSON.stringify(
+			`Received packet from client ${red(GatewayClient.ID)}: ${JSON.stringify(
 				UnpackedData
 			)}`,
 			"Gateway"
 		);
 		switch (
-		UnpackedData.op // Opcodes
+			UnpackedData.op
 		) {
 			case OpCodes.HEARTBEAT:
 				return SendOp(GatewayClient, OpCodes.HEARTBEAT_ACK);
@@ -89,6 +91,7 @@ Socket.on("connection", async (Client, req) => {
 
 			case OpCodes.CLIENT_SPEEDTEST_CREATE:
 				if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+
 				SendOp(GatewayClient, OpCodes.DISPATCH, { paused: false, region: "us-south", rtc_server_id: "1", stream_key: "test:" + GatewayClient.Account.ID, stream_server_id: "1", viewer_ids: [] }, null, "SPEED_TEST_CREATE");
 				SendOp(GatewayClient, OpCodes.DISPATCH, { endpoint: "127.0.0.1:" + process.env.RTCWSPORT || "6967", guild_id: null, stream_key: "test:" + GatewayClient.Account.ID, token: GatewayClient.UserToken }, null, "SPEED_TEST_SERVER_UPDATE");
 				break;
@@ -118,7 +121,7 @@ Socket.on("connection", async (Client, req) => {
 
 					const VoiceSession = VoiceSessions.find((S) => S.guild_id === GuildID && S.channel_id === ChannelID);
 
-					const VoiceState = {
+					const VoiceState: VoiceState = {
 						channel_id: ChannelID,
 						deaf: UserMembership.Deafened,
 						guild_id: GuildID,
@@ -136,28 +139,28 @@ Socket.on("connection", async (Client, req) => {
 					if (VoiceSession)
 					{	
 
-						if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account.ID && state.session_id === GatewayClient.ID)) 
+						if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account!.ID && state.session_id === GatewayClient.ID)) 
 						{
 							// user is already in the voice session, edit muted and deaf (self)
-							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
-							UserVoiceState.self_mute = UnpackedData.d.self_mute;
-							UserVoiceState.self_deaf = UnpackedData.d.self_deaf;
-							UserVoiceState.self_video = UnpackedData.d.self_video;
+							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account!.ID);
+							UserVoiceState!.self_mute = UnpackedData.d.self_mute;
+							UserVoiceState!.self_deaf = UnpackedData.d.self_deaf;
+							UserVoiceState!.self_video = UnpackedData.d.self_video;
 
 							await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
 
 							return;
 						}
-						else if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account.ID && state.session_id != GatewayClient.ID))
+						else if (VoiceSession.voice_states.some((state) => state.user_id === GatewayClient.Account!.ID && state.session_id !== GatewayClient.ID))
 						{
 							// user is in another client, remove old client
-							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
-							VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(UserVoiceState), 1);
+							const UserVoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account!.ID);
+							VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(UserVoiceState!), 1);
 
 							await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
 						}
 
-						Msg(`Connecting User ${chalk.red(GatewayClient.Account.Username)} to voice channel ${chalk.red(LinkedChannel.DisplayName)} in guild ${chalk.red(Guild.Name)}`, "Voice");
+						Msg(`Connecting User ${red(GatewayClient.Account.Username)} to voice channel ${red(LinkedChannel.DisplayName)} in guild ${red(Guild.Name)}`, "Voice");
 						VoiceSession.voice_states.push(VoiceState);
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
@@ -165,7 +168,7 @@ Socket.on("connection", async (Client, req) => {
 					}
 					else
 					{
-						Msg(`Creating new voice session for guild ${chalk.red(Guild.Name)} in channel ${chalk.red(LinkedChannel.DisplayName)}`, "Voice");
+						Msg(`Creating new voice session for guild ${red(Guild.Name)} in channel ${red(LinkedChannel.DisplayName)}`, "Voice");
 						VoiceSessions.push({
 							channel_id: ChannelID,
 							guild_id: GuildID,
@@ -177,17 +180,17 @@ Socket.on("connection", async (Client, req) => {
 					}
 
 				}
-				else if (!GuildID && !ChannelID && VoiceSessions.some((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account.ID)))
+				else if (!GuildID && !ChannelID && VoiceSessions.some((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account!.ID)))
 				{
 					// disconnect from voice
-					const VoiceSession = VoiceSessions.find((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account.ID));
-					const VoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account.ID);
+					const VoiceSession = VoiceSessions.find((S) => S.voice_states.some((state) => state.user_id === GatewayClient.Account!.ID))!;
+					const VoiceState = VoiceSession.voice_states.find((state) => state.user_id === GatewayClient.Account!.ID);
 
-					VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(VoiceState), 1);
+					VoiceSession.voice_states.splice(VoiceSession.voice_states.indexOf(VoiceState!), 1);
 
-					VoiceState.channel_id = null;
+					VoiceState!.channel_id = null;
 
-					await SendToMembers(VoiceState.guild_id, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
+					await SendToMembers(VoiceState!.guild_id, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
 
 					if (VoiceSession.voice_states.length === 0)
 					{
@@ -239,7 +242,7 @@ Socket.on("connection", async (Client, req) => {
 				GatewayClient.Intents = 0; // TODO: add check for privileged intents
 
 				Msg(
-					`Client ${chalk.red(GatewayClient.ID)} re-identified as ${chalk.red(GatewayClient.Account.Username + "#" + GatewayClient.Account.Discriminator)}`,
+					`Client ${red(GatewayClient.ID)} re-identified as ${red(GatewayClient.Account!.Username + "#" + GatewayClient.Account!.Discriminator)}`,
 					"Gateway"
 				);
 				break;
@@ -271,7 +274,7 @@ Socket.on("connection", async (Client, req) => {
 							}
 						}
 					}
-				});
+				})!;
 				GatewayClient.UserToken = Token;
 
 				console.log("--- ACCOUNT GOTTEN");
@@ -279,14 +282,14 @@ Socket.on("connection", async (Client, req) => {
 				GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
 				Msg(
-					`Client ${chalk.red(GatewayClient.ID)} identified as ${chalk.red(GatewayClient.Account.Username + "#" + GatewayClient.Account.Discriminator)}`,
+					`Client ${red(GatewayClient.ID)} identified as ${red(GatewayClient.Account!.Username + "#" + GatewayClient.Account!.Discriminator)}`,
 					"Gateway"
 				);
 
 				const PresenceSet = UnpackedData.d.presence.status ?? Presence.ONLINE;
-				GatewayClient.Account.Presence = PresenceSet;
+				GatewayClient.Account!.Presence = PresenceSet;
 
-				await GatewayClient.Account.save();
+				await GatewayClient.Account!.save();
 
 				console.log("--- SENDING READY DISPATCH");
 				SendOp(
@@ -307,26 +310,26 @@ Socket.on("connection", async (Client, req) => {
 						geo_ordered_rtc_regions: ["dispriv"],
 						guild_experiments: [], // TODO (also if you want)
 						guild_join_requests: [], // idk what this is but its needed for guilds i think
-						guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account)),
-						merged_members: GatewayClient.Account.Memberships.map(M => M.PackageGateway()), // YOUR member object in every guild (for roles and stuff)
-						private_channels: GatewayClient.Account.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account)), // group chats and dms
+						guilds: GatewayClient.Account!.Memberships.map(M => M.ToGuild.GatewayPackage(GatewayClient.Account!)),
+						merged_members: GatewayClient.Account!.Memberships.map(M => M.PackageGateway()), // YOUR member object in every guild (for roles and stuff)
+						private_channels: GatewayClient.Account!.AvailableDMs.map(C => C.GatewayDMPackage(GatewayClient.Account!)), // group chats and dms
 						read_state: { "entries": [], "partial": false, "version": 0 }, // not sure what this is (prob unread dms)
-						relationships: [...GatewayClient.Account.RelationsFrom.map((R) => R.PackageGateway(true, GatewayClient.Account)), ...GatewayClient.Account.RelationsRegarding.map((R) => R.PackageGateway(true, GatewayClient.Account))], // friends
+						relationships: [...GatewayClient.Account!.RelationsFrom.map((R) => R.PackageGateway(true, GatewayClient.Account!)), ...GatewayClient.Account!.RelationsRegarding.map((R) => R.PackageGateway(true, GatewayClient.Account!))], // friends
 						resume_gateway_url: process.env.OverrideWS || "ws://127.0.0.1:6968",
 						session_id: GatewayClient.ID,
 						session_type: "normal",
 						sessions: [], // sessions so you can see the devices to log them out i think
 						tutorial: {
-							indicators_confirmed: GatewayClient.Account.TutorialReadIndicators,
-							indicators_suppressed: GatewayClient.Account.TutorialSuppressed
+							indicators_confirmed: GatewayClient.Account!.TutorialReadIndicators,
+							indicators_suppressed: GatewayClient.Account!.TutorialSuppressed
 						},
-						user: GatewayClient.Account.Package(),
+						user: GatewayClient.Account!.Package(),
 						user_guild_settings: { "entries": [], "partial": false, "version": 0 }, // guild settings for the user (notifications, etc)
-						user_settings_proto: GatewayClient.Account.SettingsProto, // settings of the client
+						user_settings_proto: GatewayClient.Account!.SettingsProto, // settings of the client
 						users: [
-							GatewayClient.Account.PackageSmall(),
-							...GatewayClient.Account.AvailableDMs.map(C => C.DMRecipients.filter(U => U.ID !== GatewayClient.Account.ID).map(U => U.PackageSmall())).flat(),
-							...GatewayClient.Account.Memberships.map(M => M.ToGuild.Members.map(M => M.Owner.PackageSmall())).flat()
+							GatewayClient.Account!.PackageSmall(),
+							...GatewayClient.Account!.AvailableDMs.map(C => C.DMRecipients!.filter(U => U.ID !== GatewayClient.Account!.ID).map(U => U.PackageSmall())).flat(),
+							...GatewayClient.Account!.Memberships.map(M => M.ToGuild.Members.map(M => M.Owner.PackageSmall())).flat()
 						], // EVERY user in EVERY guild (for searching, mentions, etc)
 						v: 9, // api version (fr)
 					},
@@ -341,10 +344,10 @@ Socket.on("connection", async (Client, req) => {
 					OpCodes.DISPATCH,
 					{
 						disclose: ["pomelo"], // username system?
-						guilds: GatewayClient.Account.Memberships.map(M => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
+						guilds: GatewayClient.Account!.Memberships.map(M => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
 						lazy_private_channels: [], // not sure but not needed i think
 						merged_members: [
-							...GatewayClient.Account.Memberships.map(M => M.ToGuild.Members.map(M => M.PackageGateway())).flat()
+							...GatewayClient.Account!.Memberships.map(M => M.ToGuild.Members.map(M => M.PackageGateway())).flat()
 						], // OTHER members object in every guild (for roles and stuff)
 						merged_presences: { friends: [], guilds: [] }, // presences from friends and guilds
 					},
@@ -359,4 +362,4 @@ Socket.on("connection", async (Client, req) => {
 	});
 });
 
-Msg(`Gateway initialized! Listening on port ${chalk.green(Socket.options.port)}`, "Gateway");
+Msg(`Gateway initialized! Listening on port ${green(Socket.options.port!)}`, "Gateway");

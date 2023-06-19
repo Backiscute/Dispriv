@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
@@ -59,7 +60,7 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
 	//if (req.params.MemberID === "@me") return res.sendStatus(403);
 	const IsMe = req.params.MemberID === "@me";
 
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true } } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true } } }))!;
 	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 		

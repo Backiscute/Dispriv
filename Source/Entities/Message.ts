@@ -72,9 +72,31 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Channel, C => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     Channel: Channel;
 
-    Package(IncludeReplyData = true) {
+    Package(IncludeReplyData = true): {
+        message_reference?: {
+            channel_id: string | undefined;
+            message_id: string | undefined;
+        };
+        referenced_message: ReturnType<typeof Message.prototype.Package> | undefined;
+        reactions: (ReturnType<typeof Reaction.prototype.Package>)[];
+        attachments: [];
+        tts: boolean;
+        embeds: [];
+        timestamp: string;
+        mention_everyone: boolean;
+        id: string;
+        pinned: boolean;
+        edited_timestamp: string | null;
+        author: ReturnType<typeof User.prototype.PackagePublic>;
+        mention_roles: [];
+        content: string;
+        channel_id: string;
+        mentions: [];
+        type: MessageType;
+        flags: MessageFlags;
+    } {
         return {
-            message_reference: this.Type === MessageType.REPLY  && IncludeReplyData ? {
+            message_reference: this.Type === MessageType.REPLY && IncludeReplyData ? {
                 channel_id: this.ReplyingTo?.Channel?.ID,
                 message_id: this.ReplyingTo?.ID
             } : undefined,
@@ -119,7 +141,8 @@ export class Reaction extends BaseEntity {
     Package(Context?: User) {
         return {
             count: this.UsersReacted ? this.UsersReacted.length : 1,
-            me: this.UsersReacted ? this.UsersReacted.includes(Context) : false,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            me: this.UsersReacted ? this.UsersReacted.includes(Context!) : false,
             emoji: {
                 id: null,
                 name: this.EmojiCode

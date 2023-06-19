@@ -180,7 +180,7 @@ export class DiscordApplication extends BaseEntity {
         summary: this.Summary,
         hook: this.IsHook,
         verify_key: null,
-        owner: this.Team != null ? this.Team.PackageTeamUser() : this.Owner.PackagePublic(),
+        owner: this.Team != null ? this.Team.PackageTeamUser() : this.Owner!.PackagePublic(),
         publishers: this.Publishers,
         developers: this.Developers,
         flags: this.Flags,

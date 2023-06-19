@@ -1,16 +1,16 @@
-import chalk from "chalk";
+import { green, gray, red, magenta } from "colorette";
 
 const DebugEnabled = true;
 
 export function Msg(Content: string, Prefix = "Discord") {
-    console.log(`${chalk.gray(new Date().toISOString())} [${chalk.green(Prefix)}] ${Content}`);
+    console.log(`${gray(new Date().toISOString())} [${green(Prefix)}] ${Content}`);
 }
 
 export function Error(Content: string) {
-    console.log(`${chalk.gray(new Date().toISOString())} [${chalk.red("ERROR")}] ${Content}`);
+    console.log(`${gray(new Date().toISOString())} [${red("ERROR")}] ${Content}`);
 }
 
 export function Debug(Content: string, Prefix = "Discord Debug") {
     if (!DebugEnabled) return;
-    console.log(`${chalk.gray(new Date().toISOString())} [${chalk.magenta("DEBUG | ") + chalk.magenta(Prefix)}] ${Content}`);
+    console.log(`${gray(new Date().toISOString())} [${magenta("DEBUG | ") + magenta(Prefix)}] ${Content}`);
 }

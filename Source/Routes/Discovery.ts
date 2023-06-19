@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
+import { VerifyAuth } from "../Modules/AuthUtils";
 import { Guild } from "../Entities/Guild";
 
 const App = Router();

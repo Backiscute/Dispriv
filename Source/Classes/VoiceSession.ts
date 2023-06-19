@@ -5,11 +5,11 @@ export interface VoiceSession {
 }
 
 export interface VoiceState {
-  channel_id: string;
+  channel_id: string | null;
   deaf: boolean;
   guild_id: string;
   mute: boolean;
-  request_to_speak_timestamp: string;
+  request_to_speak_timestamp: string | null;
   self_deaf: boolean;
   self_mute: boolean;
   self_video: boolean;

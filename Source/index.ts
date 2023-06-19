@@ -1,5 +1,7 @@
+import env from "dotenv";
 import { DataSource } from "typeorm";
 import { Msg } from "./Modules/Logger";
+env.config();
 
 import "./Handlers/Server";
 import "./Handlers/Gateway";

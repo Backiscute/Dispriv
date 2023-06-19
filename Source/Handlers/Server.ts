@@ -1,17 +1,12 @@
-import * as express from "express";
-import * as env from "dotenv";
-
-import * as fs from "fs";
+import { green, italic } from "colorette";
+import express from "express";
+import fs from "fs";
 import { Msg } from "../Modules/Logger";
-env.config();
 
-import chalk from "chalk";
-
-export const Application = express.default();
-Application.disable("etag");
-Application.disable("x-powered-by");
-
-Application.use(express.json({
+export const Application = express()
+.disable("etag")
+.disable("x-powered-by")
+.use(express.json({
 	limit: "5mb"
 }));
 
@@ -27,11 +22,11 @@ const Files = fs.readdirSync("./bin/Routes");
         if (!Contents.default.App) continue;
         Application.use(Contents.default.DefaultAPI || "/", Contents.default.App);
     
-        Msg(`Loaded file ${chalk.italic(V)}!`);
+        Msg(`Loaded file ${italic(V)}!`);
     }
     
     Application.use((req, res) => res.status(404).json({"message": "404: Not Found", "code": 0}));
 
-    Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${chalk.green(process.env.PORT)}`));
+    Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${green(process.env.PORT)}`));
     
 })();

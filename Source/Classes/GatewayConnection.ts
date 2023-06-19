@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { User } from "../Entities/User";
 import { Deflate, Inflate } from "fast-zlib";
+import { WebSocket } from "ws";
 
 export class GatewayConnection {
     ID: string; // Autogenerate
