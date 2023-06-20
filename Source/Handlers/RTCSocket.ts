@@ -109,6 +109,17 @@ Socket.on("connection", (Client) => {
                 });
                 break;
             }
+            case RTCOpCodes.SELECT_PROTOCOL: {
+                const Session = VoiceSessions.find((S) => S.guild_id === RTCClient.server_id);
+                if (!Session) return Client.close(RTCCloseCodes.SessionNoLongerValid, "Session no longer valid");
+                SendOp(RTCClient, RTCOpCodes.SESSION_DESCRIPTION, {
+                    video_codec: "H264",
+                    sdp: "m=audio 50008 ICE/SDP\na=fingerprint:sha-256 4A:79:94:16:44:3F:BD:05:41:5A:C7:20:F3:12:54:70:00:73:5D:33:00:2D:2C:80:9B:39:E1:9F:2D:A7:49:87\nc=IN IP4 35.214.140.185\na=rtcp:50008\na=ice-ufrag:kdQV\na=ice-pwd:DvKMbn46m8EX5pWwlTHrxG\na=fingerprint:sha-256 4A:79:94:16:44:3F:BD:05:41:5A:C7:20:F3:12:54:70:00:73:5D:33:00:2D:2C:80:9B:39:E1:9F:2D:A7:49:87\na=candidate:1 1 UDP 4261412862 35.214.140.185 50008 typ host\n",
+                    media_session_id: "b5de7bfe1ca8a5b4690990d6a38bbe03",
+                    audio_codec: "opus",
+                });
+                break;
+            }
             default:
                 Error("unknown op: " + Payload.op); // TODO FOR VOICE CHANNELS
         }
