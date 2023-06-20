@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { Msg } from "../Modules/Logger";
+import { Error, Msg } from "../Modules/Logger";
 import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
 import { RTCCloseCodes, RTCOpCodes } from "../Classes/RTCOpCodes";
@@ -21,11 +21,10 @@ Socket.on("connection", (Client) => {
 
     Client.on("close", () => {
         const Idx = Connections.findIndex((C) => C.ID === RTCClient.ID);
-        if (Idx !== -1)
-            Connections.splice(Idx, 1);
+        if (Idx !== -1) Connections.splice(Idx, 1);
     });
 
-    SendOp(RTCClient, RTCOpCodes.HELLO, {v: 7, heartbeat_interval: 13750});
+    SendOp(RTCClient, RTCOpCodes.HELLO, { v: 7, heartbeat_interval: 13750 });
 
     Msg(`Client ${chalk.red(RTCClient.ID)} connected to WebRTC!`, "RTCSocket");
     Client.on("message", async (Data) => {
@@ -37,15 +36,15 @@ Socket.on("connection", (Client) => {
             case RTCOpCodes.HEARTBEAT:
                 return SendOp(RTCClient, RTCOpCodes.HEARTBEAT_ACK, Date.now());
             case RTCOpCodes.REQUEST_VERSIONS:
-                return SendOp(RTCClient, RTCOpCodes.REQUEST_VERSIONS, {voice: "0.0.1", rtc_worker: "0.3.42"});
-            case RTCOpCodes.IDENTIFY: 
-            {
+                return SendOp(RTCClient, RTCOpCodes.REQUEST_VERSIONS, { voice: "0.0.1", rtc_worker: "0.3.42" });
+            case RTCOpCodes.IDENTIFY: {
                 const GuildID = Payload.d.server_id;
                 const UserID = Payload.d.user_id;
                 const SessionID = Payload.d.session_id;
                 const Token = Payload.d.token;
 
-                if (!GuildID || !UserID || !SessionID || !Token) return Client.close(RTCCloseCodes.AuthenticationFailed, "Authentication failed");
+                if (!GuildID || !UserID || !SessionID || !Token)
+                    return Client.close(RTCCloseCodes.AuthenticationFailed, "Authentication failed");
 
                 const UserEntry = await User.findOne({ where: { ID: UserID } });
 
@@ -65,11 +64,17 @@ Socket.on("connection", (Client) => {
 
                 if (!VoiceState) return Client.close(RTCCloseCodes.SessionNoLongerValid, "Session No Longer Valid");
 
-                if (Session.ConnectedVoiceClients.find((C) => C.session_id === SessionID)) 
+                if (Session.ConnectedVoiceClients.find((C) => C.session_id === SessionID))
                     return Client.close(RTCCloseCodes.AlreadyAuthenticated, "Already Authenticated");
                 else if (Session.ConnectedVoiceClients.find((C) => C.Account.ID === UserID))
-                    Session.ConnectedVoiceClients.find((C) => C.Account.ID === UserID).SocketClient.close(RTCCloseCodes.Disconnected, "New Client Connected");
-                    Session.ConnectedVoiceClients.splice(Session.ConnectedVoiceClients.findIndex((C) => C.Account.ID === UserID), 1);
+                    Session.ConnectedVoiceClients.find((C) => C.Account.ID === UserID).SocketClient.close(
+                        RTCCloseCodes.Disconnected,
+                        "New Client Connected"
+                    );
+                Session.ConnectedVoiceClients.splice(
+                    Session.ConnectedVoiceClients.findIndex((C) => C.Account.ID === UserID),
+                    1
+                );
 
                 RTCClient.Account = UserEntry;
                 RTCClient.server_id = GuildID;
@@ -79,13 +84,33 @@ Socket.on("connection", (Client) => {
 
                 Session.ConnectedVoiceClients.push(RTCClient);
 
-                Msg(`Client ${chalk.red(RTCClient.ID)} authenticated as ${chalk.red(UserEntry.Username)}!`, "RTCSocket");
+                Msg(
+                    `Client ${chalk.red(RTCClient.ID)} authenticated as ${chalk.red(UserEntry.Username)}!`,
+                    "RTCSocket"
+                );
 
-
+                SendOp(RTCClient, RTCOpCodes.READY, {
+                    streams: [
+                        { type: "video", ssrc: 178840, rtx_ssrc: 178841, rid: "100", quality: 100, active: false },
+                    ],
+                    ssrc: 178839,
+                    port: 50001,
+                    modes: [
+                        "aead_aes256_gcm_rtpsize",
+                        "aead_aes256_gcm",
+                        "aead_xchacha20_poly1305_rtpsize",
+                        "xsalsa20_poly1305_lite_rtpsize",
+                        "xsalsa20_poly1305_lite",
+                        "xsalsa20_poly1305_suffix",
+                        "xsalsa20_poly1305",
+                    ],
+                    ip: "66.22.198.18",
+                    experiments: ["fixed_keyframe_interval"],
+                });
                 break;
             }
             default:
-                console.log("unknown op: " + Payload.op); // TODO FOR VOICE CHANNELS
+                Error("unknown op: " + Payload.op); // TODO FOR VOICE CHANNELS
         }
     });
 });

@@ -15,9 +15,9 @@ App.post("/indicators/suppress", VerifyAuth, async (req, res) => {
 App.put("/indicators/:indicatorName", VerifyAuth, async (req, res) => {
     const User = await GetUserByRequest(req);
     const Indicator = req.params.indicatorName;
-    
+
     if (User.TutorialReadIndicators.includes(Indicator)) return res.sendStatus(204);
-    
+
     User.TutorialReadIndicators.push(Indicator);
     await User.save();
 
