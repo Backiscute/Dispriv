@@ -16,7 +16,7 @@ import { PreloadedUserSettings } from "discord-protos";
 const App = Router();
 
 App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
-	const U = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
+	const U = await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true, Channels: { OwnerCategory: true, OwnerGuild: true } } } });
 
 	for (const PropKey of Object.keys(req.body)) {
 		const Value = req.body[PropKey];

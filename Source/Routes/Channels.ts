@@ -19,19 +19,21 @@ App.patch("/*/messages/:MessageID", async (req, res) => {
 });
 
 App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
-	return res.status(400).send();
+	//return res.status(400).send();
 	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
 	console.log("user");
+
 	const RequestedMessage = await Message.findOne({
 		where: {
 			ID: req.params.MessageID
 		},
 		relations: {
-			Author: false
+			Author: false,
+			Channel: {
+				OwnerGuild: true
+			}
 		}
 	});
-
-	console.log("message");
 
 	if (!RequestedMessage)
 		return res.status(400).json({ code: 10015, message: "Unknown Message" });
