@@ -8,5 +8,5 @@ App.get("/regions", (req, res) => {
 
 module.exports = {
     DefaultAPI: "/api/v9/voice",
-    App
+    App,
 };
