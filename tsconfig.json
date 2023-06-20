@@ -8,12 +8,9 @@
         "moduleResolution": "nodenext",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "noErrorTruncation": true
     },
-    "include": [
-        "Source/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules"
-    ]
+    "include": ["Source/**/*.ts"],
+    "exclude": ["node_modules"]
 }

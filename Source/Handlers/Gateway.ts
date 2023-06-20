@@ -13,6 +13,15 @@ import chalk from "chalk";
 import { ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "./RTCSocket";
 import bcrypt from "bcrypt";
+import {
+    HelloPacket,
+    ReadyPacket,
+    ReadySupplementalPacket,
+    SpeedTestCreatePacket,
+    SpeedTestDeletePacket,
+    SpeedTestServerUpdatePacket,
+    VoiceServerUpdatePacket,
+} from "../Classes/GatewayPackets";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
@@ -49,7 +58,7 @@ Socket.on("connection", async (Client, req) => {
         if (Idx !== -1) Connections.splice(Idx, 1);
     });
 
-    SendOp(GatewayClient, OpCodes.HELLO, {
+    SendOp<HelloPacket>(GatewayClient, OpCodes.HELLO, {
         heartbeat_interval: 41250, // eslint-disable-next-line quotes
         _trace: ['["Dispriv-Gateway",{"micros":0.0}]'],
     });
@@ -58,7 +67,7 @@ Socket.on("connection", async (Client, req) => {
         const UnpackedData = GatewayClient.Encoding === "etf" ? unpack(Data) : JSON.parse(Data.toString());
         Msg(`Received packet from client ${chalk.red(GatewayClient.ID)}: ${JSON.stringify(UnpackedData)}`, "Gateway");
         switch (
-        UnpackedData.op // Opcodes
+            UnpackedData.op // Opcodes
         ) {
             case OpCodes.HEARTBEAT:
                 return SendOp(GatewayClient, OpCodes.HEARTBEAT_ACK);
@@ -88,7 +97,7 @@ Socket.on("connection", async (Client, req) => {
 
             case OpCodes.CLIENT_SPEEDTEST_CREATE:
                 if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
-                SendOp(
+                SendOp<SpeedTestCreatePacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
                     {
@@ -102,7 +111,7 @@ Socket.on("connection", async (Client, req) => {
                     null,
                     "SPEED_TEST_CREATE"
                 );
-                SendOp(
+                SendOp<SpeedTestServerUpdatePacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
                     {
@@ -198,7 +207,7 @@ Socket.on("connection", async (Client, req) => {
                         VoiceSession.voice_states.push(VoiceState);
 
                         await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-                        SendOp(
+                        SendOp<VoiceServerUpdatePacket>(
                             GatewayClient,
                             OpCodes.DISPATCH,
                             {
@@ -227,7 +236,7 @@ Socket.on("connection", async (Client, req) => {
                         });
 
                         await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-                        SendOp(
+                        SendOp<VoiceServerUpdatePacket>(
                             GatewayClient,
                             OpCodes.DISPATCH,
                             {
@@ -276,7 +285,7 @@ Socket.on("connection", async (Client, req) => {
 
             case OpCodes.CLIENT_SPEEDTEST_DELETE:
                 if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
-                SendOp(
+                SendOp<SpeedTestDeletePacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
                     { reason: "user_requested", stream_key: "test:" + GatewayClient.Account.ID },
@@ -371,7 +380,8 @@ Socket.on("connection", async (Client, req) => {
                 await GatewayClient.Account.save();
 
                 console.log("--- SENDING READY DISPATCH");
-                SendOp(
+                // you'd better thank me for adding types --maddie
+                SendOp<ReadyPacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
                     {
@@ -435,7 +445,7 @@ Socket.on("connection", async (Client, req) => {
 
                 //console.log(GatewayClient.Account.Memberships[0].ToGuild);
                 console.log("--- SENDING READY_SUPPLIMENTAL DISPATCH");
-                SendOp(
+                SendOp<ReadySupplementalPacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
                     {
