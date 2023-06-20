@@ -49,7 +49,6 @@
         "erlpack": "^0.1.4",
         "express": "^4.18.2",
         "fast-zlib": "^2.0.1",
-        "medooze-media-server": "^0.139.22",
         "murmurhash3js": "^3.0.1",
         "semantic-sdp": "^3.26.2",
         "sharp": "^0.32.1",
