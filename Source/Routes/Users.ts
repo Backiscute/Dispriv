@@ -11,7 +11,7 @@ import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { GenerateRandomString, SendGuildMemberUpdate, SendToSelf } from "../Modules/DiscordUtils";
-import { PreloadedUserSettings } from "discord-protos";
+//import { PreloadedUserSettings } from "discord-protos";
 
 const App = Router();
 

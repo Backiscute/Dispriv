@@ -24,7 +24,8 @@
         "ext": "*.ts,*.json,*.env",
         "ignore": [
             "bin/**"
-        ]
+        ],
+		"exec": "npx eslint ./Source && tsc && node bin/."
     },
     "keywords": [
         "suck",
