@@ -1,7 +1,10 @@
+import { RTCConnection } from "./RTCConnection";
+
 export interface VoiceSession {
   guild_id: string;
   channel_id: string;
   voice_states: VoiceState[];
+  ConnectedVoiceClients?: RTCConnection[];
 }
 
 export interface VoiceState {

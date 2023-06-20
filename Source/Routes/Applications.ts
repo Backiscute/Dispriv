@@ -9,7 +9,7 @@ const App = Router();
 
 App.get("/", VerifyAuth, async (req, res) => {
     const UserData = await GetUserByRequest(req, { Applications: true });
-    res.json([ ...UserData.Applications.map(async (R) => await R.Package()) ]);
+    res.json([ ...UserData.Applications.map((R) => R.Package()) ]);
 });
 
 App.post("/", VerifyAuth, async (req, res) => {
@@ -31,11 +31,23 @@ App.post("/", VerifyAuth, async (req, res) => {
 
 App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
     const AppID = req.params.ApplicationID;
-    const UserData = await GetUserByRequest(req, { Applications: { EmbeddedConfig: true } });
+    const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
-    const AppPackage = await Application.Package();
+    if (!Application.embedded_activity_config)
+    {
+        const NewAppConfig = EmbeddedAppConfig.create({
+            supported_platforms: ["web", "ios", "android"],
+        });
+
+        Application.embedded_activity_config = NewAppConfig;
+
+        await NewAppConfig.save();
+        await Application.save();
+    }
+
+    const AppPackage = Application.Package();
     res.json(AppPackage.embedded_activity_config);
 });
 
@@ -46,7 +58,7 @@ App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, re
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT)) return res.status(404).json({"message": "404: Not Found", "code": 0});
 
     Object.keys(req.body).forEach(K => {
-        Application.EmbeddedConfig[K] = req.body[K];
+        Application.embedded_activity_config[K] = req.body[K];
     });
 
     await Application.save();
@@ -100,20 +112,18 @@ App.patch("/:ApplicationID", VerifyAuth, async (req, res) => {
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData.Applications.find((R) => R.ID === AppID);
     if (!Application) return res.status(404).json({"message": "404: Not Found", "code": 0});
-   
-    const DisallowedEdits = ["flags", "owner", "bot", "team", "embedded_activity_config", "hook", "discovery_eligibility_flags"];
-
-    const FilteredBody = {};
-    for (const Key in req.body)
-        if (!DisallowedEdits.includes(Key.toLowerCase()))
-            FilteredBody[Key] = req.body[Key];
-
-    console.log(FilteredBody);
-
-    Object.keys(FilteredBody).forEach(K => {
-        Msg("Setting " + K + " to " + FilteredBody[K] + " in " + Application.ID);
-        Application[K] = FilteredBody[K];
-    });
+    
+    for await (const Key of Object.keys(req.body)) {
+		const Value = req.body[Key];
+        switch (Key) {
+            case "name":
+				if (typeof Value !== "string") break;
+                if (Value.length > 128) break;
+                
+				Application.DisplayName = Value;
+                break;
+        }
+	}
 
     await Application.save();
 

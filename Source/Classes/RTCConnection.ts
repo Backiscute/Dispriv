@@ -3,11 +3,12 @@ import { User } from "../Entities/User";
 
 export class RTCConnection {
     ID: string; // Autogenerate
-    UserToken: string;
+    session_id: string;
     SocketClient: WebSocket;
     Account?: User;
     server_id: string;
     streams: object;
+    video: boolean; // Supports video
 
     constructor(Socket) {
         this.ID = v4();

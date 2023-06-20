@@ -170,6 +170,7 @@ Socket.on("connection", async (Client, req) => {
 							channel_id: ChannelID,
 							guild_id: GuildID,
 							voice_states: [VoiceState],
+							ConnectedVoiceClients: []
 						});
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
