@@ -1,10 +1,12 @@
 import { DataSource } from "typeorm";
 import { Msg } from "./Modules/Logger";
+import fs from "fs";
 
-import "./Handlers/Server";
-import "./Handlers/Gateway";
-import "./Handlers/RTCSocket";
-
+// dynamic import of all handlers
+fs.readdirSync("Source/Handlers").map(async (File) => {
+    await import(`./Handlers/${File.replace(".ts", ".js")}`);
+    Msg(`Loaded handler ${File.replace(".ts", ".js")}!`, "Handlers");
+});
 const UsePublicTestsDB = false;
 
 export const DisprivDataSource = new DataSource({
@@ -14,5 +16,7 @@ export const DisprivDataSource = new DataSource({
     logging: false,
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
-    migrations: []
-}).initialize().then(() => Msg("Database initialized!", "Database"));
+    migrations: [],
+})
+    .initialize()
+    .then(() => Msg("Database initialized!", "Database"));
