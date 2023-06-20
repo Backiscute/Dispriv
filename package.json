@@ -1,61 +1,61 @@
 {
-  "name": "dispriv-ts",
-  "version": "1.0.0",
-  "description": "COOL ASS TYPESCRIPT DISPRIV IMPLEMENTATION",
-  "main": "bin/index.js",
-  "scripts": {
-    "test": "npx eslint ./Source && tsc && node bin/."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/McMistrzYT/Dispriv-TS.git"
-  },
-  "devDependencies": {
-    "@types/dotenv": "^8.2.0",
-    "@types/express": "^4.17.17",
-    "@types/node": "^18.16.3",
-    "@typescript-eslint/eslint-plugin": "^5.59.2",
-    "@typescript-eslint/parser": "^5.59.2",
-    "eslint": "^8.39.0",
-    "eslint-plugin-rules": "file:Rules"
-  },
-  "nodemonConfig": {
-    "ext": "*.ts,*.json,*.env",
-    "ignore": [
-      "bin/**"
+    "name": "dispriv-ts",
+    "version": "1.0.0",
+    "description": "COOL ASS TYPESCRIPT DISPRIV IMPLEMENTATION",
+    "main": "bin/index.js",
+    "scripts": {
+        "test": "npx eslint ./Source && tsc && node bin/.",
+        "debug": "nodemon -w Source/ . -- --inspect"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/McMistrzYT/Dispriv-TS.git"
+    },
+    "devDependencies": {
+        "@types/dotenv": "^8.2.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^18.16.3",
+        "@typescript-eslint/eslint-plugin": "^5.59.2",
+        "@typescript-eslint/parser": "^5.59.2",
+        "eslint": "^8.39.0",
+        "eslint-plugin-rules": "file:Rules"
+    },
+    "nodemonConfig": {
+        "ext": "*.ts,*.json,*.env",
+        "ignore": [
+            "bin/**"
+        ]
+    },
+    "keywords": [
+        "suck",
+        "my",
+        "ass"
     ],
-    "exec": "npx eslint ./Source && tsc && node bin/."
-  },
-  "keywords": [
-    "suck",
-    "my",
-    "ass"
-  ],
-  "author": "mickey d's and notpie",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/McMistrzYT/Dispriv-TS/issues"
-  },
-  "homepage": "https://github.com/McMistrzYT/Dispriv-TS#readme",
-  "dependencies": {
-    "@types/murmurhash3js": "^3.0.3",
-    "@types/uuid": "^9.0.2",
-    "@types/ws": "^8.5.4",
-    "bcrypt": "^5.1.0",
-    "class-transformer": "^0.5.1",
-    "colors": "^1.4.0",
-    "discord-protos": "^1.0.4",
-    "dotenv": "^16.0.3",
-    "erlpack": "^0.1.4",
-    "express": "^4.18.2",
-    "fast-zlib": "^2.0.1",
-    "medooze-media-server": "^0.139.22",
-    "murmurhash3js": "^3.0.1",
-    "semantic-sdp": "^3.26.2",
-    "sharp": "^0.32.1",
-    "sqlite3": "^5.1.6",
-    "typeorm": "^0.3.16",
-    "uuid": "^9.0.0",
-    "ws": "^8.13.0"
-  }
+    "author": "mickey d's and notpie",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/McMistrzYT/Dispriv-TS/issues"
+    },
+    "homepage": "https://github.com/McMistrzYT/Dispriv-TS#readme",
+    "dependencies": {
+        "@types/murmurhash3js": "^3.0.3",
+        "@types/uuid": "^9.0.2",
+        "@types/ws": "^8.5.4",
+        "bcrypt": "^5.1.0",
+        "class-transformer": "^0.5.1",
+        "colors": "^1.4.0",
+        "discord-protos": "^1.0.4",
+        "dotenv": "^16.0.3",
+        "erlpack": "^0.1.4",
+        "express": "^4.18.2",
+        "fast-zlib": "^2.0.1",
+        "medooze-media-server": "^0.139.22",
+        "murmurhash3js": "^3.0.1",
+        "semantic-sdp": "^3.26.2",
+        "sharp": "^0.32.1",
+        "sqlite3": "^5.1.6",
+        "typeorm": "^0.3.16",
+        "uuid": "^9.0.0",
+        "ws": "^8.13.0"
+    }
 }
