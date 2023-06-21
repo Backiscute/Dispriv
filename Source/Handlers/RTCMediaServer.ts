@@ -1,11 +1,20 @@
-// https://github.com/spacebarchat/server/blob/master/src/webrtc/util/MediaServer.ts
-// thanks for idea to use medooze-media-server
+import udp from "dgram";
+import { Msg } from "../Modules/Logger";
+import chalk from "chalk";
 
-// import MediaServer, { IncomingStream, OutgoingStream, Transport } from "medooze-media-server";
-// import Sdp from "semantic-sdp";
+const Server = udp.createSocket("udp4");
 
-// MediaServer.enableLog(true);
+Server.on("message", (msg, info) => {
+    Server.send("", info.port, info.address);
+    Msg(
+        `Received packet from client ${chalk.red(info.address)}:${chalk.red(info.port)}: ${msg.toString("hex")}`,
+        "RTCMediaServer"
+    );
+});
 
-// MediaServer.setPortRange(7000, 8000);
+Server.on("listening", () => {
+    const Address = Server.address();
+    Msg(`Server is listening on ${chalk.red(Address.address)}:${chalk.red(Address.port)}`, "RTCMediaServer");
+});
 
-// export const Endpoint = MediaServer.createEndpoint("127.0.0.1");
+Server.bind(50008);
