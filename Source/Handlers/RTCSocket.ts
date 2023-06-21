@@ -1,18 +1,22 @@
 import { WebSocketServer } from "ws";
-import { Msg } from "../Modules/Logger";
+import { Error, Msg } from "../Modules/Logger";
 import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
 import { RTCCloseCodes, RTCOpCodes } from "../Classes/RTCOpCodes";
-import { red } from "colorette";
+import { green, red } from "colorette";
 import { VoiceSession } from "../Classes/VoiceSession";
 import bcrypt from "bcrypt";
 import { GetUserByID } from "../Modules/AuthUtils";
-import crypto from "crypto";
 
 export const VoiceSessions: VoiceSession[] = [];
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.RTCWSPORT) || 6967,
+});
+
+Socket.on("listening", () => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    Msg(`Voice WebSocket is now listening on port ${green(Socket.options.port!)}`, "RTCSocket");
 });
 
 const Connections: RTCConnection[] = [];
@@ -22,11 +26,10 @@ Socket.on("connection", (Client) => {
 
     Client.on("close", () => {
         const Idx = Connections.findIndex((C) => C.ID === RTCClient.ID);
-        if (Idx !== -1)
-            Connections.splice(Idx, 1);
+        if (Idx !== -1) Connections.splice(Idx, 1);
     });
 
-    SendOp(RTCClient, RTCOpCodes.HELLO, {v: 7, heartbeat_interval: 13750});
+    SendOp(RTCClient, RTCOpCodes.HELLO, { v: 7, heartbeat_interval: 13750 });
 
     Msg(`Client ${red(RTCClient.ID)} connected to WebRTC!`, "RTCSocket");
     Client.on("message", async (Data) => {
@@ -39,46 +42,92 @@ Socket.on("connection", (Client) => {
                 return SendOp(RTCClient, RTCOpCodes.HEARTBEAT_ACK, Date.now());
             case RTCOpCodes.REQUEST_VERSIONS:
                 return SendOp(RTCClient, RTCOpCodes.REQUEST_VERSIONS, { voice: "0.0.1", rtc_worker: "0.3.42" });
-            case RTCOpCodes.IDENTIFY:
-                if (!Payload.d.server_id || !Payload.d.user_id || !Payload.d.session_id || !Payload.d.token) {
-                    SendOp(RTCClient, RTCCloseCodes.BadPayload, { message: "Bad payload" });
-                    return Client.close();
-                }
-                RTCClient.Account = await GetUserByID(Payload.d.user_id, {
-					AvailableDMs: {
-						DMRecipients: true
-					},
-					RelationsFrom: true,
-					RelationsRegarding: true,
-					Memberships: {
-						Owner: false,
-						ToGuild: {
-							Members: {
-								Owner: true,
-								Roles: true
-							},
-							Channels: {
-								OwnerCategory: true
-							}
-						}
-					}
-				});
-                if (!RTCClient.Account || !bcrypt.compareSync(`${Payload.d.server_id}-${RTCClient.Account.ID}-${RTCClient.Account.Password}`, Payload.d.token)) {
-                    SendOp(RTCClient, RTCCloseCodes.AuthenticationFailed, "Authentication Failed");
-                    return Client.close();
-                }
+            case RTCOpCodes.IDENTIFY: {
+                const GuildID = Payload.d.server_id;
+                const UserID = Payload.d.user_id;
+                const SessionID = Payload.d.session_id;
+                const Token = Payload.d.token;
+
+                if (!GuildID || !UserID || !SessionID || !Token)
+                    return Client.close(RTCCloseCodes.AuthenticationFailed, "Authentication failed");
+
+                const UserEntry = await GetUserByID(UserID);
+
+                if (!UserEntry) return Client.close(RTCCloseCodes.AuthenticationFailed, "Authentication failed");
+
+                const TokenCheck = `${GuildID}-${UserID}-${SessionID}-${UserEntry.Password}`;
+
+                const HashResult = bcrypt.compareSync(TokenCheck, Token);
+
+                if (!HashResult) return Client.close(RTCCloseCodes.AuthenticationFailed, "Authentication failed");
+
+                const Session = VoiceSessions.find((S) => S.guild_id === GuildID);
+
+                if (!Session) return Client.close(RTCCloseCodes.ServerNotFound, "Server Not Found");
+
+                const VoiceState = Session.voice_states.find((S) => S.user_id === UserID);
+
+                if (!VoiceState) return Client.close(RTCCloseCodes.SessionNoLongerValid, "Session No Longer Valid");
+
+                if (Session.ConnectedVoiceClients.find((C) => C.session_id === SessionID))
+                    return Client.close(RTCCloseCodes.AlreadyAuthenticated, "Already Authenticated");
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                else if (Session.ConnectedVoiceClients.find((C) => C.Account!.ID === UserID))
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    Session.ConnectedVoiceClients.find((C) => C.Account!.ID === UserID)!.SocketClient.close(
+                        RTCCloseCodes.Disconnected,
+                        "New Client Connected",
+                    );
+                Session.ConnectedVoiceClients.splice(
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    Session.ConnectedVoiceClients.findIndex((C) => C.Account!.ID === UserID),
+                    1,
+                );
+
+                RTCClient.Account = UserEntry;
+                RTCClient.server_id = GuildID;
+                RTCClient.session_id = SessionID;
+                RTCClient.video = Payload.d.video ?? false;
+                RTCClient.streams = Payload.d.streams ?? [];
+
+                Session.ConnectedVoiceClients.push(RTCClient);
+
+                Msg(`Client ${red(RTCClient.ID)} authenticated as ${red(UserEntry.Username)}!`, "RTCSocket");
+
                 SendOp(RTCClient, RTCOpCodes.READY, {
-                    ssrc: crypto.randomInt(2^48),
-                    ip: process.env.OverrideRTC,
-                    port: process.env.RTCWSPORT,
-                    modes: ["xsalsa20_poly1305"],
-                    experiments: [],
-                    //TODO: add video streams
-                    streams: []
+                    streams: [
+                        { type: "video", ssrc: 178840, rtx_ssrc: 178841, rid: "100", quality: 100, active: false },
+                    ],
+                    ssrc: 178839,
+                    port: 50001,
+                    modes: [
+                        "aead_aes256_gcm_rtpsize",
+                        "aead_aes256_gcm",
+                        "aead_xchacha20_poly1305_rtpsize",
+                        "xsalsa20_poly1305_lite_rtpsize",
+                        "xsalsa20_poly1305_lite",
+                        "xsalsa20_poly1305_suffix",
+                        "xsalsa20_poly1305",
+                    ],
+                    ip: "66.22.198.18",
+                    experiments: ["fixed_keyframe_interval"],
                 });
                 break;
+            }
+            case RTCOpCodes.SELECT_PROTOCOL: {
+                const Session = VoiceSessions.find((S) => S.guild_id === RTCClient.server_id);
+                if (!Session) return Client.close(RTCCloseCodes.SessionNoLongerValid, "Session no longer valid");
+                // TODO: implement RTC server
+                SendOp(RTCClient, RTCOpCodes.SESSION_DESCRIPTION, {
+                    video_codec: "H264",
+                    sdp: "m=audio 50008 ICE/SDP\na=fingerprint:sha-256 4A:79:94:16:44:3F:BD:05:41:5A:C7:20:F3:12:54:70:00:73:5D:33:00:2D:2C:80:9B:39:E1:9F:2D:A7:49:87\nc=IN IP4 192.168.0.87\na=rtcp:50008\na=ice-ufrag:kdQV\na=ice-pwd:DvKMbn46m8EX5pWwlTHrxG\na=fingerprint:sha-256 4A:79:94:16:44:3F:BD:05:41:5A:C7:20:F3:12:54:70:00:73:5D:33:00:2D:2C:80:9B:39:E1:9F:2D:A7:49:87\na=candidate:1 1 UDP 4261412862 192.168.0.87 50008 typ host\n",
+                    media_session_id: "b5de7bfe1ca8a5b4690990d6a38bbe03",
+                    audio_codec: "opus",
+                });
+                break;
+            }
             default:
-                console.log("unknown op"); // TODO FOR VOICE CHANNELS
+                Error("unknown op: " + Payload.op); // TODO: FOR VOICE CHANNELS
         }
     });
 });

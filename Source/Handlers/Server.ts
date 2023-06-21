@@ -5,24 +5,28 @@ import { Msg } from "../Modules/Logger";
 import path from "path";
 
 export const Application = express()
-.disable("etag")
-.disable("x-powered-by")
-.use(express.json({
-	limit: "5mb"
-}));
+    .disable("etag")
+    .disable("x-powered-by")
+    .use(
+        express.json({
+            limit: "5mb",
+        }),
+    );
 
 const LoadRoutes = async () => {
-    const Files = fs.readdirSync(path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Routes")).filter(F => F.endsWith(".js") || F.endsWith(".ts"));
-    
+    const Files = fs
+        .readdirSync(path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Routes"))
+        .filter((F) => F.endsWith(".js") || F.endsWith(".ts"));
+
     for (const File of Files) {
         const Contents = await import(path.join("..", "Routes", File));
         if (!Contents.default.App) continue;
         Application.use(Contents.default.DefaultAPI || "/", Contents.default.App);
-    
-        Msg(`Loaded file ${italic(File)}!`);
+
+        Msg(`Loaded route ${italic(File)}!`, "Gateway");
     }
-    
-    Application.use((req, res) => res.status(404).json({ "message": "404: Not Found", "code": 0 }));
+
+    Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
 
     Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${green(process.env.PORT)}`));
 };

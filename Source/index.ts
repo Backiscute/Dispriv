@@ -1,14 +1,25 @@
 import env from "dotenv";
+env.config();
 import { DataSource } from "typeorm";
 import { Msg } from "./Modules/Logger";
-env.config();
+import fs from "fs";
+import path from "path";
+import { italic } from "colorette";
 
-import "./Handlers/Server";
-import "./Handlers/Gateway";
-import "./Handlers/RTCSocket";
+// dynamic import of all handlers
+async function LoadHandlers() {
+    const Files = fs
+        .readdirSync(path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Handlers"))
+        .filter((F) => F.endsWith(".js") || F.endsWith(".ts"));
+    for await (const File of Files) {
+        await import(`./Handlers/${File}`);
+
+        Msg(`Loaded handler ${italic(File)}!`, "Handlers");
+    }
+}
+LoadHandlers();
 
 const UsePublicTestsDB = false;
-
 export const DisprivDataSource = new DataSource({
     type: "sqlite",
     database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",
@@ -16,5 +27,7 @@ export const DisprivDataSource = new DataSource({
     logging: false,
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
-    migrations: []
-}).initialize().then(() => Msg("Database initialized!", "Database"));
+    migrations: [],
+})
+    .initialize()
+    .then(() => Msg("Database initialized!", "Database"));

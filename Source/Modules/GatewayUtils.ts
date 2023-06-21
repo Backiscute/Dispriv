@@ -3,7 +3,7 @@ import { GatewayConnection } from "../Classes/GatewayConnection";
 import { Connections } from "../Handlers/Gateway";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "./Logger";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { red } from "colorette";
 
 export function CloseConnection(SocketClient: GatewayConnection, Code: number, Reason: string) {
@@ -13,7 +13,7 @@ export function CloseConnection(SocketClient: GatewayConnection, Code: number, R
 }
 
 export function FindConnection(UserID: string) {
-    return Connections.find(x => x.Account?.ID === UserID);
+    return Connections.find((x) => x.Account?.ID === UserID);
 }
 
 export function ConnectionHasIntent(SocketClient: GatewayConnection, Intent: GatewayIntents) {
@@ -27,12 +27,18 @@ export function HasIntent(intentNumber: number, intent: GatewayIntents) {
     return intentNumber === 0 || (intentNumber & intent) === intent;
 }
 
-export function SendOp(SocketClient: GatewayConnection, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
+export function SendOp<T>(
+    SocketClient: GatewayConnection,
+    Opcode: OpCodes,
+    Data: T | null = null,
+    s: unknown = null,
+    t: unknown = null,
+) {
     const D = {
         t: t,
         s: s,
         op: Opcode,
-        d: Data
+        d: Data,
     };
     const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
     const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;

@@ -4,11 +4,12 @@ import WebSocket from "ws";
 
 export class RTCConnection {
     ID: string; // Autogenerate
-    UserToken: string;
+    session_id: string;
     SocketClient: WebSocket;
     Account?: User;
     server_id: string;
     streams: object;
+    video: boolean; // Supports video
 
     constructor(Socket: WebSocket) {
         this.ID = v4();

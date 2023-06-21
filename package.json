@@ -7,7 +7,10 @@
     "build": "rimraf ./bin && tsc",
     "start": "npm run build && node bin/index.js",
     "dev": "ts-node Source/index",
-    "dev:watch": "nodemon -x ts-node Source/index"
+    "dev:watch": "nodemon -x ts-node Source/index",
+    "check": "tsc --noEmit",
+    "lint": "prettier --check ./Source && eslint ./Source --ext .ts",
+    "format": "prettier --write ./Source && eslint ./Source --ext .ts --fix"
   },
   "repository": {
     "type": "git",
@@ -30,8 +33,7 @@
     "ext": "*.ts,*.json,*.env",
     "ignore": [
       "bin/**"
-    ],
-    "exec": "npx eslint ./Source && tsc && node bin/."
+    ]
   },
   "keywords": [
     "dispriv",
@@ -42,7 +44,8 @@
   "contributors": [
     "Back <back@stumblepriv.xyz>",
     "mc <mc@stumblepriv.xyz>",
-    "notpies"
+    "notpies",
+    "nullptr"
   ],
   "license": "MIT",
   "bugs": {
@@ -50,19 +53,18 @@
   },
   "homepage": "https://github.com/McMistrzYT/Dispriv-TS#readme",
   "dependencies": {
-    "@swc/cli": "^0.1.62",
-    "@swc/core": "^1.3.65",
-    "@swc/helpers": "^0.5.1",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "colorette": "^2.0.20",
     "discord-protos": "^1.0.4",
     "dotenv": "^16.3.1",
     "erlpack": "^0.1.4",
+    "eslint-config-prettier": "^8.8.0",
     "express": "^4.18.2",
     "fast-zlib": "^2.0.1",
     "murmurhash3js": "^3.0.1",
     "nodemon": "^2.0.22",
+    "prettier": "^2.8.8",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^5.0.1",
     "sharp": "^0.32.1",

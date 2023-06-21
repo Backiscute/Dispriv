@@ -45,7 +45,7 @@ export class Message extends BaseEntity {
     @PrimaryColumn()
     ID: string;
 
-    @ManyToOne(() => User, U => U.MessagesByUser, { eager: true })
+	@ManyToOne(() => User, U => U.MessagesByUser, { eager: true })
     Author: User;
 
     @Column({ default: MessageType.DEFAULT })
@@ -66,7 +66,7 @@ export class Message extends BaseEntity {
     @OneToMany(() => Message, M => M.ReplyingTo)
     Replies: Message[];
 
-    @ManyToOne(() => Message, M => M.Replies, { nullable: true, eager: true, onDelete: "SET NULL", orphanedRowAction: "nullify" })
+    @ManyToOne(() => Message, M => M.Replies, { nullable: true/*, eager: true*/, onDelete: "SET NULL", orphanedRowAction: "nullify" })
     ReplyingTo?: Message;
 
     @ManyToOne(() => Channel, C => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })

@@ -1,7 +1,11 @@
+import { RTCConnection } from "./RTCConnection";
+
 export interface VoiceSession {
   guild_id: string;
   channel_id: string;
   voice_states: VoiceState[];
+  ConnectedVoiceClients?: RTCConnection[];
+  Activities: ActivityRoom[];
 }
 
 export interface VoiceState {
@@ -17,4 +21,31 @@ export interface VoiceState {
   suppress: boolean;
   user_id: string;
   member: object;
+}
+
+export interface ActivityRoom {
+  channel_id: string;
+  connections: ActivityUserConnection[];
+  embedded_activity: EmbeddedActivity;
+  guild_id: string;
+  users: string[];
+  update_code?: number;
+}
+
+export interface ActivityUserConnection {
+  metadata: object;
+  user_id: string;
+}
+
+export interface EmbeddedActivity {
+  activity_id: string,
+  application_id: string,
+  assets: object[];
+  created_at?: string;
+  details?: string;
+  name: string;
+  secrets?: object;
+  state?: string;
+  timestamps?: object;
+  type?: number;
 }

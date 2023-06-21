@@ -7,105 +7,104 @@ import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { GenerateRandomString, SendGuildMemberUpdate, SendToSelf } from "../Modules/DiscordUtils";
-import { PreloadedUserSettings } from "discord-protos";
+//import { PreloadedUserSettings } from "discord-protos";
 
 const App = Router();
 
 App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
-	const U = (await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true }, Members: true } } }))!;
+    const U = (await GetUserByRequest(req, {
+        Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true }, Members: true } },
+    }))!;
 
-	for (const PropKey of Object.keys(req.body)) {
-		const Value = req.body[PropKey];
-		switch (PropKey) {
-			case "username":
-				if (!/^[a-z 0-9]{2,32}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Username failed validation" });
-				let ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: U.Discriminator } });
-				let DiscrimRandom = U.Discriminator;
+    for (const PropKey of Object.keys(req.body)) {
+        const Value = req.body[PropKey];
+        switch (PropKey) {
+            case "username":
+                if (!/^[a-z 0-9]{2,32}$/gi.test(Value))
+                    return res.status(403).json({ code: 0, message: "Username failed validation" });
+                let ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: U.Discriminator } });
+                let DiscrimRandom = U.Discriminator;
 
-				console.log(ExistingUserU);
-				while (ExistingUserU !== null) {
-					DiscrimRandom = GenerateRandomString(4, "0123456789");
-					ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: DiscrimRandom } });
-				}
+                console.log(ExistingUserU);
+                while (ExistingUserU !== null) {
+                    DiscrimRandom = GenerateRandomString(4, "0123456789");
+                    ExistingUserU = await User.findOne({ where: { Username: Value, Discriminator: DiscrimRandom } });
+                }
 
-				U.Username = Value.trim();
-				U.Discriminator = DiscrimRandom;
-				continue;
-			case "discriminator":
-				//if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
-				const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
-				console.log(ExistingUserD);
-				if (ExistingUserD)
-					return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
+                U.Username = Value.trim();
+                U.Discriminator = DiscrimRandom;
+                continue;
+            case "discriminator":
+                //if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+                const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
+                console.log(ExistingUserD);
+                if (ExistingUserD) return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
 
-				U.Discriminator = Value;
-				continue;
-			case "bio":
-				if (!/^[a-z 0-9!?,.*`]{0,250}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Bio failed validation" });
+                U.Discriminator = Value;
+                continue;
+            case "bio":
+                if (!/^[a-z 0-9!?,.*`]{0,250}$/gi.test(Value))
+                    return res.status(403).json({ code: 0, message: "Bio failed validation" });
 
-				U.Bio = Value;
-				continue;
-			case "avatar":
-				if (U.AvatarID && U.AvatarID !== Value)
-				{
-					Remove(U.AvatarID);
-					U.AvatarID = undefined;
-				}
+                U.Bio = Value;
+                continue;
+            case "avatar":
+                if (U.AvatarID && U.AvatarID !== Value) {
+                    Remove(U.AvatarID);
+                    U.AvatarID = undefined;
+                }
 
-				if (!ValidBaseURL(Value))
-					continue;
+                if (!ValidBaseURL(Value)) continue;
 
-				U.AvatarID = await Upload(Value);
-				continue;
-			case "banner":
-				if (U.BannerID && U.BannerID !== Value)
-				{
-					Remove(U.BannerID);
-					U.BannerID = undefined;
-				}
+                U.AvatarID = await Upload(Value);
+                continue;
+            case "banner":
+                if (U.BannerID && U.BannerID !== Value) {
+                    Remove(U.BannerID);
+                    U.BannerID = undefined;
+                }
 
-				if (!ValidBaseURL(Value))
-					continue;
+                if (!ValidBaseURL(Value)) continue;
 
-				U.BannerID = await Upload(Value, false);
-				break;
-		}
-	}
+                U.BannerID = await Upload(Value, false);
+                break;
+        }
+    }
 
-	await U.save();
+    await U.save();
 
-	res.json(U.Package());
+    res.json(U.Package());
 
-	SendToSelf(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
-	SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
+    SendToSelf(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
+    SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
 App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
-	const MyUser = (await GetUserByRequest(req))!;
-	if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
+    const MyUser = (await GetUserByRequest(req))!;
+    if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
 
     //console.log(PreloadedUserSettings.fromBase64(req.body.settings));
 
-	// ok after i finish nicknames and roles on memberships i come k
-	MyUser.SettingsProto = req.body.settings;
-	await MyUser.save();
-	//res.send(PreloadedUserSettings.fromBase64(req.body.settings));
+    // ok after i finish nicknames and roles on memberships i come k
+    MyUser.SettingsProto = req.body.settings;
+    await MyUser.save();
+    //res.send(PreloadedUserSettings.fromBase64(req.body.settings));
 });
 
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
-	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
-	
-	const MembershipT = MyUser.Memberships.find(x => x.ToGuild.ID === req.params.ServerID);
-	if (!MembershipT)
-		return res.status(400).json({ code: 404, message: "You don't have a valid membership inside that guild." });
+    const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
-	await Membership.createQueryBuilder("memberships").delete().where("ID = :ID", { ID: MembershipT.ID }).execute();
-	res.send();
+    const MembershipT = MyUser.Memberships.find((x) => x.ToGuild.ID === req.params.ServerID);
+    if (!MembershipT)
+        return res.status(400).json({ code: 404, message: "You don't have a valid membership inside that guild." });
+
+    await Membership.createQueryBuilder("memberships").delete().where("ID = :ID", { ID: MembershipT.ID }).execute();
+    res.send();
 });
 
 App.post("/@me/channels", VerifyAuth, async (req, res) => {
@@ -117,39 +116,43 @@ App.post("/@me/channels", VerifyAuth, async (req, res) => {
     for (let I = 0; I < req.body.recipients.length; I++) {
         const UID = req.body.recipients[I];
 
-        const UserData = await User.findOne({ where: { ID: UID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
+        const UserData = await User.findOne({
+            where: { ID: UID },
+            relations: { RelationsFrom: true, RelationsRegarding: true },
+        });
         if (!UserData) return res.status(400).json({ code: 0, message: "400: Bad Request" });
         if (UserData.ID === MyUser.ID) return res.status(400).json({ code: 0, message: "400: Bad Request" });
 
-        const RelationBetweenUsers = MyUserRelations.find(R => R.From.ID === MyUser.ID || R.Regarding.ID === MyUser.ID);
-        if (!RelationBetweenUsers || RelationBetweenUsers?.Type !== RelationType.FRIEND) return res.status(400).json({ code: 0, message: "Friend relation between users not found" });
+        const RelationBetweenUsers = MyUserRelations.find(
+            (R) => R.From.ID === MyUser.ID || R.Regarding.ID === MyUser.ID,
+        );
+        if (!RelationBetweenUsers || RelationBetweenUsers?.Type !== RelationType.FRIEND)
+            return res.status(400).json({ code: 0, message: "Friend relation between users not found" });
 
         DMUsers.push(UserData);
     }
     DMUsers.push(MyUser);
 
-    const RecipientIDs = DMUsers.map(U => U.ID);
+    const RecipientIDs = DMUsers.map((U) => U.ID);
 
-    const ChannelCheck = await Channel
-        .createQueryBuilder()
+    const ChannelCheck = await Channel.createQueryBuilder()
         .leftJoinAndSelect("Channel.DMRecipients", "DMRecipient")
         .where("DMRecipient.ID IN (:...RecipientIDs)", { RecipientIDs })
         .having(`COUNT(DISTINCT DMRecipient.ID) = ${RecipientIDs.length}`)
         .groupBy("Channel.ID")
         .getOne();
 
-        
     if (ChannelCheck) {
-        ChannelCheck.DMRecipients!.forEach(D => console.log(D.Username));
+        ChannelCheck.DMRecipients!.forEach((D) => console.log(D.Username));
         return res.json(ChannelCheck.SmallDMPackage(MyUser));
     }
 
-    const CT = DMUsers.filter(U => U.ID !== MyUser.ID).length === 1 ? ChannelType.DM : ChannelType.GROUP_DM;
+    const CT = DMUsers.filter((U) => U.ID !== MyUser.ID).length === 1 ? ChannelType.DM : ChannelType.GROUP_DM;
     const CreatedChannel = await Channel.create({
         ID: GenerateSnowflake(),
         Type: CT,
         Owner: MyUser,
-        DMRecipients: DMUsers
+        DMRecipients: DMUsers,
     }).save();
 
     res.json(CreatedChannel.SmallDMPackage(MyUser));
@@ -159,7 +162,7 @@ App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
     const User = (await GetUserByRequest(req))!;
     res.json({
         amount: User.AvailableSuperreactions,
-        replenished_today: false
+        replenished_today: false,
     });
 });
 
@@ -182,7 +185,7 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
     /*const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
     const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;*/
     res.json({
-        badges: FoundUser.Badges.map(B => B.Package()),
+        badges: FoundUser.Badges.map((B) => B.Package()),
         connected_accounts: [], // TODO
         guild_badges: [],
         mutual_friends_count: 0, // TODO
@@ -198,23 +201,23 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
             banner: FoundUser.BannerID,
             emoji: null,
             popout_animation_particle_type: null,
-            theme_colors: null
-        }
+            theme_colors: null,
+        },
     });
 });
 
 App.get("/@me/consent", async (req, res) => {
-    res.json({ "personalization": { "consented": true }, "usage_statistics": { "consented": true } });
+    res.json({ personalization: { consented: true }, usage_statistics: { consented: true } });
 });
 
 App.get("/@me/harvest", async (req, res) => {
     res.json({
-        "harvest_id": GenerateSnowflake(),
-        "user_id": "0",
-        "status": 3,
-        "created_at": "0000-00-00T00:00:00.000000+00:00",
-        "completed_at": "0000-00-00T00:00:00.000000+00:00",
-        "polled_at": "0000-00-00T00:00:00.000000+00:00"
+        harvest_id: GenerateSnowflake(),
+        user_id: "0",
+        status: 3,
+        created_at: "0000-00-00T00:00:00.000000+00:00",
+        completed_at: "0000-00-00T00:00:00.000000+00:00",
+        polled_at: "0000-00-00T00:00:00.000000+00:00",
     });
 });
 
@@ -224,28 +227,45 @@ App.get("/@me/relationships", VerifyAuth, async (req, res) => {
         const PackagedRelation = R.PackageAPI(true, UserData);
         if (PackagedRelation) Relations.unshift(PackagedRelation);
     });*/
-    res.json([...UserData.RelationsFrom.map((R) => R.PackageAPI(true, UserData)), ...UserData.RelationsRegarding.map((R) => R.PackageAPI(true, UserData))]);
+    res.json([
+        ...UserData.RelationsFrom.map((R) => R.PackageAPI(true, UserData)),
+        ...UserData.RelationsRegarding.map((R) => R.PackageAPI(true, UserData)),
+    ]);
 });
 
 App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
-    const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
+    const RelationTarget = await User.findOne({
+        where: { ID: req.params.RelatedUserID },
+        relations: { RelationsFrom: true, RelationsRegarding: true },
+    });
     if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
 
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
-    const TargetRelation = [...MyUser.RelationsRegarding, ...MyUser.RelationsFrom].find(R => R.From.ID === RelationTarget.ID || R.Regarding.ID === RelationTarget.ID);
-    if (!TargetRelation || (TargetRelation?.Regarding.ID === MyUser.ID && TargetRelation?.Type === RelationType.BLOCKED)) return res.status(400).json({ code: 0, message: "Relation between users not found" });
+    const TargetRelation = [...MyUser.RelationsRegarding, ...MyUser.RelationsFrom].find(
+        (R) => R.From.ID === RelationTarget.ID || R.Regarding.ID === RelationTarget.ID,
+    );
+    if (
+        !TargetRelation ||
+        (TargetRelation?.Regarding.ID === MyUser.ID && TargetRelation?.Type === RelationType.BLOCKED)
+    )
+        return res.status(400).json({ code: 0, message: "Relation between users not found" });
 
-    Msg(`Relation between ${MyUser.Username}#${MyUser.Discriminator} <-> ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and not BLOCKED.`);
+    Msg(
+        `Relation between ${MyUser.Username}#${MyUser.Discriminator} <-> ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and not BLOCKED.`,
+    );
     await TargetRelation.remove();
     res.status(204).send();
 });
 
 App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
-    const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
+    const RelationTarget = await User.findOne({
+        where: { ID: req.params.RelatedUserID },
+        relations: { RelationsFrom: true, RelationsRegarding: true },
+    });
     if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
 
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
-    let TargetRelation = MyUser.RelationsRegarding.find(R => R.From.ID === RelationTarget.ID);
+    let TargetRelation = MyUser.RelationsRegarding.find((R) => R.From.ID === RelationTarget.ID);
 
     if (req.body.type === RelationType.BLOCKED) {
         if (!TargetRelation) {
@@ -253,25 +273,28 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
                 ID: GenerateSnowflake(),
                 From: MyUser,
                 Regarding: RelationTarget,
-                Type: RelationType.BLOCKED
+                Type: RelationType.BLOCKED,
             }).save();
             return res.status(204).send();
         }
 
-        if (TargetRelation?.Type === RelationType.BLOCKED) return res.status(400).json({ code: 0, message: "Can't block person that's already blocked" });
+        if (TargetRelation?.Type === RelationType.BLOCKED)
+            return res.status(400).json({ code: 0, message: "Can't block person that's already blocked" });
         TargetRelation.Type = RelationType.BLOCKED;
         await TargetRelation.save();
         return res.status(204).send();
     }
 
-    if (TargetRelation?.Type !== RelationType.NOT_YET_ACCEPTED) return res.status(400).json({ code: 0, message: "Incoming relation between users not found" });
+    if (TargetRelation?.Type !== RelationType.NOT_YET_ACCEPTED)
+        return res.status(400).json({ code: 0, message: "Incoming relation between users not found" });
 
-    Msg(`Relation between ${MyUser.Username}#${MyUser.Discriminator} <- ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and NOT_YET_ACCEPTED.`);
+    Msg(
+        `Relation between ${MyUser.Username}#${MyUser.Discriminator} <- ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and NOT_YET_ACCEPTED.`,
+    );
     TargetRelation.Type = RelationType.FRIEND;
     await TargetRelation.save();
 
-    const ChannelCheck = await Channel
-        .createQueryBuilder()
+    const ChannelCheck = await Channel.createQueryBuilder()
         .leftJoinAndSelect("Channel.DMRecipients", "DMRecipient")
         .where("DMRecipient.ID IN (:...RecipientIDs)", { RecipientIDs: [RelationTarget.ID] })
         .having("COUNT(DISTINCT DMRecipient.ID) = 1")
@@ -279,29 +302,29 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
         .getOne();
 
     let NChannel: Channel | null = null;
-        
+
     if (ChannelCheck) {
-        ChannelCheck.DMRecipients!.forEach(D => console.log(D.Username));
+        ChannelCheck.DMRecipients!.forEach((D) => console.log(D.Username));
         NChannel = ChannelCheck;
-    }
-    else {
+    } else {
         const CreatedChannel = await Channel.create({
             ID: GenerateSnowflake(),
             Type: ChannelType.DM,
             Owner: MyUser,
-            DMRecipients: [RelationTarget, MyUser]
+            DMRecipients: [RelationTarget, MyUser],
         }).save();
         NChannel = CreatedChannel;
     }
-    
 
     const TargetConnection = FindConnection(RelationTarget.ID);
-    if (TargetConnection && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
+    if (TargetConnection && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS))
+        SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
     // if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
 
     const MyConnection = FindConnection(MyUser.ID);
-    if (MyConnection && HasIntent(MyConnection.Intents, GatewayIntents.GUILDS)) SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
-   // if (MyConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
+    if (MyConnection && HasIntent(MyConnection.Intents, GatewayIntents.GUILDS))
+        SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
+    // if (MyConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
     res.status(204).send();
 });
 
@@ -315,36 +338,61 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
 
-    const RelationTarget = await User.findOne({ where: { Username: FriendUsername, Discriminator: FriendDiscriminator }, relations: { RelationsFrom: true, RelationsRegarding: true } });
+    const RelationTarget = await User.findOne({
+        where: { Username: FriendUsername, Discriminator: FriendDiscriminator },
+        relations: { RelationsFrom: true, RelationsRegarding: true },
+    });
     if (!RelationTarget) return res.status(404).json({ message: "Unknown User", code: 10013 });
 
-    if (MyUser.ID === RelationTarget.ID) return res.status(400).json({ code: 80003, message: "Cannot send friend request to self" });
+    if (MyUser.ID === RelationTarget.ID)
+        return res.status(400).json({ code: 80003, message: "Cannot send friend request to self" });
 
     //if (RelationTarget.Relationships !== undefined && RelationTarget.Relationships.find(R => R.ID == MyUser.ID) || MyUser.Relationships !== undefined && MyUser.Relationships.find(R => R.ID == QFriendUser.ID)) return res.status(400).json({ code: 80003, message: "Friendship already exists, blocked or pending." });
 
     try {
-        Msg("Creating relation from " + MyUser.Username + "#" + MyUser.Discriminator + " to " + RelationTarget.Username + "#" + RelationTarget.Discriminator);
+        Msg(
+            "Creating relation from " +
+                MyUser.Username +
+                "#" +
+                MyUser.Discriminator +
+                " to " +
+                RelationTarget.Username +
+                "#" +
+                RelationTarget.Discriminator,
+        );
 
         const CreatedRelation = await Relation.create({
             ID: GenerateSnowflake(),
             From: MyUser,
             Regarding: RelationTarget,
-            Type: RelationType.NOT_YET_ACCEPTED
+            Type: RelationType.NOT_YET_ACCEPTED,
         }).save();
 
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);
 
-
         const TargetConnection = FindConnection(RelationTarget.ID);
-        if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+        if (TargetConnection != null)
+            SendOp(
+                TargetConnection,
+                OpCodes.DISPATCH,
+                CreatedRelation.PackageGateway(true, RelationTarget),
+                null,
+                "RELATIONSHIP_ADD",
+            );
 
         const MyConnection = FindConnection(MyUser.ID);
-        if (MyConnection != null) SendOp(MyConnection, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
+        if (MyConnection != null)
+            SendOp(
+                MyConnection,
+                OpCodes.DISPATCH,
+                CreatedRelation.PackageGateway(true, MyUser),
+                null,
+                "RELATIONSHIP_ADD",
+            );
 
         return res.sendStatus(204);
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
         return res.status(500).json({ code: 0, message: "Internal Server Error" });
     }
@@ -352,5 +400,5 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
 module.exports = {
     DefaultAPI: "/api/v9/users",
-    App
+    App,
 };
