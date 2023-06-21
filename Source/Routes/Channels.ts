@@ -21,6 +21,7 @@ import { Presence } from "../Classes/Presence";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "../Modules/Logger";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
@@ -44,7 +45,8 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
         },
     });
 
-    if (!RequestedMessage) return res.status(400).json({ code: 10015, message: "Unknown Message" });
+    if (!RequestedMessage)
+        return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
 
     if (
         (RequestedMessage.Channel.IsDM &&
@@ -56,7 +58,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
                 Permissions.MANAGE_MESSAGES,
             ))
     )
-        return res.status(403).json({ code: 0, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.GeneralError, message: "Missing Access" });
 
     await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, {
         id: RequestedMessage.ID,
@@ -356,18 +358,19 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         relations: { DMRecipients: true, OwnerGuild: true },
     });
 
-    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (!RequestedChannel)
+        return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(400).json({ code: 0, message: "No access" });
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No access" });
     else if (!RequestedChannel.IsDM) {
         const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
         if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
         if (!HasPermission(Mmbr, Permissions.SEND_MESSAGES))
-            return res.status(403).json({ code: 10013, message: "Missing Access" });
+            return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
     }
 
     if (typeof req.body.content !== "string" || req.body.content.length > 2000)
-        return res.status(400).json({ code: 0, message: "Message too long" });
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Message too long" });
 
     if (RequestedChannel.Type === ChannelType.DM) {
         const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
@@ -375,9 +378,8 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             (R) => R.From.ID === OtherUser.ID || R.Regarding.ID === OtherUser.ID,
         );
 
-        // TODO: add mutual guilds check
         if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
-            return res.status(400).json({ code: 0, message: "Cannot DM non-friends" });
+            return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Cannot DM non-friends" });
     }
 
     let MessageReplyingTo: Message | undefined;
@@ -399,10 +401,12 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             },
         });
 
-        if (!ChannelReference) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+        if (!ChannelReference)
+            return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
         const MessageReference = ChannelReference.Messages.find((M) => M.ID === req.body.message_reference.message_id);
 
-        if (!MessageReference) return res.status(400).json({ code: 10013, message: "Unknown Message" });
+        if (!MessageReference)
+            return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
         MessageReplyingTo = MessageReference;
     }
 
