@@ -373,14 +373,22 @@ Socket.on("connection", async (Client, req) => {
 
             case OpCodes.RESUME: {
                 const Token = UnpackedData.d.token ?? "";
-                const ValidToken = await VerifyToken(Token);
+                try {
+                    const ValidToken = await VerifyToken(Token);
 
-                if (!ValidToken)
+                    if (!ValidToken)
+                        return CloseConnection(
+                            GatewayClient,
+                            GatewayCloseCodes.AuthenticationFailed,
+                            "Authentication failed.",
+                        );
+                } catch {
                     return CloseConnection(
                         GatewayClient,
                         GatewayCloseCodes.AuthenticationFailed,
                         "Authentication failed.",
                     );
+                }
                 console.log("--- GETTING RESUME ACCOUNT");
 
                 GatewayClient.Account = (await GetUserByToken(Token, {

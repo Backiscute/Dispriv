@@ -17,6 +17,10 @@ import {
     SendToMembers,
 } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
+import { Presence } from "../Classes/Presence";
+import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
+import { GatewayIntents } from "../Classes/GatewayIntents";
+import { Msg } from "../Modules/Logger";
 
 const App = Router();
 
@@ -215,14 +219,16 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 
 App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
+    const ChannelID = req.url.split("/")[1];
     const RequestedChannel = await Channel.findOne({
-        where: { ID: req.params.ChannelID },
-        relations: { DMRecipients: true },
+        where: { ID: ChannelID },
+        relations: { DMRecipients: true, OwnerGuild: { Members: true } },
     });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
         return res.status(400).json({ code: 0, message: "No access" });
+
     // TODO: add permission check here too
 
     // FIXME:
@@ -236,6 +242,30 @@ App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
         // TODO: when guilds are added, add typing start for guilds
     });*/
 
+    // TODO: dm typing --maddie
+    const Members = RequestedChannel.OwnerGuild?.Members;
+    if (!Members) return res.sendStatus(204);
+    const Filtered = Members.map((M) => M.Owner).filter((M) => M.ID !== MyUser.ID && M.Presence !== Presence.OFFLINE);
+    if (!Filtered) return res.sendStatus(204);
+    Filtered.forEach((M) => {
+        const Conn = FindConnection(M.ID);
+        if (!Conn) return;
+        if (
+            !HasIntent(
+                Conn.Intents,
+                RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+            )
+        )
+            return;
+        Msg("User typing", "Channels");
+        SendOp(
+            Conn,
+            OpCodes.DISPATCH,
+            { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
+            null,
+            "TYPING_START",
+        );
+    });
     res.sendStatus(204);
 });
 
