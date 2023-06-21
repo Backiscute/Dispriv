@@ -229,44 +229,59 @@ App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
         return res.status(400).json({ code: 0, message: "No access" });
 
-    // TODO: add permission check here too
-
-    // FIXME:
-    /*RequestedChannel.AllRecipientsExceptYou(MyUser).forEach(Recipient => {
-        const Conn = FindConnection(Recipient.ID);
-        //console.log(Conn);
-        if (!Conn) return;
-        if (!HasIntent(Conn.Intents, RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING)) return;
-
-        if (RequestedChannel.IsDM) SendOp(Conn, OpCodes.DISPATCH, { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID }, null, "TYPING_START");
-        // TODO: when guilds are added, add typing start for guilds
-    });*/
-
-    // TODO: dm typing --maddie
-    const Members = RequestedChannel.OwnerGuild?.Members;
-    if (!Members) return res.sendStatus(204);
-    const Filtered = Members.map((M) => M.Owner).filter((M) => M.ID !== MyUser.ID && M.Presence !== Presence.OFFLINE);
-    if (!Filtered) return res.sendStatus(204);
-    Filtered.forEach((M) => {
-        const Conn = FindConnection(M.ID);
-        if (!Conn) return;
-        if (
-            !HasIntent(
-                Conn.Intents,
-                RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+    if (RequestedChannel.IsDM) {
+        RequestedChannel.AllRecipientsExceptYou(MyUser)?.forEach((Recipient) => {
+            const Conn = FindConnection(Recipient.ID);
+            //console.log(Conn);
+            if (!Conn) return;
+            if (
+                !HasIntent(
+                    Conn.Intents,
+                    RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+                )
             )
-        )
-            return;
-        Msg("User typing", "Channels");
-        SendOp(
-            Conn,
-            OpCodes.DISPATCH,
-            { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
-            null,
-            "TYPING_START",
+                return;
+
+            if (RequestedChannel.IsDM)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
+                    null,
+                    "TYPING_START",
+                );
+            // TODO: when guilds are added, add typing start for guilds
+        });
+        return res.sendStatus(204);
+    } else {
+        const Members = RequestedChannel.OwnerGuild?.Members;
+        if (!Members) return res.sendStatus(204);
+        const Filtered = Members.map((M) => M.Owner).filter(
+            (M) => M.ID !== MyUser.ID && M.Presence !== Presence.OFFLINE,
         );
-    });
-    res.sendStatus(204);
+        if (!Filtered) return res.sendStatus(204);
+        Filtered.forEach((M) => {
+            const Conn = FindConnection(M.ID);
+            if (!Conn) return;
+            // TODO: permission check
+            if (
+                !HasIntent(
+                    Conn.Intents,
+                    RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+                )
+            )
+                return;
+            Msg("User typing", "Channels");
+            SendOp(
+                Conn,
+                OpCodes.DISPATCH,
+                { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
+                null,
+                "TYPING_START",
+            );
+        });
+        res.sendStatus(204);
+    }
 });
 
 App.get("/:ChannelID/call", VerifyAuth, async (req, res) => {
