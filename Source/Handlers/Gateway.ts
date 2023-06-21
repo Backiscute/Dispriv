@@ -31,13 +31,13 @@ const Socket = new WebSocketServer({
 export const Connections: GatewayConnection[] = [];
 Socket.on("connection", async (Client, req) => {
     const QueryParams = new URLSearchParams(req.url?.split("?")[1]);
-    console.log(QueryParams);
+    /*console.log(QueryParams);
     console.log({
         zlib: QueryParams.get("compress") === "zlib-stream",
         encoding: ["etf", "json"].includes(QueryParams.get("encoding") as string)
             ? (QueryParams.get("encoding") as "etf" | "json")
             : "etf",
-    });
+    });*/
     const GatewayClient = new GatewayConnection(Client, {
         zlib: QueryParams.get("compress") === "zlib-stream",
         encoding: ["etf", "json"].includes(QueryParams.get("encoding") as string)
@@ -392,23 +392,22 @@ Socket.on("connection", async (Client, req) => {
                 console.log("--- GETTING RESUME ACCOUNT");
 
                 GatewayClient.Account = (await GetUserByToken(Token, {
-                    AvailableDMs: {
-                        DMRecipients: true,
-                    },
-                    RelationsFrom: true,
-                    RelationsRegarding: true,
                     Memberships: {
                         Owner: false,
                         ToGuild: {
                             Members: {
                                 Owner: true,
-                                Roles: true,
                             },
                             Channels: {
-                                OwnerCategory: true,
-                            },
-                        },
+                                OwnerCategory: true
+                            }
+                        }
                     },
+                    AvailableDMs: {
+                        DMRecipients: true,
+                    },
+                    RelationsFrom: true,
+                    RelationsRegarding: true
                 }))!;
                 GatewayClient.UserToken = Token;
 
@@ -438,23 +437,22 @@ Socket.on("connection", async (Client, req) => {
 
                 console.log("--- GETTING ACCOUNT");
                 GatewayClient.Account = (await GetUserByToken(Token, {
-                    AvailableDMs: {
-                        DMRecipients: true,
-                    },
-                    RelationsFrom: true,
-                    RelationsRegarding: true,
                     Memberships: {
                         Owner: false,
                         ToGuild: {
                             Members: {
                                 Owner: true,
-                                Roles: true,
                             },
                             Channels: {
-                                OwnerCategory: true,
-                            },
-                        },
+                                OwnerCategory: true
+                            }
+                        }
                     },
+                    AvailableDMs: {
+                        DMRecipients: true,
+                    },
+                    RelationsFrom: true,
+                    RelationsRegarding: true
                 }))!;
                 GatewayClient.UserToken = Token;
 
@@ -493,7 +491,7 @@ Socket.on("connection", async (Client, req) => {
                         friend_suggestion_count: 0,
                         geo_ordered_rtc_regions: ["dispriv"],
                         guild_experiments: [], // TODO (also if you want)
-                        guild_join_requests: [], // idk what this is but its needed for guilds i think
+                        guild_join_requests: [], // PENDING guilds (those ones when you click on discovery)
                         guilds: GatewayClient.Account!.Memberships.map((M) =>
                             M.ToGuild.GatewayPackage(GatewayClient.Account!),
                         ),
