@@ -3,7 +3,7 @@ import { Message } from "../Entities/Message";
 import { Channel } from "../Entities/Channel";
 import { FindConnection, HasIntent, SendOp } from "./GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Guild, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { Permissions } from "../Classes/Flags";

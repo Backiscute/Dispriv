@@ -14,6 +14,10 @@ const Socket = new WebSocketServer({
     port: parseInt(process.env.RTCWSPORT) || 6967,
 });
 
+Socket.on("listening", () => {
+    Msg(`Voice WebSocket is now listening on port ${chalk.green(Socket.options.port)}`, "RTCSocket");
+});
+
 const Connections: RTCConnection[] = [];
 Socket.on("connection", (Client) => {
     const RTCClient = new RTCConnection(Client); // create new connection

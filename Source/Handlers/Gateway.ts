@@ -2,15 +2,15 @@ import { WebSocketServer } from "ws";
 import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
-import { OpCodes } from "../Classes/OpCodes";
+import { GatewayCloseCodes, OpCodes } from "../Classes/GatewayOpCodes";
 import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { parse, URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { SendGuildMemberUpdate, SendToMembers } from "../Modules/DiscordUtils";
+import { SendGuildMemberUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import chalk from "chalk";
-import { ChannelType } from "../Entities/Channel";
+import { Channel, ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "./RTCSocket";
 import bcrypt from "bcrypt";
 import {
@@ -73,7 +73,7 @@ Socket.on("connection", async (Client, req) => {
                 return SendOp(GatewayClient, OpCodes.HEARTBEAT_ACK);
 
             case OpCodes.PRESENCE_UPDATE:
-                if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+                if (!GatewayClient.Account) return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
 
                 switch (UnpackedData.d.status) {
                     case "online":
@@ -96,7 +96,7 @@ Socket.on("connection", async (Client, req) => {
                 break;
 
             case OpCodes.CLIENT_SPEEDTEST_CREATE:
-                if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+                if (!GatewayClient.Account) return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
                 SendOp<SpeedTestCreatePacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
@@ -124,9 +124,56 @@ Socket.on("connection", async (Client, req) => {
                     "SPEED_TEST_SERVER_UPDATE"
                 );
                 break;
+            
+            case OpCodes.EMBEDDED_ACTIVITY_DELETE: {
+                if (!GatewayClient.Account) return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
+
+                const GuildID = UnpackedData.d.guild_id;
+                const ChannelID = UnpackedData.d.channel_id;
+                const ApplicationID = UnpackedData.d.application_id;
+
+                if (!GuildID || !ChannelID || !ApplicationID) return;
+
+                const VoiceSession = VoiceSessions.find((S) => S.guild_id === GuildID && S.channel_id === ChannelID);
+
+                if (!VoiceSession) return;
+
+                const Activity = VoiceSession.Activities.find((A) => A.embedded_activity.application_id === ApplicationID);
+
+                if (!Activity) return;
+
+                const ActivityUser = Activity.users.find((U) => U === GatewayClient.Account.ID);
+
+                if (!ActivityUser) return;
+
+                const LinkedChannel = await Channel.findOne({ where: { ID: ChannelID }, relations: { OwnerGuild: true } });
+
+                if (!LinkedChannel) return;
+
+                if (Activity.users.length === 1)
+                {
+                    Msg(`Deleting activity ${chalk.red(Activity.embedded_activity.name)} from session ${chalk.red(VoiceSession.guild_id)}:${chalk.red(VoiceSession.channel_id)}`, "Activities");
+
+                    await SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, { channel_id: ChannelID, connections: [], embedded_activity: { application_id: ApplicationID }, guild_id: GuildID, update_code: 3, users:[] }, null, "EMBEDDED_ACTIVITY_UPDATE");
+
+                    VoiceSession.Activities.splice(VoiceSession.Activities.indexOf(Activity), 1);
+                    break;
+                }
+
+                const UserConnection = Activity.connections.find((C) => C.user_id === GatewayClient.Account.ID);
+                
+                Activity.users.splice(Activity.users.indexOf(ActivityUser), 1);
+                Activity.connections.splice(Activity.connections.indexOf(UserConnection), 1);
+
+                Activity["update_code"] = 5;
+
+                await SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, Activity, null, "EMBEDDED_ACTIVITY_UPDATE");
+                
+                break;
+            }
 
             case OpCodes.VOICE_STATE_UPDATE: {
-                if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+                if (!GatewayClient.Account) return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
 
                 // {"op":4,"d":{"guild_id":null,"channel_id":null,"self_mute":true,"self_deaf":false,"self_video":false,"flags":0}}
                 // {"op":4,"d":{"guild_id":"1119711696458481664","channel_id":"1120028684745572352","self_mute":true,"self_deaf":false,"self_video":false,"flags":2}}
@@ -228,11 +275,13 @@ Socket.on("connection", async (Client, req) => {
                             )}`,
                             "Voice"
                         );
+
                         VoiceSessions.push({
                             channel_id: ChannelID,
                             guild_id: GuildID,
                             voice_states: [VoiceState],
                             ConnectedVoiceClients: [],
+                            Activities: []
                         });
 
                         await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
@@ -284,7 +333,7 @@ Socket.on("connection", async (Client, req) => {
                 break;
 
             case OpCodes.CLIENT_SPEEDTEST_DELETE:
-                if (!GatewayClient.Account) return CloseConnection(GatewayClient, 4003, "Not authenticated");
+                if (!GatewayClient.Account) return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
                 SendOp<SpeedTestDeletePacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
@@ -298,7 +347,7 @@ Socket.on("connection", async (Client, req) => {
                 const Token = UnpackedData.d.token ?? "";
                 const ValidToken = await VerifyToken(Token);
 
-                if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
+                if (!ValidToken) return CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
                 console.log("--- GETTING RESUME ACCOUNT");
 
                 GatewayClient.Account = await GetUserByToken(Token, {
@@ -339,7 +388,7 @@ Socket.on("connection", async (Client, req) => {
                 const Token = UnpackedData.d.token ?? "";
                 const ValidToken = await VerifyToken(Token);
 
-                if (!ValidToken) return CloseConnection(GatewayClient, 4004, "Authentication failed.");
+                if (!ValidToken) return CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
 
                 console.log("--- GETTING ACCOUNT");
                 GatewayClient.Account = await GetUserByToken(Token, {

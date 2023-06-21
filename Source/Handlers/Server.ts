@@ -6,6 +6,7 @@ import { Msg } from "../Modules/Logger";
 env.config();
 
 import chalk from "chalk";
+import path from "path";
 
 const PORT = parseInt(process.env.PORT) || 6969;
 
@@ -18,6 +19,9 @@ Application.use(
         limit: "5mb",
     })
 );
+
+Application.use("/discordsays", express.static(path.join(__dirname, "../Applications")));
+
 
 const Files = fs.readdirSync("./bin/Routes");
 

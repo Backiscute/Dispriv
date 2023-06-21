@@ -395,7 +395,7 @@ export class Role extends BaseEntity {
 	@JoinTable()
 	Members: Membership[];
 
-	@Column({ default: Permissions.CONNECT | Permissions.SPEAK | Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY })
+	@Column({ default: Permissions.CONNECT | Permissions.SPEAK | Permissions.CREATE_INSTANT_INVITE | Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY | Permissions.USE_EMBEDDED_ACTIVITIES})
 	Permissions: Permissions;
 
 	@Column({ default: false })

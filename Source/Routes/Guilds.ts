@@ -3,7 +3,7 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Guild, GuildFeatures, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GetHighestRole, GetHighestRoleInArr, HasPermission, MembershipFromGuild, SendGuildMemberUpdate, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";

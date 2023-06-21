@@ -6,7 +6,7 @@ import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";

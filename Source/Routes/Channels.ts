@@ -6,7 +6,7 @@ import { Channel, ChannelType } from "../Entities/Channel";
 import { Message, MessageType } from "../Entities/Message";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { RelationType } from "../Entities/FriendUser";
 import { Invite } from "../Entities/Guild";
 import { GenerateRandomString, HasPermission, MembershipFromGuild, SendMessage, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";

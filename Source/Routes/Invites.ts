@@ -4,7 +4,7 @@ import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Guild, Invite, InviteType } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
 import { FindConnection, SendOp } from "../Modules/GatewayUtils";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import { HasPermission } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 

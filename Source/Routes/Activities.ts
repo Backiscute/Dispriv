@@ -3,8 +3,10 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { ApplicationFlags, UserFlags } from "../Classes/Flags";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel, ChannelType } from "../Entities/Channel";
+import { v4 } from "uuid";
+import { VoiceSessions } from "../Handlers/RTCSocket";
 import { SendToDMOrServer } from "../Modules/DiscordUtils";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 
 const App = Router();
 
@@ -36,9 +38,54 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => { // auth
     
     if (!Application.HasFlag(ApplicationFlags.RELEASED) && !MyUser.HasFlag(UserFlags.STAFF)) return res.status(403).json({"message": "Application is not released", "code": 0});
 
-    //SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, { channel_id: LinkedChannel.ID, guild_id: GuildID, update_code: 2, users: [ MyUser.ID ], connections: [], embedded_activity: { activity_id: "funnyid", application_id: Application.ID, assets: null, created_at: null, details: null, name: Application.DisplayName, secrets: null, state: null, timestamps: null, type: null }}, null, "EMBEDDED_ACTIVITY_UPDATE"); // TODO: activity rooms (btw this doesnt do anything)
+    const VoiceSession = VoiceSessions.find((R) => R.guild_id === GuildID && R.channel_id === LinkedChannel.ID);
 
-    res.sendStatus(204);
+    if (!VoiceSession) return res.status(404).json({"message": "Voice session not found", "code": 0});
+
+    let ActivityRoom;
+
+    const RunningActivity = VoiceSession.Activities.find((R) => R.embedded_activity.application_id === Application.ID);
+
+    if (RunningActivity) 
+    {
+        if (RunningActivity.users.includes(MyUser.ID)) return res.status(403).json({"message": "Already in activity", "code": 0});
+        
+        RunningActivity.users.push(MyUser.ID);
+        RunningActivity.connections.push({ user_id: MyUser.ID, metadata: { is_elegible_host: true } });
+
+        ActivityRoom = RunningActivity;
+    }
+    else
+    {
+        const Activity = {
+            "activity_id": v4(),
+            "application_id": Application.ID,
+            "assets": null,
+            "created_at": null,
+            "details": null,
+            "name": Application.DisplayName,
+            "secrets": null,
+            "state": null,
+            "timestamps": null,
+            "type": 0
+        };
+    
+        ActivityRoom = {
+            channel_id: LinkedChannel.ID,
+            connections: [{ user_id: MyUser.ID, metadata: { is_elegible_host: true } }],
+            embedded_activity: Activity,
+            guild_id: GuildID,
+            users: [MyUser.ID]
+        };
+    
+        VoiceSession.Activities.unshift(ActivityRoom);    
+    }
+
+    ActivityRoom["update_code"] = 2;
+
+    await res.sendStatus(204);
+
+    SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, ActivityRoom, null, "EMBEDDED_ACTIVITY_UPDATE");
 }); 
 
 App.get("/shelf", async (req, res) => { // embedded games library (game activities)

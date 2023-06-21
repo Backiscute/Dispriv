@@ -3,7 +3,7 @@ import { GatewayConnection } from "../Classes/GatewayConnection";
 import { Connections } from "../Handlers/Gateway";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "./Logger";
-import { OpCodes } from "../Classes/OpCodes";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 import chalk from "chalk";
 
 export function CloseConnection(SocketClient: GatewayConnection, Code: number, Reason: string) {

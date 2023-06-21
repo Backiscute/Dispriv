@@ -79,7 +79,7 @@ export interface ReadyPacket {
     user_settings_proto: any;
     users: {
         avatar: string;
-        avatar_decoration: any;
+        avatar_decoration: string;
         bot: boolean;
         discriminator: string;
         display_name: string;
@@ -111,7 +111,7 @@ export interface ReadySupplementalPacket {
     }[];
     lazy_private_channels: any[];
     merged_members: {
-        avatar: any;
+        avatar: string;
         nick: string;
         roles: string[];
         joined_at: string;
