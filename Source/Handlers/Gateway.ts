@@ -133,7 +133,6 @@ Socket.on("connection", async (Client, req) => {
                 if (!GuildID || !ChannelID || !ApplicationID) return;
 
                 const VoiceSession = VoiceSessions.find((S) => S.guild_id === GuildID && S.channel_id === ChannelID);
-
                 if (!VoiceSession) return;
 
                 const Activity = VoiceSession.Activities.find(
@@ -185,7 +184,7 @@ Socket.on("connection", async (Client, req) => {
                 Activity.users.splice(Activity.users.indexOf(ActivityUser), 1);
                 Activity.connections.splice(Activity.connections.indexOf(UserConnection), 1);
 
-                Activity["update_code"] = 5;
+                Activity.update_code = 5;
 
                 await SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, Activity, null, "EMBEDDED_ACTIVITY_UPDATE");
 
