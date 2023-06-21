@@ -14,7 +14,7 @@ Server.on("message", (msg, info) => {
 
 Server.on("listening", () => {
     const Address = Server.address();
-    Msg(`Server is listening on ${chalk.red(Address.address)}:${chalk.red(Address.port)}`, "RTCMediaServer");
+    Msg(`Voice server now listening on ${chalk.green(Address.port)}`, "RTCMediaServer");
 });
 
 Server.bind(50008);
