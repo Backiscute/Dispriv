@@ -142,14 +142,14 @@ export class Guild extends BaseEntity {
     @Column()
     Name: string;
 
-	@Column({ nullable: true })
-	IconID?: string;
+    @Column({ nullable: true })
+    IconID?: string;
 
-	@Column({ nullable: true })
-	BannerID?: string;
+    @Column({ nullable: true })
+    BannerID?: string;
 
-    @ManyToOne(() => User, U => U.OwnedGuilds, { eager: true, onDelete: "CASCADE", orphanedRowAction: "nullify" })
-	@JoinColumn()
+    @ManyToOne(() => User, (U) => U.OwnedGuilds, { eager: true, onDelete: "CASCADE", orphanedRowAction: "nullify" })
+    @JoinColumn()
     Owner: User;
 
     @Column({ nullable: true })
@@ -161,8 +161,8 @@ export class Guild extends BaseEntity {
     @Column({ nullable: true })
     Description?: string;
 
-	@Column({ default: false })
-	Disabled: boolean;
+    @Column({ default: false })
+    Disabled: boolean;
 
     @Column({ type: "simple-array" })
     Features: GuildFeatures[];
@@ -170,196 +170,202 @@ export class Guild extends BaseEntity {
     @Column({ default: 1000 })
     MaximumMembers: number;
 
-    @OneToMany(() => Membership, U => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
-	@JoinTable()
+    @OneToMany(() => Membership, (U) => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinTable()
     Members: Membership[];
 
-    @OneToMany(() => Channel, C => C.OwnerGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
-	@JoinColumn()
+    @OneToMany(() => Channel, (C) => C.OwnerGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
     Channels: Channel[];
 
-	@OneToMany(() => Role, R => R.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
-	@JoinColumn()
-	Roles: Role[];
+    @OneToMany(() => Role, (R) => R.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
+    Roles: Role[];
 
-	@OneToMany(() => Invite, I => I.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
-	@JoinColumn()
-	Invites: Invite[];
+    @OneToMany(() => Invite, (I) => I.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @JoinColumn()
+    Invites: Invite[];
 
-	DefaultRole() {
-		return this.Roles.find(R => R.ID === this.ID);
-	}
+    DefaultRole() {
+        return this.Roles.find((R) => R.ID === this.ID);
+    }
 
-	async CreateDefaultChannels()
-	{
-		// categories made the thing logout for osme rason
-		await Channel.create({
-			ID: GenerateSnowflake(),
-			DisplayName: "general",
-			OwnerGuild: this,
-			//OwnerCategory: TextCategory,
-		}).save();
+    async CreateDefaultChannels() {
+        // categories made the thing logout for osme rason
+        await Channel.create({
+            ID: GenerateSnowflake(),
+            DisplayName: "general",
+            OwnerGuild: this,
+            //OwnerCategory: TextCategory,
+        }).save();
 
-		await Channel.create({
-			ID: GenerateSnowflake(),
-			DisplayName: "General",
-			Type: ChannelType.GUILD_VOICE,
-			OwnerGuild: this,
-			//OwnerCategory: VoiceCategory,
-		}).save();
-	}
+        await Channel.create({
+            ID: GenerateSnowflake(),
+            DisplayName: "General",
+            Type: ChannelType.GUILD_VOICE,
+            OwnerGuild: this,
+            //OwnerCategory: VoiceCategory,
+        }).save();
+    }
 
-	Partial() {
-		return {
-			id: this.ID,
-			name: this.Name,
-			icon: this.IconID,
-			description: this.Description,
-			banner: this.BannerID,
-			splash: this.BannerID,
-			discovery_splash: this.BannerID,
-			home_header: this.BannerID,
-			features: this.Features,
-			approximate_member_count: 0,
-			approximate_presence_count: 0,
-			emojis: [],
-			stickers: []
-		};
-	}
+    Partial() {
+        return {
+            id: this.ID,
+            name: this.Name,
+            icon: this.IconID,
+            description: this.Description,
+            banner: this.BannerID,
+            splash: this.BannerID,
+            discovery_splash: this.BannerID,
+            home_header: this.BannerID,
+            features: this.Features,
+            approximate_member_count: 0,
+            approximate_presence_count: 0,
+            emojis: [],
+            stickers: [],
+        };
+    }
 
-	Package(UserContext: User) {
-		const Boosters = this.Members?.filter(M => M.BoostingSince).length;
-		const UserMembershipHere = UserContext.Memberships?.find(x => x.ToGuild.ID === this.ID);
+    Package(UserContext: User) {
+        const Boosters = this.Members?.filter((M) => M.BoostingSince).length;
+        const UserMembershipHere = UserContext.Memberships?.find((x) => x.ToGuild.ID === this.ID);
 
-		return {
-			id: this.ID,
-			name: this.Name,
-			icon: this.IconID,
-			splash: this.BannerID,
-			discovery_splash: this.BannerID,
-			owner: UserContext.ID === this.Owner.ID,
-			owner_id: this.Owner.ID,
-			permissions: UserMembershipHere ? GetHighestRole(UserMembershipHere).Permissions.toString() : "0",
-			afk_channel_id: "",
-			afk_timeout: 0,
-			widget_enabled: true,
-			widget_channel_id: null,
-			verification_level: 0,
-			default_message_notifications: 0,
-			explicit_content_filter: 0,
-			roles: this.Roles?.map(R => R.Package()),
-			emojis: [],
-			features: this.Features,
-			mfa_level: 0,
-			joined_at: CreateTimestamp(new Date()),
-			large: this.Members?.length > 100,
-			unavailable: this.Disabled,
-			member_count: this.Members?.length,
-			channels: this.Channels?.map(C => C.GuildPackage(this.ID)),
-			threads: [],
-			max_members: this.MaximumMembers,
-			vanity_url: this.VanityInviteURL,
-			description: this.Description,
-			banner: this.BannerID,
-			premium_tier: Boosters >= 14 ? 3 : Boosters >= 7 ? 2 : Boosters >= 2 ? 1 : 0,
-			premium_subscription_count: Boosters,
-			preferred_locale: "en-US",
-			nsfw_level: 0
-		};
-	}
+        return {
+            id: this.ID,
+            name: this.Name,
+            icon: this.IconID,
+            splash: this.BannerID,
+            discovery_splash: this.BannerID,
+            owner: UserContext.ID === this.Owner.ID,
+            owner_id: this.Owner.ID,
+            permissions: UserMembershipHere ? GetHighestRole(UserMembershipHere).Permissions.toString() : "0",
+            afk_channel_id: "",
+            afk_timeout: 0,
+            widget_enabled: true,
+            widget_channel_id: null,
+            verification_level: 0,
+            default_message_notifications: 0,
+            explicit_content_filter: 0,
+            roles: this.Roles?.map((R) => R.Package()),
+            emojis: [],
+            features: this.Features,
+            mfa_level: 0,
+            joined_at: CreateTimestamp(new Date()),
+            large: this.Members?.length > 100,
+            unavailable: this.Disabled,
+            member_count: this.Members?.length,
+            channels: this.Channels?.map((C) => C.GuildPackage(this.ID)),
+            threads: [],
+            max_members: this.MaximumMembers,
+            vanity_url: this.VanityInviteURL,
+            description: this.Description,
+            banner: this.BannerID,
+            premium_tier: Boosters >= 14 ? 3 : Boosters >= 7 ? 2 : Boosters >= 2 ? 1 : 0,
+            premium_subscription_count: Boosters,
+            preferred_locale: "en-US",
+            nsfw_level: 0,
+        };
+    }
 
-	GatewayPackage(UserContext: User) {
-		return {
-			application_command_counts: {},
-			channels: this.Channels ? this.Channels.map(C => C.GuildPackage(this.ID)) : [],
-			data_mode: "full",
-			emojis: [],
-			guild_scheduled_events: [],
-			id: this.ID,
-			joined_at: CreateTimestamp(new Date()),
-			large: this.Members ? this.Members.length > 100 : false,
-			lazy: true,
-			member_count: this.Members ? this.Members.length : 1,
-			premium_subscription_count: this.Members ? this.Members.filter(M => M.BoostingSince).length : 0,
-			properties: this.Package(UserContext),
-			roles: this.Roles?.map(R => R.Package()),
-			stage_instances: [],
-			stickers: [],
-			threads: [],
-			version: Date.now()
-		};
-	}
+    GatewayPackage(UserContext: User) {
+        return {
+            application_command_counts: {},
+            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID)) : [],
+            data_mode: "full",
+            emojis: [],
+            guild_scheduled_events: [],
+            id: this.ID,
+            joined_at: CreateTimestamp(new Date()),
+            large: this.Members ? this.Members.length > 100 : false,
+            lazy: true,
+            member_count: this.Members ? this.Members.length : 1,
+            premium_subscription_count: this.Members ? this.Members.filter((M) => M.BoostingSince).length : 0,
+            properties: this.Package(UserContext),
+            roles: this.Roles?.map((R) => R.Package()),
+            stage_instances: [],
+            stickers: [],
+            threads: [],
+            version: Date.now(),
+        };
+    }
 
-	DiscoveryPackage() {
-		return {
-			approximate_member_count: this.Members?.length,
-			approximate_presence_count: 0,
-			auto_removed: false,
-			banner: this.BannerID,
-			description: this.Description,
-			discovery_splash: this.BannerID,
-			features: this.Features,
-			icon: this.IconID,
-			id: this.ID,
-			is_published: true,
-			keywords: [],
-			name: this.Name,
-			preferred_locale: "en-US",
-			premium_subscription_count: this.Members?.filter(M => M.BoostingSince).length,
-			primary_category_id: 0,
-			splash: this.BannerID,
-			vanity_url_code: this.VanityInviteURL
-		};
-	}
+    DiscoveryPackage() {
+        return {
+            approximate_member_count: this.Members?.length,
+            approximate_presence_count: 0,
+            auto_removed: false,
+            banner: this.BannerID,
+            description: this.Description,
+            discovery_splash: this.BannerID,
+            features: this.Features,
+            icon: this.IconID,
+            id: this.ID,
+            is_published: true,
+            keywords: [],
+            name: this.Name,
+            preferred_locale: "en-US",
+            premium_subscription_count: this.Members?.filter((M) => M.BoostingSince).length,
+            primary_category_id: 0,
+            splash: this.BannerID,
+            vanity_url_code: this.VanityInviteURL,
+        };
+    }
 
-	GatewayPackageEvent(UserContext: User) {
-		return {
-			application_command_counts: {},
-			channels: this.Channels ? this.Channels.map(C => C.GuildPackage(this.ID)) : [],
-			data_mode: "full",
-			emojis: [],
-			guild_scheduled_events: [],
-			id: this.ID,
-			joined_at: CreateTimestamp(new Date()),
-			large: this.Members ? this.Members.length > 100 : false,
-			lazy: true,
-			member_count: this.Members ? this.Members.length : 1,
-			premium_subscription_count: this.Members ? this.Members.filter(M => M.BoostingSince).length : 0,
-			properties: this.Package(UserContext),
-			roles: this.Roles?.map(R => R.Package()),
-			stage_instances: [],
-			stickers: [],
-			threads: [],
-			members: this.Members ? this.Members.map(C => C.Package()) : [ UserContext.Memberships.find(M => M.ToGuild.ID === this.ID).Package() ],
-			presences: [], // TODO
-			embedded_activities: [], // same as ready embedded_activities
-			version: Date.now()
-		};
-	}
+    GatewayPackageEvent(UserContext: User) {
+        return {
+            application_command_counts: {},
+            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID)) : [],
+            data_mode: "full",
+            emojis: [],
+            guild_scheduled_events: [],
+            id: this.ID,
+            joined_at: CreateTimestamp(new Date()),
+            large: this.Members ? this.Members.length > 100 : false,
+            lazy: true,
+            member_count: this.Members ? this.Members.length : 1,
+            premium_subscription_count: this.Members ? this.Members.filter((M) => M.BoostingSince).length : 0,
+            properties: this.Package(UserContext),
+            roles: this.Roles?.map((R) => R.Package()),
+            stage_instances: [],
+            stickers: [],
+            threads: [],
+            members: this.Members
+                ? this.Members.map((C) => C.Package())
+                : [UserContext.Memberships.find((M) => M.ToGuild.ID === this.ID).Package()],
+            presences: [], // TODO
+            embedded_activities: [], // same as ready embedded_activities
+            version: Date.now(),
+        };
+    }
 
-	GatewaySupplementalPackage() {
-		const FilteredVoiceSessions = VoiceSessions.filter(V => V.guild_id === this.ID);
-		const VoiceStates = FilteredVoiceSessions.map((V) => V.voice_states)
-      .flat()
-      .map((voiceState) => ({
-        channel_id: voiceState.channel_id,
-        deaf: voiceState.deaf,
-        mute: voiceState.mute,
-        request_to_speak_timestamp: voiceState.request_to_speak_timestamp,
-        self_deaf: voiceState.self_deaf,
-        self_mute: voiceState.self_mute,
-        self_video: voiceState.self_video,
-        session_id: voiceState.session_id,
-        suppress: voiceState.suppress,
-        user_id: voiceState.user_id,
-      }));
+    GatewaySupplementalPackage() {
+        const FilteredVoiceSessions = VoiceSessions.filter((V) => V.guild_id === this.ID);
+        const VoiceStates = FilteredVoiceSessions.map((V) => V.voice_states)
+            .flat()
+            .map((voiceState) => ({
+                channel_id: voiceState.channel_id,
+                deaf: voiceState.deaf,
+                mute: voiceState.mute,
+                request_to_speak_timestamp: voiceState.request_to_speak_timestamp,
+                self_deaf: voiceState.self_deaf,
+                self_mute: voiceState.self_mute,
+                self_video: voiceState.self_video,
+                session_id: voiceState.session_id,
+                suppress: voiceState.suppress,
+                user_id: voiceState.user_id,
+            }));
 
-		return {
-			embedded_activities: [],
-			id: this.ID,
-			voice_states: VoiceStates,
-		};
-	}
+        const EmbeddedActivitiesRooms = FilteredVoiceSessions.map((V) => V.Activities);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const Result = EmbeddedActivitiesRooms.flatMap((arr) => arr.map(({ guild_id, update_code, ...rest }) => rest));
+
+        return {
+            embedded_activities: Result,
+            id: this.ID,
+            voice_states: VoiceStates,
+        };
+    }
 }
 
 @Entity()

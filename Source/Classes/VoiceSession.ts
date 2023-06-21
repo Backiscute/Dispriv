@@ -29,6 +29,7 @@ export interface ActivityRoom {
   embedded_activity: EmbeddedActivity;
   guild_id: string;
   users: string[];
+  update_code?: number;
 }
 
 export interface ActivityUserConnection {
