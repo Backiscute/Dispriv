@@ -27,7 +27,12 @@ const LoadRoutes = async () => {
     }
 
     Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
-
+    Application.use(
+        "/discordsays",
+        express.static(
+            path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Applications"),
+        ),
+    );
     Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${green(process.env.PORT)}`));
 };
 

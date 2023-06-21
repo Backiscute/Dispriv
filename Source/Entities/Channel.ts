@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinColumn } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
@@ -19,66 +20,70 @@ export const enum ChannelType {
     PRIVATE_THREAD = 12,
     GUILD_STAGE_VOICE = 13,
     GUILD_DIRECTORY = 14,
-    GUILD_FORUM = 15
+    GUILD_FORUM = 15,
 }
 
 @Entity()
 export class Channel extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column({ default: ChannelType.GUILD_TEXT })
-    Type: ChannelType;
+        Type: ChannelType;
 
     @Column({ default: "A channel" })
-    DisplayName: string;
+        DisplayName: string;
 
     @Column({ length: 1024, nullable: true })
-    Topic?: string;
+        Topic?: string;
 
-    @ManyToOne(() => Guild, G => G.Channels, { nullable: true, onDelete: "CASCADE" })
+    @ManyToOne(() => Guild, (G) => G.Channels, { nullable: true, onDelete: "CASCADE" })
     @JoinColumn()
-	OwnerGuild?: Guild;
+        OwnerGuild?: Guild;
 
     @Column({ default: -1 })
-    GuildPosition: number;
-    
+        GuildPosition: number;
+
     // TODO: permissions
 
     @Column({ default: false })
-    IsNSFW: boolean;
+        IsNSFW: boolean;
 
     @Column({ nullable: true })
-    VCUserLimit?: number;
+        VCUserLimit?: number;
 
     @Column({ default: 0 })
-    Timeout: number;
+        Timeout: number;
 
     @Column({ nullable: true })
-    GroupDMIconHash?: string;
+        GroupDMIconHash?: string;
 
     @Column({ type: "simple-json", nullable: true })
-    Owner?: User;
+        Owner?: User;
 
-    @ManyToOne(() => Channel, Category => Category.CategoryChannels, { nullable: true, orphanedRowAction: "nullify", onDelete: "SET NULL" })
+    @ManyToOne(() => Channel, (Category) => Category.CategoryChannels, {
+        nullable: true,
+        orphanedRowAction: "nullify",
+        onDelete: "SET NULL",
+    })
     @JoinColumn()
-	OwnerCategory?: Channel;
+        OwnerCategory?: Channel;
 
-    @OneToMany(() => Channel, C => C.OwnerCategory, { nullable: true, onDelete: "SET NULL" })
+    @OneToMany(() => Channel, (C) => C.OwnerCategory, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn()
-	CategoryChannels?: Channel[];
+        CategoryChannels?: Channel[];
 
-    @ManyToMany(() => User, U => U.AvailableDMs, { nullable: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @ManyToMany(() => User, (U) => U.AvailableDMs, { nullable: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-	DMRecipients?: User[];
+        DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel, { eager: false, orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @OneToMany(() => Message, (M) => M.Channel, { eager: false, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-	Messages: Message[];
+        Messages: Message[];
 
-    @OneToMany(() => Invite, I => I.LinkedChannel, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @OneToMany(() => Invite, (I) => I.LinkedChannel, { orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-	Invites: Invite[];
+        Invites: Invite[];
 
     SmallDMPackage(UserContext: User) {
         return {
@@ -87,9 +92,11 @@ export class Channel extends BaseEntity {
             is_spam: false,
             name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
             owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
-            last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
-            recipients: this.DMRecipients ? this.DMRecipients.map(R => R.PackagePublic()).filter(R => R.id !== UserContext.ID) : undefined,
-            flags: 0
+            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
+            recipients: this.DMRecipients
+                ? this.DMRecipients.map((R) => R.PackagePublic()).filter((R) => R.id !== UserContext.ID)
+                : undefined,
+            flags: 0,
         };
     }
 
@@ -100,44 +107,48 @@ export class Channel extends BaseEntity {
             is_spam: false,
             name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
             owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
-            last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
-            recipient_ids: this.DMRecipients ? this.DMRecipients.map(R => R.ID).filter(R => R !== UserContext.ID) : undefined,
-            flags: 0
+            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
+            recipient_ids: this.DMRecipients
+                ? this.DMRecipients.map((R) => R.ID).filter((R) => R !== UserContext.ID)
+                : undefined,
+            flags: 0,
         };
     }
 
-	GuildPackage(OverrideOwnerGuildID?: string) {
-		return {
+    GuildPackage(OverrideOwnerGuildID?: string) {
+        return {
             bitrate: this.Type === ChannelType.GUILD_VOICE ? 64000 : undefined,
             user_limit: this.Type === ChannelType.GUILD_VOICE ? this.VCUserLimit : undefined,
             video_quality_mode: this.Type === ChannelType.GUILD_VOICE ? 1 : undefined,
             rtc_region: this.Type === ChannelType.GUILD_VOICE ? "dispriv" : undefined,
-			id: this.ID,
-			type: this.Type,
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
-			parent_id: this.OwnerCategory?.ID ?? null,
-			position: this.GuildPosition,
-			permission_overwrites: [],
-			name: this.DisplayName,
-			nsfw: this.IsNSFW,
-			last_message_id: this.Messages ? this.Messages.length >= 1 ? this.Messages[0].ID : null : null,
+            id: this.ID,
+            type: this.Type,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
+            parent_id: this.OwnerCategory?.ID ?? null,
+            position: this.GuildPosition,
+            permission_overwrites: [],
+            name: this.DisplayName,
+            nsfw: this.IsNSFW,
+            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
             flags: 0,
             topic: this.Topic ?? null,
-            rate_limit_per_user: 0 // slowmode??
-		};
-	}
+            rate_limit_per_user: 0, // slowmode??
+        };
+    }
 
     get IsDM() {
         return this.Type === ChannelType.DM || this.Type === ChannelType.GROUP_DM;
     }
 
     AllRecipientsExceptYou(UserToAvoid: User) {
-        return this.DMRecipients?.filter(R => R.ID !== UserToAvoid.ID);
+        return this.DMRecipients?.filter((R) => R.ID !== UserToAvoid.ID);
     }
 
     CheckDMAccess(UserData: User) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.DMRecipients ? this.DMRecipients.find(x => x.ID === UserData.ID) !== undefined : false || this.Owner!.ID === UserData.ID;
+        return this.DMRecipients
+            ? this.DMRecipients.find((x) => x.ID === UserData.ID) !== undefined
+            : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              false || this.Owner!.ID === UserData.ID;
     }
 }

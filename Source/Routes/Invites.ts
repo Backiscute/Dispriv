@@ -12,114 +12,125 @@ import { Permissions } from "../Classes/Flags";
 const App = Router();
 
 App.get("/:InviteCode", VerifyAuth, async (req, res) => {
-    const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true } } });
-    if (!RequestedInvite)
-	{
-		const VanityGuild = await Guild.findOne({ where: { VanityInviteURL: req.params.InviteCode }, relations: { Members: true } });
-		if (!VanityGuild)
-			return res.status(404).json({"message": "Unknown Invite", "code": 10006});
+    const RequestedInvite = await Invite.findOne({
+        where: { InviteCode: req.params.InviteCode },
+        relations: { InGuild: { Members: true } },
+    });
+    if (!RequestedInvite) {
+        const VanityGuild = await Guild.findOne({
+            where: { VanityInviteURL: req.params.InviteCode },
+            relations: { Members: true },
+        });
+        if (!VanityGuild) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
 
-		return res.json({
-			code: VanityGuild.VanityInviteURL,
-			guild: VanityGuild.Partial(),
-			type: "GUILD",
-			expires_at: null,
-			aproximate_member_count: 0,
-			aproximate_presence_count: 0,
-			channel: null
-		});
-	}
+        return res.json({
+            code: VanityGuild.VanityInviteURL,
+            guild: VanityGuild.Partial(),
+            type: "GUILD",
+            expires_at: null,
+            aproximate_member_count: 0,
+            aproximate_presence_count: 0,
+            channel: null,
+        });
+    }
 
     res.json(RequestedInvite.PackagePublic());
 });
 
 App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
-	const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
-	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
+    const RequestedInvite = await Invite.findOne({
+        where: { InviteCode: req.params.InviteCode },
+        relations: { InGuild: { Members: true, Channels: true } },
+    });
+    const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
-	if (!RequestedInvite) return res.status(404).json({"message": "Unknown Invite", "code": 10006});
+    if (!RequestedInvite) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
 
-	const Membership = MyUser.Memberships.find(x => x.ToGuild.ID === RequestedInvite.InGuild.ID);
-	if (!Membership) return res.status(403).json({"message": "You are not a member of this guild", "code": 0});
+    const Membership = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedInvite.InGuild.ID);
+    if (!Membership) return res.status(403).json({ message: "You are not a member of this guild", code: 0 });
 
-	if (!HasPermission(Membership, Permissions.MANAGE_GUILD)) return res.status(403).json({"message": "Missing Access", "code": 0});
+    if (!HasPermission(Membership, Permissions.MANAGE_GUILD))
+        return res.status(403).json({ message: "Missing Access", code: 0 });
 
-	await RequestedInvite.remove();
+    await RequestedInvite.remove();
 
-	res.sendStatus(204);
+    res.sendStatus(204);
 });
 
 App.post("/:InviteCode", VerifyAuth, async (req, res) => {
-    const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
-	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
-    
-	if (!RequestedInvite)
-	{
-		const VanityGuild = await Guild.findOne({ where: { VanityInviteURL: req.params.InviteCode }, relations: { Members: true, Channels: true } });
-		if (!VanityGuild)
-			return res.status(404).json({"message": "Unknown Invite", "code": 10006});
+    const RequestedInvite = await Invite.findOne({
+        where: { InviteCode: req.params.InviteCode },
+        relations: { InGuild: { Members: true, Channels: true } },
+    });
+    const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
-		if (MyUser.Memberships.find(x => x.ToGuild.ID === VanityGuild.ID))
-			return res.json({
-				code: VanityGuild.VanityInviteURL,
-				guild: VanityGuild.Partial(),
-				type: InviteType.GUILD,
-				expires_at: null,
-				approximate_member_count: 0,
-				approximate_presence_count: 0,
-				channel: null
-			});
+    if (!RequestedInvite) {
+        const VanityGuild = await Guild.findOne({
+            where: { VanityInviteURL: req.params.InviteCode },
+            relations: { Members: true, Channels: true },
+        });
+        if (!VanityGuild) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
 
-		await Membership.create({
-			ID: GenerateSnowflake(),
-			Owner: MyUser,
-			ToGuild: VanityGuild,
-			CreatedAt: new Date(),
-			Roles: [VanityGuild.DefaultRole]
-		}).save();
+        if (MyUser.Memberships.find((x) => x.ToGuild.ID === VanityGuild.ID))
+            return res.json({
+                code: VanityGuild.VanityInviteURL,
+                guild: VanityGuild.Partial(),
+                type: InviteType.GUILD,
+                expires_at: null,
+                approximate_member_count: 0,
+                approximate_presence_count: 0,
+                channel: null,
+            });
 
-		res.json({
-			code: VanityGuild.VanityInviteURL,
-			guild: VanityGuild.Partial(),
-			type: InviteType.GUILD,
-			expires_at: null,
-			approximate_member_count: 0,
-			approximate_presence_count: 0,
-			channel: null
-		});
-		
-		const Conn = FindConnection(MyUser.ID);
-		if (!Conn) return;
+        await Membership.create({
+            ID: GenerateSnowflake(),
+            Owner: MyUser,
+            ToGuild: VanityGuild,
+            CreatedAt: new Date(),
+            Roles: [VanityGuild.DefaultRole],
+        }).save();
 
-		SendOp(Conn, OpCodes.DISPATCH, VanityGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
-		return;
-	}
+        res.json({
+            code: VanityGuild.VanityInviteURL,
+            guild: VanityGuild.Partial(),
+            type: InviteType.GUILD,
+            expires_at: null,
+            approximate_member_count: 0,
+            approximate_presence_count: 0,
+            channel: null,
+        });
+
+        const Conn = FindConnection(MyUser.ID);
+        if (!Conn) return;
+
+        SendOp(Conn, OpCodes.DISPATCH, VanityGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
+        return;
+    }
 
     const TargetGuild = RequestedInvite.InGuild;
 
-    if (MyUser.Memberships.find(x => x.ToGuild.ID === TargetGuild.ID))
-		return res.json(RequestedInvite.Package());
+    if (MyUser.Memberships.find((x) => x.ToGuild.ID === TargetGuild.ID)) return res.json(RequestedInvite.Package());
 
     await Membership.create({
-		ID: GenerateSnowflake(),
-		Owner: MyUser,
-		ToGuild: TargetGuild,
-		CreatedAt: new Date(),
-		Roles: [TargetGuild.DefaultRole]
-	}).save();
+        ID: GenerateSnowflake(),
+        Owner: MyUser,
+        ToGuild: TargetGuild,
+        CreatedAt: new Date(),
+        Roles: [TargetGuild.DefaultRole],
+    }).save();
 
     res.json(RequestedInvite.PackagePublic());
 
-	RequestedInvite.CurrentUses++;
-	RequestedInvite.save();
+    RequestedInvite.CurrentUses++;
+    RequestedInvite.save();
 
-	const Conn = FindConnection(MyUser.ID);
-	if (!Conn) return;
+    const Conn = FindConnection(MyUser.ID);
+    if (!Conn) return;
 
-	SendOp(Conn, OpCodes.DISPATCH, TargetGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
+    SendOp(Conn, OpCodes.DISPATCH, TargetGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
 });
 
 module.exports = {
     DefaultAPI: "/api/v9/invites",
-    App
+    App,
 };

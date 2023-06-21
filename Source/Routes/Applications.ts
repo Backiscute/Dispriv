@@ -4,7 +4,6 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { DiscordApplication, EmbeddedAppConfig } from "../Entities/Application";
 import { ApplicationFlags } from "../Classes/Flags";
-import { Msg } from "../Modules/Logger";
 
 const App = Router();
 

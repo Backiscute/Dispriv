@@ -1,0 +1,7 @@
+node_modules
+bin
+Source/Applications/*
+.eslintrc.json
+.eslintignore
+.prettierrc.json
+.prettierignore

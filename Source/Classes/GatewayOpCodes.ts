@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum OpCodes {
     DISPATCH = 0,
     HEARTBEAT = 1,

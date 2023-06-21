@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne } from "typeorm";
 import { User } from "./User";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
@@ -7,41 +8,38 @@ export const enum RelationType {
     BLOCKED = 2,
     INTERNAL_INCOMING = 3,
     INTERNAL_OUTGOING = 4,
-	INTERNAL_IMPLICIT = 5,
-	INTERNAL_SUGGESTION = 6,
-    NOT_YET_ACCEPTED = 7
+    INTERNAL_IMPLICIT = 5,
+    INTERNAL_SUGGESTION = 6,
+    NOT_YET_ACCEPTED = 7,
 }
 
 @Entity()
 export class Relation extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
-    @ManyToOne(() => User, RelationOwner => RelationOwner.RelationsFrom, { eager: true })
-    From: User;
+    @ManyToOne(() => User, (RelationOwner) => RelationOwner.RelationsFrom, { eager: true })
+        From: User;
 
-    @ManyToOne(() => User, RelationRegarder => RelationRegarder.RelationsRegarding, { eager: true })
-    Regarding: User;
+    @ManyToOne(() => User, (RelationRegarder) => RelationRegarder.RelationsRegarding, { eager: true })
+        Regarding: User;
 
     @Column({ default: RelationType.FRIEND })
-    Type: RelationType;
+        Type: RelationType;
 
     @Column({ nullable: true })
-    Nickname?: string;
+        Nickname?: string;
 
     PackageGateway(IncludeUserData: boolean, Context: User) {
         let TypeDecided = this.Type;
         if (this.Type === RelationType.NOT_YET_ACCEPTED) {
-            if (Context.ID === this.From.ID)
-                TypeDecided = RelationType.INTERNAL_OUTGOING;
-            else
-                TypeDecided = RelationType.INTERNAL_INCOMING;
+            if (Context.ID === this.From.ID) TypeDecided = RelationType.INTERNAL_OUTGOING;
+            else TypeDecided = RelationType.INTERNAL_INCOMING;
         }
 
         let UserDecided = this.Regarding;
-        if (Context.ID === this.Regarding.ID)
-            UserDecided = this.From;
-        
+        if (Context.ID === this.Regarding.ID) UserDecided = this.From;
+
         return {
             id: UserDecided.ID,
             nickname: this.Nickname,
@@ -49,27 +47,25 @@ export class Relation extends BaseEntity {
             type: TypeDecided,
             user: IncludeUserData ? UserDecided.PackagePublic() : undefined,
             user_id: !IncludeUserData ? UserDecided.ID : undefined,
-            since: CreateTimestamp()
+            since: CreateTimestamp(),
         };
     }
 
-    PackageAPI(IncludeUserData: boolean, Context: User) { // for endpoints, package should be used for gateway
+    PackageAPI(IncludeUserData: boolean, Context: User) {
+        // for endpoints, package should be used for gateway
         let TypeDecided = RelationType.INTERNAL_INCOMING;
         if (this.Type === RelationType.NOT_YET_ACCEPTED)
-            if (Context.ID === this.From.ID)
-                TypeDecided = RelationType.INTERNAL_OUTGOING;
-            else
-                TypeDecided = RelationType.INTERNAL_INCOMING;
+            if (Context.ID === this.From.ID) TypeDecided = RelationType.INTERNAL_OUTGOING;
+            else TypeDecided = RelationType.INTERNAL_INCOMING;
 
         let UserDecided = this.Regarding;
-        if (Context.ID === this.Regarding.ID)
-            UserDecided = this.From;
-        
+        if (Context.ID === this.Regarding.ID) UserDecided = this.From;
+
         return {
             id: UserDecided.ID,
             nickname: this.Nickname,
             type: TypeDecided,
-            user: IncludeUserData ? UserDecided.PackagePublic() : undefined
+            user: IncludeUserData ? UserDecided.PackagePublic() : undefined,
         };
     }
 }

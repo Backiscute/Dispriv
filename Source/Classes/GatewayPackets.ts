@@ -1,13 +1,5 @@
 import { Guild } from "../Entities/Guild";
-import { User } from "../Entities/User";
-import { UserFlags } from "./Flags";
-
-/* idrk how to use typeorm so this'll have to do */
-const SampleUser = new User();
-const UserType = SampleUser.Package();
-
-const SampleGuild = new Guild();
-const GuildType = SampleGuild.GatewayPackage(SampleUser);
+import { Membership, User } from "../Entities/User";
 
 export interface HelloPacket {
     heartbeat_interval: number;
@@ -25,7 +17,7 @@ export interface SpeedTestCreatePacket {
 
 export interface SpeedTestServerUpdatePacket {
     endpoint: string;
-    guild_id: string;
+    guild_id?: string;
     stream_key: string;
     token: string;
 }
@@ -45,85 +37,38 @@ export interface ReadyPacket {
     _trace?: [string];
     analytics_token: string;
     api_code_version: number;
-    connected_accounts: any[];
+    connected_accounts: unknown[];
     consents: { [key: string]: { consented: boolean } };
     country_code: string;
-    experiments: any[];
+    experiments: unknown[];
     friend_suggestion_count: number;
     geo_ordered_rtc_regions: string[];
-    guild_experiments: any[];
-    guild_join_requests: any[];
-    guilds: (typeof GuildType)[]; // todo: type
-    merged_members: {
-        avatar: any;
-        nick: string;
-        roles: string[];
-        joined_at: string;
-        deaf: boolean;
-        mute: boolean;
-        premium_since: string;
-        pending: boolean;
-        communication_disabled_until: any;
-        user_id: string;
-    }[][];
-    private_channels: any[];
-    read_state: { entries: any[]; partial: boolean; version: number };
-    relationships: any[];
+    guild_experiments: unknown[];
+    guild_join_requests: unknown[];
+    guilds: ReturnType<typeof Guild.prototype.GatewayPackage>[];
+    merged_members: ReturnType<typeof Membership.prototype.PackageGateway>[];
+    private_channels: unknown[];
+    read_state: { entries: unknown[]; partial: boolean; version: number };
+    relationships: unknown[];
     resume_gateway_url: string;
     session_id: string;
     session_type: string;
-    sessions: any[];
+    sessions: unknown[];
     tutorial: { indicators_confirmed: string[]; indicators_suppressed: boolean };
-    user: typeof UserType;
-    user_guild_settings: { entries: any[]; partial: boolean; version: number };
-    user_settings_proto: any;
-    users: {
-        avatar: string;
-        avatar_decoration: string;
-        bot: boolean;
-        discriminator: string;
-        display_name: string;
-        global_name: string;
-        id: string;
-        public_flags: UserFlags;
-        username: string;
-    }[];
+    user: ReturnType<typeof User.prototype.Package>;
+    user_guild_settings: { entries: unknown[]; partial: boolean; version: number };
+    user_settings_proto: unknown;
+    users: ReturnType<typeof User.prototype.PackageSmall>[];
     v: number;
 }
 
 export interface ReadySupplementalPacket {
     disclose?: string[];
-    guilds: {
-        embedded_activities: any[];
-        id: string;
-        voice_states: {
-            channel_id: string;
-            deaf: boolean;
-            mute: boolean;
-            request_to_speak_timestamp: string;
-            self_deaf: boolean;
-            self_mute: boolean;
-            self_video: boolean;
-            session_id: string;
-            suppress: boolean;
-            user_id: string;
-        }[];
-    }[];
-    lazy_private_channels: any[];
-    merged_members: {
-        avatar: string;
-        nick: string;
-        roles: string[];
-        joined_at: string;
-        deaf: boolean;
-        mute: boolean;
-        premium_since: string;
-        pending: boolean;
-        communication_disabled_until: any;
-        user_id: string;
-    }[][];
+    guilds: ReturnType<typeof Guild.prototype.GatewaySupplementalPackage>[];
+    lazy_private_channels: unknown[];
+    merged_members: ReturnType<typeof Membership.prototype.PackageGateway>[];
     merged_presences: {
-        friends: any[];
-        guilds: any[];
+        friends: unknown[];
+        guilds: unknown[];
     };
 }

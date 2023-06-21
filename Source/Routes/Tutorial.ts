@@ -28,5 +28,5 @@ App.put("/indicators/:indicatorName", VerifyAuth, async (req, res) => {
 
 module.exports = {
     DefaultAPI: "/api/v9/tutorial",
-    App
+    App,
 };

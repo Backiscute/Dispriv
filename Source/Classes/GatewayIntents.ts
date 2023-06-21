@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum GatewayIntents {
     GUILDS = 1 << 0,
     GUILD_MEMBERS = 1 << 1,
@@ -15,7 +16,7 @@ export enum GatewayIntents {
     DIRECT_MESSAGE_REACTIONS = 1 << 13,
     DIRECT_MESSAGE_TYPING = 1 << 14,
     MESSAGE_CONTENT = 1 << 15,
-    GUILD_SCHEDULED_EVENTS  = 1 << 16,
-    AUTO_MODERATION_CONFIGURATION  = 1 << 20,
-    AUTO_MODERATION_EXECUTION = 1 << 21
-  }
+    GUILD_SCHEDULED_EVENTS = 1 << 16,
+    AUTO_MODERATION_CONFIGURATION = 1 << 20,
+    AUTO_MODERATION_EXECUTION = 1 << 21,
+}

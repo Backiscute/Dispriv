@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum RTCOpCodes {
     IDENTIFY = 0,
     SELECT_PROTOCOL = 1,
@@ -10,7 +11,7 @@ export enum RTCOpCodes {
     HELLO = 8,
     RESUMED = 9,
     CLIENT_DISCONNECT = 13,
-    REQUEST_VERSIONS = 16
+    REQUEST_VERSIONS = 16,
 }
 
 export enum RTCCloseCodes {
@@ -26,5 +27,5 @@ export enum RTCCloseCodes {
     Disconnected = 4014,
     VoiceServerCrashed,
     UnknownEncryptionMode,
-    BadPayload
+    BadPayload,
 }

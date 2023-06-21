@@ -9,5 +9,5 @@ App.post("/science", async (req, res) => {
 
 module.exports = {
     DefaultAPI: "/api/v9",
-    App
+    App,
 };

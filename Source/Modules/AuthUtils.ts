@@ -31,7 +31,7 @@ export function GetTokenUserId(token: string): string {
     return Id;
 }
 
-export async function VerifyToken(token: string) : Promise<boolean> {
+export async function VerifyToken(token: string): Promise<boolean> {
     const Parts = token.split(".");
     if (Parts.length !== 3) return false;
 
@@ -44,7 +44,7 @@ export async function VerifyToken(token: string) : Promise<boolean> {
     if (!TUser) return false;
 
     const UserHashedPassword = TUser.Password;
-    
+
     const Content = `${EncodedId}.${EncodedTimestamp}`;
     const Signature = crypto.createHmac("sha256", UserHashedPassword).update(Content).digest("base64url");
 
@@ -77,7 +77,7 @@ export async function GetUserByRequest(req: Request, relations?: object) {
 
     const UserID = GetTokenUserId(Token);
 
-    if (relations  === undefined) relations = {}; // to prevent crashes
+    if (relations === undefined) relations = {}; // to prevent crashes
 
     //console.log({ where: { ID: UserID }, relations: relations });
     const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
@@ -87,14 +87,16 @@ export async function GetUserByRequest(req: Request, relations?: object) {
 
 export function VerifyAuth(req: Request, res: Response, next: NextFunction) {
     let Auth = req.headers.authorization;
-    if (!Auth) return res.status(401).json({"code": 0, "message": "401: Unauthorized"});
+    if (!Auth) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
 
     if (Auth.startsWith("Bearer ")) Auth = Auth.substring(7);
 
-    VerifyToken(Auth).then(Valid => {
-        if (!Valid) return res.status(401).json({"code": 0, "message": "401: Unauthorized"});
-        next();
-    }).catch(() => {
-        return res.status(401).json({"code": 0, "message": "401: Unauthorized"});
-    });
+    VerifyToken(Auth)
+        .then((Valid) => {
+            if (!Valid) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+            next();
+        })
+        .catch(() => {
+            return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+        });
 }

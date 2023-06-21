@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne, OneToMany } from "typeorm";
 import { User } from "./User";
 import { Channel } from "./Channel";
@@ -37,40 +38,44 @@ export const enum MessageType {
     STAGE_SPEAKER = 29,
     STAGE_RAISE_HAND = 30,
     STAGE_TOPIC = 31,
-    GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32
+    GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32,
 }
 
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
-	@ManyToOne(() => User, U => U.MessagesByUser, { eager: true })
-    Author: User;
+    @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true })
+        Author: User;
 
     @Column({ default: MessageType.DEFAULT })
-    Type: MessageType;
+        Type: MessageType;
 
     @Column({ default: 0 })
-    Flags: MessageFlags;
+        Flags: MessageFlags;
 
     @Column()
-    Content: string;
+        Content: string;
 
     @Column()
-    CreationDate: Date;
+        CreationDate: Date;
 
-    @OneToMany(() => Reaction, R => R.ToMessage, { eager: true })
-    Reactions: Reaction[];
+    @OneToMany(() => Reaction, (R) => R.ToMessage, { eager: true })
+        Reactions: Reaction[];
 
-    @OneToMany(() => Message, M => M.ReplyingTo)
-    Replies: Message[];
+    @OneToMany(() => Message, (M) => M.ReplyingTo)
+        Replies: Message[];
 
-    @ManyToOne(() => Message, M => M.Replies, { nullable: true/*, eager: true*/, onDelete: "SET NULL", orphanedRowAction: "nullify" })
-    ReplyingTo?: Message;
+    @ManyToOne(() => Message, (M) => M.Replies, {
+        nullable: true /*, eager: true*/,
+        onDelete: "SET NULL",
+        orphanedRowAction: "nullify",
+    })
+        ReplyingTo?: Message;
 
-    @ManyToOne(() => Channel, C => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
-    Channel: Channel;
+    @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
+        Channel: Channel;
 
     Package(IncludeReplyData = true): {
         message_reference?: {
@@ -78,7 +83,7 @@ export class Message extends BaseEntity {
             message_id: string | undefined;
         };
         referenced_message: ReturnType<typeof Message.prototype.Package> | undefined;
-        reactions: (ReturnType<typeof Reaction.prototype.Package>)[];
+        reactions: ReturnType<typeof Reaction.prototype.Package>[];
         attachments: [];
         tts: boolean;
         embeds: [];
@@ -96,19 +101,23 @@ export class Message extends BaseEntity {
         flags: MessageFlags;
     } {
         return {
-            message_reference: this.Type === MessageType.REPLY && IncludeReplyData ? {
-                channel_id: this.ReplyingTo?.Channel?.ID,
-                message_id: this.ReplyingTo?.ID
-            } : undefined,
-            referenced_message: this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
-            reactions: this.Reactions?.map(R => R.Package()),
+            message_reference:
+                this.Type === MessageType.REPLY && IncludeReplyData
+                    ? {
+                        channel_id: this.ReplyingTo?.Channel?.ID,
+                        message_id: this.ReplyingTo?.ID,
+                    }
+                    : undefined,
+            referenced_message:
+                this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
+            reactions: this.Reactions?.map((R) => R.Package()),
             attachments: [],
             tts: false,
             embeds: [], // TODO: Embeds
             timestamp: CreateTimestamp(this.CreationDate),
             mention_everyone: this.Content.includes("@everyone"),
             id: this.ID,
-            pinned: false/*Channel.PinnedMessages.includes(this)*/,
+            pinned: false /*Channel.PinnedMessages.includes(this)*/,
             edited_timestamp: null,
             author: this.Author.PackagePublic(),
             mention_roles: [],
@@ -116,7 +125,7 @@ export class Message extends BaseEntity {
             channel_id: this.Channel.ID,
             mentions: [],
             type: this.Type,
-            flags: this.Flags
+            flags: this.Flags,
         };
     }
 }
@@ -124,19 +133,19 @@ export class Message extends BaseEntity {
 @Entity()
 export class Reaction extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column()
-    EmojiCode: string;
+        EmojiCode: string;
 
     @Column({ type: "simple-json" })
-    UsersReacted: User[];
+        UsersReacted: User[];
 
-    @ManyToOne(() => Message, M => M.Reactions)
-    ToMessage: Message;
+    @ManyToOne(() => Message, (M) => M.Reactions)
+        ToMessage: Message;
 
     @Column({ default: "normal" })
-    Type: "normal" | "super";
+        Type: "normal" | "super";
 
     Package(Context?: User) {
         return {
@@ -145,8 +154,8 @@ export class Reaction extends BaseEntity {
             me: this.UsersReacted ? this.UsersReacted.includes(Context!) : false,
             emoji: {
                 id: null,
-                name: this.EmojiCode
-            }
+                name: this.EmojiCode,
+            },
         };
     }
 }

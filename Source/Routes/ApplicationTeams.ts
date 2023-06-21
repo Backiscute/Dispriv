@@ -9,5 +9,5 @@ App.get("/", VerifyAuth, async (req, res) => {
 
 module.exports = {
     DefaultAPI: "/api/v9/teams",
-    App
+    App,
 };

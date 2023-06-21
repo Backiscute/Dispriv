@@ -1,10 +1,10 @@
 import { DISCORD_EPOCH } from "./DiscordUtils";
 
 interface SnowflakeOptions {
-  Timestamp?: number;
-  WorkerID?: number;
-  ProcessID?: number;
-  Sequence?: number;
+    Timestamp?: number;
+    WorkerID?: number;
+    ProcessID?: number;
+    Sequence?: number;
 }
 
 export function GenerateSnowflake(options: SnowflakeOptions = {}): string {
