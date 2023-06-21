@@ -17,6 +17,7 @@ import {
     SendToSelf,
 } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
@@ -203,6 +204,19 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
                     continue;
                 case "color":
                     Rl.Color = Value;
+                    continue;
+                case "icon":
+                    if (!G.Features.includes(GuildFeatures.ROLE_ICONS))
+                        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+
+                    if (Rl.IconID && Rl.IconID !== Value) {
+                        Remove(Rl.IconID);
+                        Rl.IconID = undefined;
+                    }
+    
+                    if (!ValidBaseURL(Value)) continue;
+    
+                    Rl.IconID = await Upload(Value);
                     continue;
                 case "hoist":
                     Rl.ShownOnMemberlist = Value;

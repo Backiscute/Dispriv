@@ -22,6 +22,8 @@ import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { Attachment } from "../Classes/Attachments";
+import { v4 } from "uuid";
 
 const App = Router();
 
@@ -74,6 +76,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
+        
         relations: {
             OwnerGuild: true,
             DMRecipients: true,
@@ -435,7 +438,21 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         edited_timestamp: null,
     });
 });
-
+App.post("/:ChannelID/attachments", (req, res) => {
+    const Attachments = req.body.files as Attachment[];
+    if (!Array.isArray(Attachments)) return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No attachments provided" });
+    if (Attachments.length > 4) return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
+    const Response: {id: number; upload_url: string; upload_filename: string;}[] = [];
+    for (const Attachment of Attachments) {
+        // there you go
+        Response.push({
+            id: 0,
+            upload_url: v4(),
+            upload_filename: Attachment.filename,
+        });
+    }
+    res.status(200).send({});
+});
 module.exports = {
     DefaultAPI: "/api/v9/channels",
     App,
