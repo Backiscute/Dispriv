@@ -17,7 +17,6 @@ async function LoadHandlers() {
         Msg(`Loaded handler ${italic(File)}!`, "Handlers");
     }
 }
-LoadHandlers();
 
 const UsePublicTestsDB = false;
 export const DisprivDataSource = new DataSource({
@@ -30,4 +29,7 @@ export const DisprivDataSource = new DataSource({
     migrations: [],
 })
     .initialize()
-    .then(() => Msg("Database initialized!", "Database"));
+    .then(() => {
+        Msg("Database initialized!", "Database");
+        LoadHandlers();
+    });
