@@ -135,19 +135,15 @@ Socket.on("connection", async (Client, req) => {
                 if (!GuildID || !ChannelID || !ApplicationID) return;
 
                 const VoiceSession = VoiceSessions.find((S) => S.guild_id === GuildID && S.channel_id === ChannelID);
-
                 if (!VoiceSession) return;
 
                 const Activity = VoiceSession.Activities.find((A) => A.embedded_activity.application_id === ApplicationID);
-
                 if (!Activity) return;
 
                 const ActivityUser = Activity.users.find((U) => U === GatewayClient.Account.ID);
-
                 if (!ActivityUser) return;
 
                 const LinkedChannel = await Channel.findOne({ where: { ID: ChannelID }, relations: { OwnerGuild: true } });
-
                 if (!LinkedChannel) return;
 
                 if (Activity.users.length === 1)
@@ -165,7 +161,7 @@ Socket.on("connection", async (Client, req) => {
                 Activity.users.splice(Activity.users.indexOf(ActivityUser), 1);
                 Activity.connections.splice(Activity.connections.indexOf(UserConnection), 1);
 
-                Activity["update_code"] = 5;
+                Activity.update_code = 5;
 
                 await SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, Activity, null, "EMBEDDED_ACTIVITY_UPDATE");
                 
