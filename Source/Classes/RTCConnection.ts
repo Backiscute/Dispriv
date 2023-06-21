@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
 import { User } from "../Entities/User";
+import WebSocket from "ws";
 
 export class RTCConnection {
     ID: string; // Autogenerate
@@ -9,7 +10,7 @@ export class RTCConnection {
     server_id: string;
     streams: object;
 
-    constructor(Socket) {
+    constructor(Socket: WebSocket) {
         this.ID = v4();
         this.SocketClient = Socket;
     }

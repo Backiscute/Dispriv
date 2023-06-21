@@ -4,7 +4,8 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 const App = Router();
 
 App.post("/indicators/suppress", VerifyAuth, async (req, res) => {
-    const User = await GetUserByRequest(req);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const User = (await GetUserByRequest(req))!;
 
     User.TutorialSuppressed = true;
     await User.save();
@@ -13,7 +14,8 @@ App.post("/indicators/suppress", VerifyAuth, async (req, res) => {
 });
 
 App.put("/indicators/:indicatorName", VerifyAuth, async (req, res) => {
-    const User = await GetUserByRequest(req);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const User = (await GetUserByRequest(req))!;
     const Indicator = req.params.indicatorName;
     
     if (User.TutorialReadIndicators.includes(Indicator)) return res.sendStatus(204);

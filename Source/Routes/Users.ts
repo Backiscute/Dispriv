@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-case-declarations */
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
@@ -16,7 +17,7 @@ import { PreloadedUserSettings } from "discord-protos";
 const App = Router();
 
 App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
-	const U = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
+	const U = (await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true }, Members: true } } }))!;
 
 	for (const PropKey of Object.keys(req.body)) {
 		const Value = req.body[PropKey];
@@ -36,7 +37,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 				U.Discriminator = DiscrimRandom;
 				continue;
 			case "discriminator":
-				if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+				//if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
 				const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
 				console.log(ExistingUserD);
 				if (ExistingUserD)
@@ -50,10 +51,10 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 				U.Bio = Value;
 				continue;
 			case "avatar":
-				if (U.AvatarID !== null && U.AvatarID !== Value)
+				if (U.AvatarID && U.AvatarID !== Value)
 				{
-					await Remove(U.AvatarID);
-					U.AvatarID = null;
+					Remove(U.AvatarID);
+					U.AvatarID = undefined;
 				}
 
 				if (!ValidBaseURL(Value))
@@ -62,10 +63,10 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 				U.AvatarID = await Upload(Value);
 				continue;
 			case "banner":
-				if (U.BannerID !== null && U.BannerID !== Value)
+				if (U.BannerID && U.BannerID !== Value)
 				{
-					await Remove(U.BannerID);
-					U.BannerID = null;
+					Remove(U.BannerID);
+					U.BannerID = undefined;
 				}
 
 				if (!ValidBaseURL(Value))
@@ -85,7 +86,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 });
 
 App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req);
+	const MyUser = (await GetUserByRequest(req))!;
 	if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
 
     //console.log(PreloadedUserSettings.fromBase64(req.body.settings));
@@ -97,7 +98,7 @@ App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
 });
 
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 	
 	const MembershipT = MyUser.Memberships.find(x => x.ToGuild.ID === req.params.ServerID);
 	if (!MembershipT)
@@ -111,7 +112,7 @@ App.post("/@me/channels", VerifyAuth, async (req, res) => {
     if (!Array.isArray(req.body.recipients)) return res.status(400).json({ code: 0, message: "400: Bad Request" });
 
     const DMUsers: User[] = [];
-    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     const MyUserRelations = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding];
     for (let I = 0; I < req.body.recipients.length; I++) {
         const UID = req.body.recipients[I];
@@ -139,7 +140,7 @@ App.post("/@me/channels", VerifyAuth, async (req, res) => {
 
         
     if (ChannelCheck) {
-        ChannelCheck.DMRecipients.forEach(D => console.log(D.Username));
+        ChannelCheck.DMRecipients!.forEach(D => console.log(D.Username));
         return res.json(ChannelCheck.SmallDMPackage(MyUser));
     }
 
@@ -155,7 +156,7 @@ App.post("/@me/channels", VerifyAuth, async (req, res) => {
 });
 
 App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
-    const User = await GetUserByRequest(req);
+    const User = (await GetUserByRequest(req))!;
     res.json({
         amount: User.AvailableSuperreactions,
         replenished_today: false
@@ -167,7 +168,7 @@ App.get("/@me/library", async (req, res) => {
 });
 
 App.get("/@me", VerifyAuth, async (req, res) => {
-    const User = await GetUserByRequest(req);
+    const User = (await GetUserByRequest(req))!;
     res.json(User.Package());
 });
 
@@ -218,7 +219,7 @@ App.get("/@me/harvest", async (req, res) => {
 });
 
 App.get("/@me/relationships", VerifyAuth, async (req, res) => {
-    const UserData = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const UserData = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     /*UserData.Relations.forEach(R => {
         const PackagedRelation = R.PackageAPI(true, UserData);
         if (PackagedRelation) Relations.unshift(PackagedRelation);
@@ -230,7 +231,7 @@ App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => 
     const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
     if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
 
-    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     const TargetRelation = [...MyUser.RelationsRegarding, ...MyUser.RelationsFrom].find(R => R.From.ID === RelationTarget.ID || R.Regarding.ID === RelationTarget.ID);
     if (!TargetRelation || (TargetRelation?.Regarding.ID === MyUser.ID && TargetRelation?.Type === RelationType.BLOCKED)) return res.status(400).json({ code: 0, message: "Relation between users not found" });
 
@@ -243,7 +244,7 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
     const RelationTarget = await User.findOne({ where: { ID: req.params.RelatedUserID }, relations: { RelationsFrom: true, RelationsRegarding: true } });
     if (!RelationTarget) return res.status(400).json({ code: 10013, message: "Unknown User" });
 
-    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     let TargetRelation = MyUser.RelationsRegarding.find(R => R.From.ID === RelationTarget.ID);
 
     if (req.body.type === RelationType.BLOCKED) {
@@ -253,9 +254,7 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
                 From: MyUser,
                 Regarding: RelationTarget,
                 Type: RelationType.BLOCKED
-            });
-    
-            await TargetRelation.save();
+            }).save();
             return res.status(204).send();
         }
 
@@ -279,10 +278,10 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
         .groupBy("Channel.ID")
         .getOne();
 
-    let NChannel = null;
+    let NChannel: Channel | null = null;
         
     if (ChannelCheck) {
-        ChannelCheck.DMRecipients.forEach(D => console.log(D.Username));
+        ChannelCheck.DMRecipients!.forEach(D => console.log(D.Username));
         NChannel = ChannelCheck;
     }
     else {
@@ -297,11 +296,11 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
     
 
     const TargetConnection = FindConnection(RelationTarget.ID);
-    if (TargetConnection != null && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
+    if (TargetConnection && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
     // if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
 
     const MyConnection = FindConnection(MyUser.ID);
-    if (MyConnection != null && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS)) SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
+    if (MyConnection && HasIntent(MyConnection.Intents, GatewayIntents.GUILDS)) SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
    // if (MyConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
     res.status(204).send();
 });
@@ -314,7 +313,7 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 
     if (FriendDiscriminator.length < 4) FriendDiscriminator = FriendDiscriminator.padStart(4, "0");
 
-    const MyUser = await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true });
+    const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
 
     const RelationTarget = await User.findOne({ where: { Username: FriendUsername, Discriminator: FriendDiscriminator }, relations: { RelationsFrom: true, RelationsRegarding: true } });
     if (!RelationTarget) return res.status(404).json({ message: "Unknown User", code: 10013 });
@@ -331,9 +330,7 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             From: MyUser,
             Regarding: RelationTarget,
             Type: RelationType.NOT_YET_ACCEPTED
-        });
-
-        await CreatedRelation.save();
+        }).save();
 
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);

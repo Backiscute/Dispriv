@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
@@ -34,7 +35,7 @@ App.get("/:InviteCode", VerifyAuth, async (req, res) => {
 
 App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
 	const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
-	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
 	if (!RequestedInvite) return res.status(404).json({"message": "Unknown Invite", "code": 10006});
 
@@ -50,7 +51,7 @@ App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
 
 App.post("/:InviteCode", VerifyAuth, async (req, res) => {
     const RequestedInvite = await Invite.findOne({ where: { InviteCode: req.params.InviteCode }, relations: { InGuild: { Members: true, Channels: true } } });
-	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
     
 	if (!RequestedInvite)
 	{
@@ -74,7 +75,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 			Owner: MyUser,
 			ToGuild: VanityGuild,
 			CreatedAt: new Date(),
-			Roles: [ VanityGuild.DefaultRole() ]
+			Roles: [VanityGuild.DefaultRole]
 		}).save();
 
 		res.json({
@@ -104,7 +105,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 		Owner: MyUser,
 		ToGuild: TargetGuild,
 		CreatedAt: new Date(),
-		Roles: [ TargetGuild.DefaultRole() ]
+		Roles: [TargetGuild.DefaultRole]
 	}).save();
 
     res.json(RequestedInvite.PackagePublic());

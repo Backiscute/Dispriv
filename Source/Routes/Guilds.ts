@@ -5,7 +5,7 @@ import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Guild, GuildFeatures, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { OpCodes } from "../Classes/OpCodes";
-import { Permissions } from "../Classes/Flags";
+import { Permissions, UserFlags } from "../Classes/Flags";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GetHighestRole, GetHighestRoleInArr, HasPermission, MembershipFromGuild, SendGuildMemberUpdate, SendToMembers, SendToSelf } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
@@ -13,12 +13,14 @@ import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 const App = Router();
 
 App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { OwnedGuilds: true });
+	const MyUser = (await GetUserByRequest(req, { OwnedGuilds: true }))!;
 	if (!MyUser.OwnedGuilds.map(G => G.ID).includes(req.params.GuildID))
 		return res.status(403).json({ code: 0, message: "Missing Access" });
 
 	const G = MyUser.OwnedGuilds.find(G => G.ID === req.params.GuildID);
-	//console.log(G);
+
+	if (!G)
+		return res.status(404).json({ code: 0, message: "Couldn't find that guild." });
 
 	if (G.IconID)
 		await Remove(G.IconID);
@@ -31,11 +33,13 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 });
 
 App.post("/:GuildID/roles", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 		
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
@@ -61,10 +65,10 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
 	const IsMe = req.params.MemberID === "@me";
 
 	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true } } }))!;
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 		
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	const UserTo = IsMe ? MyUser : await User.findOne({
@@ -86,7 +90,13 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
 		}
 	});
 
+	if (!UserTo)
+		return res.status(404).json({ code: 0, message: "Couldn't find that user." });
+
 	const GuildMember = IsMe ? Mmbr : MembershipFromGuild(UserTo, G);
+
+	if (!GuildMember)
+		return res.status(404).json({ code: 0, message: "That user isn't a member of this guild." });
 
 	for (const PropKey of Object.keys(req.body)) {
 		const Value = req.body[PropKey];
@@ -95,7 +105,7 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
 				if (!HasPermission(Mmbr, IsMe ? Permissions.CHANGE_NICKNAME : Permissions.MANAGE_NICKNAMES))
 					return res.status(403).json({ code: 40003, message: "Missing Access" });
 
-				if (!/^[a-z 0-9]{1,32}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Nickname failed validation" });
+				if (!/^[a-z 0-9'"-_]{1,32}$/gi.test(Value)) return res.status(403).json({ code: 0, message: "Nickname failed validation" });
 
 				GuildMember.GuildNickname = Value;
 				break;
@@ -103,11 +113,11 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
 				if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
 					return res.status(403).json({ code: 40003, message: "Missing Access" });
 
-				const AllRoles: Role[] = await Promise.all(req.body.roles.map(RID => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: RID } })));
+				const AllRoles: Role[] = await Promise.all(req.body.roles.map((RID: string) => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: RID } })));
 				const HR = GetHighestRole(Mmbr);
 				const RolesToSet: Role[] = [];
 
-				RolesToSet.push(G.DefaultRole());
+				RolesToSet.push(G.DefaultRole);
 
 				for (const Role of AllRoles) {
 					if (Role.Position >= HR.Position && G.Owner.ID !== MyUser.ID)
@@ -137,11 +147,10 @@ App.patch([
 ], VerifyAuth, async (req, res) => {
 	const SingleRole = typeof req.params.RoleID === "string";
 
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-		
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	if (!HasPermission(Mmbr, Permissions.MANAGE_ROLES))
@@ -149,7 +158,7 @@ App.patch([
 
 	const RoleArray: Role[] = SingleRole ? [
 		await Role.findOne({ where: { InGuild: { ID: G.ID }, ID: req.params.RoleID }, relations: { InGuild: true } })
-	] : await Promise.all(req.body.map(s => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: s.id }, relations: { InGuild: true } })));
+	] : await Promise.all(req.body.map((r: { id: string; }) => Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } })));
 
 	const ResponseBody = [];
 
@@ -205,11 +214,10 @@ App.patch([
 });
 
 App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-		
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	if (!HasPermission(Mmbr, Permissions.MANAGE_CHANNELS))
@@ -223,6 +231,7 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 			continue;
 
 		const ChnlEntry = await Channel.findOne({ where: { OwnerGuild: { ID: G.ID }, ID: Chnl.id }, relations: { OwnerGuild: true, OwnerCategory: true } });
+		if (!ChnlEntry) continue;
 		ChnlEntry.GuildPosition = Chnl.position;
 
 		if (typeof Chnl.parent_id === "string") {
@@ -230,7 +239,7 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 			if (Parent)
 				ChnlEntry.OwnerCategory = Parent;
 		} else if (Chnl.parent_id === null)
-			ChnlEntry.OwnerCategory = null;
+			ChnlEntry.OwnerCategory = undefined;
 
 		await ChnlEntry.save();
 
@@ -241,11 +250,10 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 });
 
 App.post("/:GuildID/channels", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-		
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	if (!HasPermission(Mmbr, Permissions.MANAGE_CHANNELS))
@@ -259,7 +267,7 @@ App.post("/:GuildID/channels", VerifyAuth, async (req, res) => {
 		req.body.type !== ChannelType.GUILD_VOICE)
 		return res.status(403).json({ code: 10013, message: "Missing Access" });
 
-	const Chnl = await Channel.create({
+	const Chnl = Channel.create({
 		ID: GenerateSnowflake(),
 		Type: req.body.type as ChannelType,
 		DisplayName: req.body.name,
@@ -283,45 +291,44 @@ App.post("/:GuildID/channels", VerifyAuth, async (req, res) => {
 });
 
 App.get("/:GuildID/invites", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Invites: { InGuild: true } } } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Invites: { InGuild: true } } } }))!;
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
 
-	if (!HasPermission(G, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
-
-	res.json(G.ToGuild.Invites.map(I => I.Package()));
+	res.json(Mmbr.ToGuild.Invites.map(I => I.Package()));
 });
 
 App.get("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+	
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
 		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
 	res.json({
-		code: G.ToGuild.VanityInviteURL,
+		code: Mmbr.ToGuild.VanityInviteURL,
 		uses: 0
 	});
 });
 
 App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: true } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-
 	if (typeof req.body.code !== "string")
 		return res.status(400).json({ code: 0, message: "Invalid request" });
-	
-	const G = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+		
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-	if (!HasPermission(G, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
+	if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: 10013, message: "Missing Access" });
 
-	if (req.body.code === "")
+	if (!req.body.code)
 	{
-		G.ToGuild.VanityInviteURL = null;
-		await G.ToGuild.save();
+		Mmbr.ToGuild.VanityInviteURL = undefined;
+		await Mmbr.ToGuild.save();
 
 		res.json({
 			code: "",
@@ -334,8 +341,8 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
 	if (ExistingInviteGuild)
 		return res.status(400).json({ code: 0, message: "Invite link already taken" });
 		
-	G.ToGuild.VanityInviteURL = req.body.code;
-	await G.ToGuild.save();
+	Mmbr.ToGuild.VanityInviteURL = req.body.code;
+	await Mmbr.ToGuild.save();
 
 	res.json({
 		code: req.body.code,
@@ -344,11 +351,10 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
 });
 
 App.patch("/:GuildID", VerifyAuth, async (req, res) => {
-	const MyUser = await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } });
-	if (!MyUser.Memberships.map(G => G.ToGuild.ID).includes(req.params.GuildID))
-		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-		
+	const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true } } } }))!;
 	const Mmbr = MyUser.Memberships.find(G => G.ToGuild.ID === req.params.GuildID);
+	if (!Mmbr)
+		return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 	const G = Mmbr.ToGuild;
 
 	if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD))
@@ -364,10 +370,10 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
 				G.Description = Value;
 				continue;
 			case "icon":
-				if (G.IconID !== null && G.IconID !== Value)
+				if (G.IconID && G.IconID !== Value)
 				{
-					await Remove(G.IconID);
-					G.IconID = null;
+					Remove(G.IconID);
+					G.IconID = undefined;
 				}
 
 				if (!ValidBaseURL(Value))
@@ -387,13 +393,13 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
 
 App.post("/", VerifyAuth, async (req, res) => {
 	if (!req.body.name) return;
-	const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
+	const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
-	if (MyUser.Memberships.length >= 100) return res.status(400).json({ code: 0, message: "You're in too many guilds!" });
+	if (MyUser.Memberships.length >= 100 && (!MyUser.HasFlag(UserFlags.STAFF) && !MyUser.HasFlag(UserFlags.PARTNER))) return res.status(400).json({ code: 0, message: "You're in too many guilds!" });
 
 	const GuildID = GenerateSnowflake();
 	
-	let CreatedGuild = await Guild.create({
+	const CreatedGuild = await Guild.create({
 		ID: GuildID,
 		Name: req.body.name,
 		Owner: MyUser,
@@ -403,35 +409,17 @@ App.post("/", VerifyAuth, async (req, res) => {
 			GuildFeatures.COMMERCE
 		]
 	}).save();
-	
-	const EveryoneRole = await Role.create({
-		ID: GuildID,
-		Name: "@everyone",
-		Color: 0,
-		Position: 0,
-		AnyoneCanMention: false,
-		InGuild: CreatedGuild
-	}).save();
 
-	await CreatedGuild.CreateDefaultChannels();
-
-	await Membership.create({
+	const Mmbr = await Membership.create({
 		ID: CreatedGuild.ID,
 		Owner: MyUser,
 		ToGuild: CreatedGuild,
 		CreatedAt: new Date(),
-		Roles: [ EveryoneRole ]
+		Roles: [CreatedGuild.DefaultRole]
 	}).save();
 
-	CreatedGuild = await Guild.findOne({
-		where: {
-			ID: GuildID
-		},
-		relations: {
-			Members: true,
-			Channels: true
-		}
-	});
+	await CreatedGuild.reload();
+	MyUser.Memberships.push(Mmbr);
 
 	res.json(CreatedGuild.Package(MyUser));
 	SendToSelf(MyUser, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");

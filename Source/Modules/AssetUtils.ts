@@ -17,24 +17,18 @@ export async function Upload(RawImageString: string, ToWebp = true) {
 
 	const Buffer = ToWebp ? await sharp(ImgBlob).webp({ quality: 80 }).toBuffer() : ImgBlob;
 
-	//console.log(Buffer);
-
 	if (!existsSync(path.join(__dirname + "\\..\\Assets/")))
 		mkdirSync(path.join(__dirname + "\\..\\Assets/"));
 
-	await writeFileSync(path.join(__dirname + `\\..\\Assets/${ID}.${ToWebp ? "webp" : "png"}`), Buffer);
+	writeFileSync(path.join(__dirname + `\\..\\Assets/${ID}.${ToWebp ? "webp" : "png"}`), Buffer);
 
 	return ID;
 }
 
-export async function Remove(ID: string) {
-	if (!existsSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`)))
-	{
-		if (existsSync(path.join(__dirname + `\\..\\Assets/${ID}.png`)))
-			await rmSync(path.join(__dirname + `\\..\\Assets/${ID}.png`));
-
-		return;
-	}
-
-	await rmSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`));
+export function Remove(ID: string) {
+	if (existsSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`)))
+		rmSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`));
+	
+	if (existsSync(path.join(__dirname + `\\..\\Assets/${ID}.png`)))
+		rmSync(path.join(__dirname + `\\..\\Assets/${ID}.png`));
 }

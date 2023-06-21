@@ -51,6 +51,12 @@ export async function VerifyToken(token: string) : Promise<boolean> {
     return Parts[2] === Signature;
 }
 
+export async function GetUserByID(ID: string, relations?: object) {
+    const TUser = await User.findOne({ where: { ID }, relations: relations });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return TUser!;
+}
+
 export async function GetUserByToken(token: string, relations?: object) {
     const ValidToken = await VerifyToken(token);
     if (!ValidToken) return undefined;

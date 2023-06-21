@@ -12,9 +12,8 @@ export function CloseConnection(SocketClient: GatewayConnection, Code: number, R
     SocketClient.SocketClient.close(Code, Reason);
 }
 
-export function FindConnection(UserID: string): GatewayConnection {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return Connections.find(x => x.Account?.ID === UserID)!;
+export function FindConnection(UserID: string) {
+    return Connections.find(x => x.Account?.ID === UserID);
 }
 
 export function ConnectionHasIntent(SocketClient: GatewayConnection, Intent: GatewayIntents) {

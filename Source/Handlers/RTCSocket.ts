@@ -2,9 +2,12 @@ import { WebSocketServer } from "ws";
 import { Msg } from "../Modules/Logger";
 import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
-import { RTCOpCodes } from "../Classes/RTCOpCodes";
+import { RTCCloseCodes, RTCOpCodes } from "../Classes/RTCOpCodes";
 import { red } from "colorette";
 import { VoiceSession } from "../Classes/VoiceSession";
+import bcrypt from "bcrypt";
+import { GetUserByID } from "../Modules/AuthUtils";
+import crypto from "crypto";
 
 export const VoiceSessions: VoiceSession[] = [];
 
@@ -36,6 +39,44 @@ Socket.on("connection", (Client) => {
                 return SendOp(RTCClient, RTCOpCodes.HEARTBEAT_ACK, Date.now());
             case RTCOpCodes.REQUEST_VERSIONS:
                 return SendOp(RTCClient, RTCOpCodes.REQUEST_VERSIONS, { voice: "0.0.1", rtc_worker: "0.3.42" });
+            case RTCOpCodes.IDENTIFY:
+                if (!Payload.d.server_id || !Payload.d.user_id || !Payload.d.session_id || !Payload.d.token) {
+                    SendOp(RTCClient, RTCCloseCodes.BadPayload, { message: "Bad payload" });
+                    return Client.close();
+                }
+                RTCClient.Account = await GetUserByID(Payload.d.user_id, {
+					AvailableDMs: {
+						DMRecipients: true
+					},
+					RelationsFrom: true,
+					RelationsRegarding: true,
+					Memberships: {
+						Owner: false,
+						ToGuild: {
+							Members: {
+								Owner: true,
+								Roles: true
+							},
+							Channels: {
+								OwnerCategory: true
+							}
+						}
+					}
+				});
+                if (!RTCClient.Account || !bcrypt.compareSync(`${Payload.d.server_id}-${RTCClient.Account.ID}-${RTCClient.Account.Password}`, Payload.d.token)) {
+                    SendOp(RTCClient, RTCCloseCodes.AuthenticationFailed, "Authentication Failed");
+                    return Client.close();
+                }
+                SendOp(RTCClient, RTCOpCodes.READY, {
+                    ssrc: crypto.randomInt(2^48),
+                    ip: process.env.OverrideRTC,
+                    port: process.env.RTCWSPORT,
+                    modes: ["xsalsa20_poly1305"],
+                    experiments: [],
+                    //TODO: add video streams
+                    streams: []
+                });
+                break;
             default:
                 console.log("unknown op"); // TODO FOR VOICE CHANNELS
         }

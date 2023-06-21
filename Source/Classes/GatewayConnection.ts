@@ -14,7 +14,7 @@ export class GatewayConnection {
     Inflater: Inflate;
     Intents: number;
 
-    constructor(Socket, Overrides?: { zlib: boolean, encoding: "etf" | "json" }) {
+    constructor(Socket: WebSocket, Overrides?: { zlib: boolean, encoding: "etf" | "json" }) {
         this.ID = v4();
         this.SocketClient = Socket;
 

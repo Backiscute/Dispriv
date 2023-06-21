@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
+import { AfterInsert, BaseEntity, BeforeInsert, Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { Membership, User } from "./User";
 import { Permissions } from "../Classes/Flags";
 import { Channel, ChannelType } from "./Channel";
@@ -187,11 +187,27 @@ export class Guild extends BaseEntity {
 	@JoinColumn()
 	Invites: Invite[];
 
-	DefaultRole() {
-		return this.Roles.find(R => R.ID === this.ID);
+	get DefaultRole() {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return this.Roles.find(R => R.ID === this.ID)!;
 	}
 
-	async CreateDefaultChannels()
+	@AfterInsert()
+	private async AddEveryoneRole() {
+		const R = await Role.create({
+			ID: this.ID,
+			Name: "@everyone",
+			Color: 0,
+			Position: 0,
+			AnyoneCanMention: false,
+			InGuild: this
+		}).save();
+		this.Roles = [R];
+	}
+
+	
+	@AfterInsert()
+	private async CreateDefaultChannels()
 	{
 		// categories made the thing logout for osme rason
 		await Channel.create({

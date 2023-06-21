@@ -22,21 +22,19 @@ const Socket = new WebSocketServer({
 
 export const Connections: GatewayConnection[] = [];
 Socket.on("connection", async (Client, req) => {
-	const QueryParams = new URLSearchParams(req.url);
+	const QueryParams = new URLSearchParams(req.url?.split("?")[1]);
 	console.log(QueryParams);
 	console.log({
 		zlib: QueryParams.get("compress") === "zlib-stream",
-		encoding: (QueryParams.get("encoding") === "etf" || QueryParams.get("encoding") === "json") ? QueryParams.get("encoding") : "etf"
+		encoding: (["etf", "json"].includes(QueryParams.get("encoding") as string) ? QueryParams.get("encoding") as "etf" | "json" : "etf")
 	});
 	const GatewayClient = new GatewayConnection(Client, {
 		zlib: QueryParams.get("compress") === "zlib-stream",
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		encoding: (QueryParams.get("encoding") === "etf" || QueryParams.get("encoding") === "json") ? QueryParams.get("encoding") as any : "etf"
-	}); // create new connection
+		encoding: (["etf", "json"].includes(QueryParams.get("encoding") as string) ? QueryParams.get("encoding") as "etf" | "json" : "etf")
+	});
 	Connections.push(GatewayClient);
 
 	Client.on("close", () => {
-		// brain damage generator
 		GatewayClient.Dispose();
 
 		if (GatewayClient.Account) 
@@ -164,7 +162,7 @@ Socket.on("connection", async (Client, req) => {
 						VoiceSession.voice_states.push(VoiceState);
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
 					}
 					else
 					{
@@ -176,7 +174,7 @@ Socket.on("connection", async (Client, req) => {
 						});
 
 						await SendToMembers(GuildID, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
-						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
+						SendOp(GatewayClient, OpCodes.DISPATCH, {"endpoint": process.env.OverrideRTC, "guild_id": GuildID, "token": bcrypt.hashSync(`${GuildID}-${GatewayClient.Account.ID}-${GatewayClient.Account.Password}`, 10)}, null, "VOICE_SERVER_UPDATE");
 					}
 
 				}

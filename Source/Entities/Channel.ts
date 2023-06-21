@@ -72,7 +72,7 @@ export class Channel extends BaseEntity {
     @JoinColumn()
 	DMRecipients?: User[];
 
-    @OneToMany(() => Message, M => M.Channel, { orphanedRowAction: "delete", onDelete: "CASCADE" })
+    @OneToMany(() => Message, M => M.Channel, { eager: false, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
 	Messages: Message[];
 
@@ -128,7 +128,7 @@ export class Channel extends BaseEntity {
 		};
 	}
 
-    IsDM() {
+    get IsDM() {
         return this.Type === ChannelType.DM || this.Type === ChannelType.GROUP_DM;
     }
 

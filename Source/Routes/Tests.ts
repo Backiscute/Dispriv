@@ -20,6 +20,7 @@ App.patch("/Server/:ID", async (req, res) => {
     if (!ServerData) return;
 
     Object.keys(req.body).forEach(K => {
+        //@ts-expect-error test endpoint, checks not needed
         ServerData[K] = req.body[K];
     });
 
@@ -54,6 +55,7 @@ App.patch("/Channel/:ID", async (req, res) => {
     if (!ChannelData) return;
 
     Object.keys(req.body).forEach(K => {
+        //@ts-expect-error test endpoint, checks not needed
         ChannelData[K] = req.body[K];
     });
 
@@ -97,6 +99,7 @@ App.patch("/User/:Username/:Discriminator", async (req, res) => {
     if (!UserData) return;
 
     Object.keys(req.body).forEach(K => {
+        //@ts-expect-error test endpoint, checks not needed
         UserData[K] = req.body[K];
     });
 
@@ -123,6 +126,7 @@ App.post("/UpdateApp/:AppID", async (req, res) => {
     if (!Application) return;
 
     Object.keys(req.body).forEach(K => {
+        //@ts-expect-error test endpoint, checks not needed
         Application[K] = req.body[K];
     });
 

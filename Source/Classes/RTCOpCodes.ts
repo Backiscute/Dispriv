@@ -26,4 +26,5 @@ export enum RTCCloseCodes {
     Disconnected = 4014,
     VoiceServerCrashed,
     UnknownEncryptionMode,
+    BadPayload
 }

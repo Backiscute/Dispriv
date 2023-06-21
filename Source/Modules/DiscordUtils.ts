@@ -114,7 +114,7 @@ export async function SendToMembers(ServerID: string, Opcode: OpCodes, Data: unk
 }
 
 export async function SendToDMOrServer(Chnl: Channel, Opcode: OpCodes, Data: unknown = null, s: unknown = null, t: unknown = null) {
-	if (Chnl.IsDM()) {
+	if (Chnl.IsDM) {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		Chnl.DMRecipients!.forEach(Recipient => {
 			const Conn = FindConnection(Recipient.ID);
