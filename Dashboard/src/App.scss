@@ -52,13 +52,13 @@ button:active {
     background-color: #2b2d31;
     width: 218px;
     padding: 16px;
-    height: calc(100vh - 32px);
+    height: calc(100vh - 30px);
     position: fixed;
 }
 
 .sidebar-button {
     width: 192px;
-    height: 32px;
+    height: 30px;
     cursor: pointer;
     border-radius: 4px;
     color: #9ba0a6;
@@ -86,7 +86,7 @@ button:active {
 }
 
 .sidebar-section-content {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .sidebar-section-content > * {
@@ -96,8 +96,8 @@ button:active {
 .sidebar-section-divider {
     height: 1px;
     background-color: #3c3e44;
-    width: 80%;
-    margin: 6px auto 12px auto;
+    width: 90%;
+    margin: 10px auto 10px auto;
 }
 
 .selected {

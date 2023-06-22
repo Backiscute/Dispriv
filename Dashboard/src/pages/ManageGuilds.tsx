@@ -1,6 +1,6 @@
 import GuildCard, { IServer } from "@/components/GuildCard";
 import { req } from "@/util/apiFuncs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Guild() {
     const [guilds, setGuilds] = useState<IServer[]>();
