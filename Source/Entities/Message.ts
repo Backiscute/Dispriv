@@ -45,51 +45,51 @@ export const enum MessageType {
 }
 
 export enum EmbedType {
-	rich = "rich",
-	image = "image",
-	video = "video",
-	gifv = "gifv",
-	article = "article",
-	link = "link",
+    rich = "rich",
+    image = "image",
+    video = "video",
+    gifv = "gifv",
+    article = "article",
+    link = "link",
 }
 
 export interface EmbedImage {
-	url?: string;
-	proxy_url?: string;
-	height?: number;
-	width?: number;
+    url?: string;
+    proxy_url?: string;
+    height?: number;
+    width?: number;
 }
 
 export interface Embed {
-	title?: string;
-	type?: EmbedType; 
-	description?: string;
-	url?: string;
-	timestamp?: Date;
-	color?: number;
-	footer?: {
-		text: string;
-		icon_url?: string;
-		proxy_icon_url?: string;
-	};
-	image?: EmbedImage;
-	thumbnail?: EmbedImage
-	video?: EmbedImage;
-	provider?: {
-		name?: string;
-		url?: string;
-	};
-	author?: {
-		name?: string;
-		url?: string;
-		icon_url?: string;
-		proxy_icon_url?: string;
-	};
-	fields?: {
-		name: string;
-		value: string;
-		inline?: boolean;
-	}[];
+    title?: string;
+    type?: EmbedType;
+    description?: string;
+    url?: string;
+    timestamp?: Date;
+    color?: number;
+    footer?: {
+        text: string;
+        icon_url?: string;
+        proxy_icon_url?: string;
+    };
+    image?: EmbedImage;
+    thumbnail?: EmbedImage;
+    video?: EmbedImage;
+    provider?: {
+        name?: string;
+        url?: string;
+    };
+    author?: {
+        name?: string;
+        url?: string;
+        icon_url?: string;
+        proxy_icon_url?: string;
+    };
+    fields?: {
+        name: string;
+        value: string;
+        inline?: boolean;
+    }[];
 }
 
 export interface Attachment {
@@ -106,44 +106,44 @@ export interface Attachment {
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryColumn()
-        ID: string;
+    ID: string;
 
     @Column({ type: "simple-json", nullable: true })
-        Attachments: Attachment[] = [];
+    Attachments: Attachment[] = [];
 
     @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true })
-        Author: User;
+    Author: User;
 
     @Column({ default: MessageType.DEFAULT })
-        Type: MessageType;
+    Type: MessageType;
 
     @Column({ default: 0 })
-        Flags: MessageFlags;
+    Flags: MessageFlags;
 
     @Column()
-        Content: string;
+    Content: string;
 
     @Column()
-        CreationDate: Date;
+    CreationDate: Date;
 
     @Column({ type: "simple-json", nullable: true })
-        Embeds: Embed[] = [];
+    Embeds: Embed[] = [];
 
     @OneToMany(() => Reaction, (R) => R.ToMessage, { eager: true })
-        Reactions: Reaction[];
+    Reactions: Reaction[];
 
     @OneToMany(() => Message, (M) => M.ReplyingTo)
-        Replies: Message[];
+    Replies: Message[];
 
     @ManyToOne(() => Message, (M) => M.Replies, {
         nullable: true /*, eager: true*/,
         onDelete: "SET NULL",
         orphanedRowAction: "nullify",
     })
-        ReplyingTo?: Message;
+    ReplyingTo?: Message;
 
     @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
-        Channel: Channel;
+    Channel: Channel;
 
     Package(
         CurrentUser: User,
@@ -175,9 +175,9 @@ export class Message extends BaseEntity {
             message_reference:
                 this.Type === MessageType.REPLY && IncludeReplyData
                     ? {
-                        channel_id: this.ReplyingTo?.Channel?.ID,
-                        message_id: this.ReplyingTo?.ID,
-                    }
+                          channel_id: this.ReplyingTo?.Channel?.ID,
+                          message_id: this.ReplyingTo?.ID,
+                      }
                     : undefined,
             referenced_message:
                 this.Type === MessageType.REPLY && IncludeReplyData
@@ -205,9 +205,20 @@ export class Message extends BaseEntity {
     @BeforeRemove()
     private DeleteAttachments() {
         for (const Attachment of this.Attachments) {
-            const FilePaths = glob.sync(path.join(__dirname, "..", "Assets", "Attachments", `${this.Channel.ID}-${Attachment.id}-${Attachment.filename.replace(/(\\|\?|\*|\*\*|\[|\]|!|\(|\))/g, "\\$&").split(".")[0]}.*`).replace(/\\/g, "/"));
-            for (const FilePath of FilePaths)
-                rmSync(FilePath);
+            const FilePaths = glob.sync(
+                path
+                    .join(
+                        __dirname,
+                        "..",
+                        "Assets",
+                        "Attachments",
+                        `${this.Channel.ID}-${Attachment.id}-${
+                            Attachment.filename.replace(/(\\|\?|\*|\*\*|\[|\]|!|\(|\))/g, "\\$&").split(".")[0]
+                        }.*`,
+                    )
+                    .replace(/\\/g, "/"),
+            );
+            for (const FilePath of FilePaths) rmSync(FilePath);
         }
     }
 }
@@ -215,25 +226,25 @@ export class Message extends BaseEntity {
 @Entity()
 export class Reaction extends BaseEntity {
     @PrimaryColumn()
-        ID: string;
+    ID: string;
 
     @Column()
-        EmojiCode: string;
+    EmojiCode: string;
 
     @Column({ type: "simple-json" })
-        UsersReacted: User[];
+    UsersReacted: User[];
 
     @ManyToOne(() => Message, (M) => M.Reactions)
-        ToMessage: Message;
+    ToMessage: Message;
 
     @Column({ default: "normal" })
-        Type: "normal" | "super";
+    Type: "normal" | "super";
 
     Package(Context?: User) {
         return {
             count: this.UsersReacted ? this.UsersReacted.length : 1,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            me: this.UsersReacted ? this.UsersReacted.includes(Context!) : false,
+            me: this.UsersReacted ? this.UsersReacted.find((u) => u.ID === Context?.ID) : false,
             emoji: {
                 id: null,
                 name: this.EmojiCode,
