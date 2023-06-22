@@ -4,7 +4,7 @@ import { CheerioAPI, load } from "cheerio";
 import probe from "probe-image-size";
 import { Error } from "./Logger";
 
-export default async function(url: string): Promise<Embed | undefined> {
+export default async function (url: string): Promise<Embed | undefined> {
     if (/((media4\.)?giphy\.com|((c|media)\.)?tenor\.com)/.test(url)) return await HandleImage(url);
     else if (/(www\.)?twitter\.com\/(\w+)\/status\/(\d+)/.test(url)) {
         /*const Matches = (url.match(/twitter\.com\/(\w+)\/status\/(\d+)/) ?? []);
@@ -60,7 +60,7 @@ export default async function(url: string): Promise<Embed | undefined> {
                 text: "Twitter",
                 proxy_icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
                 icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-            }
+            },
         };
     } else if (/(www\.)?(youtube\.com|youtu\.be)/.test(url)) {
         const Response = await Request(url);
@@ -80,7 +80,7 @@ export default async function(url: string): Promise<Embed | undefined> {
                 width: Metadata.width,
                 height: Metadata.height,
                 url: Metadata.image,
-                proxy_url: Metadata.image
+                proxy_url: Metadata.image,
             },
             provider: {
                 url: "https://www.youtube.com",
@@ -90,11 +90,10 @@ export default async function(url: string): Promise<Embed | undefined> {
             color: 16711680,
             author: {
                 name: Metadata.author,
-                url: Metadata.youtube_author_url
+                url: Metadata.youtube_author_url,
             },
         };
-    }
-    else {
+    } else {
         const Response = await Request(url);
         if (!Response) return;
 
@@ -102,15 +101,15 @@ export default async function(url: string): Promise<Embed | undefined> {
         else {
             const Metadata = GetMetadata(Response.data);
             const Image = Metadata.image ?? Metadata.image_fallback;
-    
+
             if (!Image && !Metadata.title && !Metadata.description) return;
-    
+
             if (Image && (!Metadata.height || !Metadata.width)) {
                 const ImageMetadata = await probe(Image);
                 Metadata.width = ImageMetadata.width;
                 Metadata.height = ImageMetadata.height;
             }
-    
+
             return {
                 url,
                 type: EmbedType.link,
@@ -133,12 +132,16 @@ async function Request(url: string, Head = false, BearerToken?: string) {
         return await axios[Head ? "head" : "get"](url, {
             headers: {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-                Authorization: BearerToken ? `Bearer ${BearerToken}` : undefined
+                Authorization: BearerToken ? `Bearer ${BearerToken}` : undefined,
             },
-            maxContentLength: 1024 * 1024 * 5
+            maxContentLength: 1024 * 1024 * 5,
         });
     } catch (err) {
-        Error(`An error occured while requesting embed info. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
+        Error(
+            `An error occured while requesting embed info. Error: ${JSON.stringify(
+                (err as { response: { data: unknown } }).response?.data,
+            )}`,
+        );
         return undefined;
     }
 }
@@ -146,7 +149,7 @@ async function Request(url: string, Head = false, BearerToken?: string) {
 async function HandleImage(url: string): Promise<Embed | undefined> {
     const Response = await Request(url, true);
     if (!Response) return;
-    
+
     if (Response.headers["content-type"].includes("image")) {
         const ImageMetadata = await probe(url);
 
@@ -158,17 +161,16 @@ async function HandleImage(url: string): Promise<Embed | undefined> {
                 height: ImageMetadata.height,
                 url,
                 proxy_url: url,
-            }
+            },
         };
-    }
-    else {
+    } else {
         const Response = await Request(url);
         if (!Response) return;
         const Metadata = GetMetadata(Response.data);
         const Image = Metadata.image ?? Metadata.image_fallback;
 
         if (!Image || !Metadata.height || !Metadata.width) return;
-    
+
         return {
             url,
             type: EmbedType.image,
@@ -177,11 +179,10 @@ async function HandleImage(url: string): Promise<Embed | undefined> {
                 height: Metadata.height,
                 url,
                 proxy_url: Image,
-            }
+            },
         };
     }
 }
-
 
 function GetMeta($: CheerioAPI, name: string) {
     let elem = $(`meta[property="${name}"]`);
@@ -196,7 +197,9 @@ function GetMetadata(text: string) {
         title: GetMeta($, "og:title") || $("title").first().text(),
         color: ResolveColor(GetMeta($, "theme-color")),
         provider_name: GetMeta($, "og:site_name"),
-        author: GetMeta($, "article:author") ? GetMeta($, "article:author") : $("span[itemprop=author] > link[itemprop=name]").attr("content"),
+        author: GetMeta($, "article:author")
+            ? GetMeta($, "article:author")
+            : $("span[itemprop=author] > link[itemprop=name]").attr("content"),
         description: GetMeta($, "og:description") || GetMeta($, "description"),
         image: GetMeta($, "og:image") || GetMeta($, "twitter:image"),
         image_fallback: $("image").attr("src"),
@@ -207,7 +210,7 @@ function GetMetadata(text: string) {
         youtube_embed: GetMeta($, "og:video:secure_url"),
         youtube_author_url: $("span[itemprop=author] > link[itemprop=url]").attr("href"),
     };
-};
+}
 
 function ResolveColor(color: string | number[] | number) {
     if (typeof color === "string") {
@@ -216,7 +219,7 @@ function ResolveColor(color: string | number[] | number) {
         if (/^#?[\da-f]{6}$/i.test(color)) return parseInt(color.replace("#", ""), 16);
     } else if (Array.isArray(color)) color = (color[0] << 16) + (color[1] << 8) + color[2];
 
-    if (color as number < 0 || color  as number > 0xffffff) return;
+    if ((color as number) < 0 || (color as number) > 0xffffff) return;
     if (typeof color !== "number" || Number.isNaN(color)) return;
 
     return color;
