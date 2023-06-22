@@ -3,14 +3,21 @@ import express from "express";
 import fs from "fs";
 import { Msg } from "../Modules/Logger";
 import path from "path";
+import cors from "cors";
 
 export const Application = express()
     .disable("etag")
     .disable("x-powered-by")
+    .use(cors({
+        origin: "*"
+    }))
     .use(
         express.json({
             limit: "5mb",
         }),
+        express.raw({
+            limit: "5mb"
+        })
     );
 
 const LoadRoutes = async () => {

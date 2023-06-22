@@ -4,7 +4,7 @@ import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { Message, MessageType } from "../Entities/Message";
+import { Embed, Message, MessageType } from "../Entities/Message";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { RelationType } from "../Entities/FriendUser";
 import { Invite } from "../Entities/Guild";
@@ -17,6 +17,7 @@ import {
     SendToMembers,
 } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
+import EmbedParser from "../Modules/EmbedParser";
 
 const App = Router();
 
@@ -62,6 +63,30 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
 
     await Message.delete({ ID: RequestedMessage.ID });
     res.sendStatus(204);
+});
+
+App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
+    if (!req.body.files || !Array.isArray(req.body.files))
+        return res.status(400).json({
+            code: 0,
+            message: "Bad request"
+        });
+    for (const file of req.body.files ?? [])
+        if (file.file_size > 5 * 1024 * 1024) return res.status(403).json({
+            code: 0,
+            message: "File uploads are limited at 5mb."
+        });
+    
+    res.json({
+        attachments: req.body.files.map((file: {
+            id: string;
+            filename: string;
+        }) => ({
+            id: file.id,
+            upload_filename: `${req.params.ChannelID}/${file.filename}`,
+            upload_url: `https://cdn.discordapp.com/upload/${req.params.ChannelID}/${file.filename}?auth=${req.headers.authorization}`
+        }))
+    });
 });
 
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
@@ -361,6 +386,13 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         MessageReplyingTo = MessageReference;
     }
 
+    const Embeds: Embed[] = [];
+
+    for await (const link of (req.body.content ?? "").match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
+        const Embed = await EmbedParser(link);
+        if (Embed) Embeds.push(Embed);
+    }
+
     const CreatedMessage = Message.create({
         ID: GenerateSnowflake(),
         Author: MyUser,
@@ -368,6 +400,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         Content: req.body.content,
         CreationDate: new Date(),
         Channel: RequestedChannel,
+        Embeds
     });
 
     if (MessageReplyingTo) {

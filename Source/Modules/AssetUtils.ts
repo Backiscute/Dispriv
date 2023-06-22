@@ -17,17 +17,27 @@ export async function Upload(RawImageString: string, ToWebp = true) {
 
     const Buffer = ToWebp ? await sharp(ImgBlob).webp({ quality: 80 }).toBuffer() : ImgBlob;
 
-    if (!existsSync(path.join(__dirname + "\\..\\Assets/"))) mkdirSync(path.join(__dirname + "\\..\\Assets/"));
+    if (!existsSync(path.join(__dirname, "..", "Assets"))) mkdirSync(path.join(__dirname, "..", "Assets"));
 
-    writeFileSync(path.join(__dirname + `\\..\\Assets/${ID}.${ToWebp ? "webp" : "png"}`), Buffer);
+    writeFileSync(path.join(__dirname, "..", "Assets", `${ID}.${ToWebp ? "webp" : "png"}`), Buffer);
 
     return ID;
 }
 
-export function Remove(ID: string) {
-    if (existsSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`)))
-        rmSync(path.join(__dirname + `\\..\\Assets/${ID}.webp`));
+export async function UploadAttachment(RawImageString: string, ChannelId: string, Filename: string) {
+    const FileBlob = URLToBuffer(RawImageString);
 
-    if (existsSync(path.join(__dirname + `\\..\\Assets/${ID}.png`)))
-        rmSync(path.join(__dirname + `\\..\\Assets/${ID}.png`));
+    if (!existsSync(path.join(__dirname, "..", "Assets"))) mkdirSync(path.join(__dirname, "..", "Assets"));
+
+    writeFileSync(path.join(__dirname, "..", "Assets", `${ChannelId}-${Filename}`), FileBlob);
+
+    return FileBlob;
+}
+
+export function Remove(ID: string) {
+    if (existsSync(path.join(__dirname, "..", "Assets", `${ID}.webp`)))
+        rmSync(path.join(__dirname, "..", "Assets", `${ID}.webp`));
+
+    if (existsSync(path.join(__dirname, "..", "Assets", `${ID}.png`)))
+        rmSync(path.join(__dirname, "..", "Assets", `${ID}.png`));
 }

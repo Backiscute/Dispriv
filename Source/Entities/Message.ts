@@ -41,6 +41,54 @@ export const enum MessageType {
     GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32,
 }
 
+export enum EmbedType {
+	rich = "rich",
+	image = "image",
+	video = "video",
+	gifv = "gifv",
+	article = "article",
+	link = "link",
+}
+
+export interface EmbedImage {
+	url?: string;
+	proxy_url?: string;
+	height?: number;
+	width?: number;
+}
+
+export interface Embed {
+	title?: string;
+	type?: EmbedType; 
+	description?: string;
+	url?: string;
+	timestamp?: Date;
+	color?: number;
+	footer?: {
+		text: string;
+		icon_url?: string;
+		proxy_icon_url?: string;
+	};
+	image?: EmbedImage;
+	thumbnail?: EmbedImage
+	video?: EmbedImage;
+	provider?: {
+		name?: string;
+		url?: string;
+	};
+	author?: {
+		name?: string;
+		url?: string;
+		icon_url?: string;
+		proxy_icon_url?: string;
+	};
+	fields?: {
+		name: string;
+		value: string;
+		inline?: boolean;
+	}[];
+}
+
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryColumn()
@@ -60,6 +108,9 @@ export class Message extends BaseEntity {
 
     @Column()
         CreationDate: Date;
+
+    @Column({ type: "simple-json", nullable: true })
+        Embeds: Embed[] = [];
 
     @OneToMany(() => Reaction, (R) => R.ToMessage, { eager: true })
         Reactions: Reaction[];
@@ -86,7 +137,7 @@ export class Message extends BaseEntity {
         reactions: ReturnType<typeof Reaction.prototype.Package>[];
         attachments: [];
         tts: boolean;
-        embeds: [];
+        embeds: Embed[];
         timestamp: string;
         mention_everyone: boolean;
         id: string;
@@ -113,7 +164,7 @@ export class Message extends BaseEntity {
             reactions: this.Reactions?.map((R) => R.Package()),
             attachments: [],
             tts: false,
-            embeds: [], // TODO: Embeds
+            embeds: this.Embeds,
             timestamp: CreateTimestamp(this.CreationDate),
             mention_everyone: this.Content.includes("@everyone"),
             id: this.ID,
