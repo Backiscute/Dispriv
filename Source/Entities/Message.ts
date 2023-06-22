@@ -145,14 +145,17 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
         Channel: Channel;
 
-    Package(IncludeReplyData = true): {
+    Package(
+        CurrentUser: User,
+        IncludeReplyData = true,
+    ): {
         message_reference?: {
             channel_id: string | undefined;
             message_id: string | undefined;
         };
         referenced_message: ReturnType<typeof Message.prototype.Package> | undefined;
         reactions: ReturnType<typeof Reaction.prototype.Package>[];
-        attachments: Attachment[];
+        attachments: [];
         tts: boolean;
         embeds: Embed[];
         timestamp: string;
@@ -177,9 +180,11 @@ export class Message extends BaseEntity {
                     }
                     : undefined,
             referenced_message:
-                this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
-            reactions: this.Reactions?.map((R) => R.Package()),
-            attachments: this.Attachments,
+                this.Type === MessageType.REPLY && IncludeReplyData
+                    ? this.ReplyingTo?.Package(CurrentUser, false)
+                    : undefined,
+            reactions: this.Reactions?.map((R) => R.Package(CurrentUser)) || [],
+            attachments: [],
             tts: false,
             embeds: this.Embeds,
             timestamp: CreateTimestamp(this.CreationDate),
