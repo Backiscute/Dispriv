@@ -155,7 +155,7 @@ export class Message extends BaseEntity {
         };
         referenced_message: ReturnType<typeof Message.prototype.Package> | undefined;
         reactions: ReturnType<typeof Reaction.prototype.Package>[];
-        attachments: [];
+        attachments: Attachment[];
         tts: boolean;
         embeds: Embed[];
         timestamp: string;
@@ -184,7 +184,7 @@ export class Message extends BaseEntity {
                     ? this.ReplyingTo?.Package(CurrentUser, false)
                     : undefined,
             reactions: this.Reactions?.map((R) => R.Package(CurrentUser)) || [],
-            attachments: [],
+            attachments: this.Attachments,
             tts: false,
             embeds: this.Embeds,
             timestamp: CreateTimestamp(this.CreationDate),

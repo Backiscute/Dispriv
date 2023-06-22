@@ -20,7 +20,7 @@ export function URLToBuffer(URL: string) {
     return Buffer.from(URL.split(",")[1], "base64");
 }
 
-export function GetFirstFrame(FilePath: string, OutputPath: string) {
+export function CreateFirstFrame(FilePath: string, OutputPath: string) {
     ffmpeg(FilePath).outputOptions("-vf", "select=eq(n\\,0)", "-q:v", "3").output(OutputPath).run();
 }
 
@@ -74,12 +74,17 @@ export async function HandleAttachment(FilePath: string, NewFilename: string) {
                 }
             });
         });
-
+        
         ImageOrVideoSize.height = VideoDimensions.height;
         ImageOrVideoSize.width = VideoDimensions.width;
     }
-
-    renameSync(FilePath, path.join(__dirname, "..", "Assets", "Attachments", NewFilename));
+    
+    const NewFilePath = path.join(__dirname, "..", "Assets", "Attachments", NewFilename);
+    renameSync(FilePath, NewFilePath);
+    if (["video/x-msvideo", "video/mp4", "video/mpeg", "video/ogg", "video/webm"].includes(ContentType)) {
+        const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${NewFilename.split(".")[0]}.jpg`);
+        CreateFirstFrame(NewFilePath, ThumbnailPath);
+    }
 
     return {
         Size: size,

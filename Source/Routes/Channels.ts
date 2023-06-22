@@ -177,7 +177,8 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
             "CHANNEL_DELETE",
         );
 
-    await Channel.delete({ ID: RequestedChannel.ID });
+    //FIXME: foreign key constraint
+    await Channel.remove(RequestedChannel);
 });
 
 App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
@@ -438,12 +439,11 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Embeds: Embed[] = [];
 
-    // FIXME:
-    /*for await (const link of req.body.content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
+    if (req.body.content) for await (const link of req.body.content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
         if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.EMBED_LINKS)) break;
         const Embed = await EmbedParser(link);
         if (Embed) Embeds.push(Embed);
-    }*/
+    }
 
     const CreatedMessage = Message.create({
         ID: GenerateSnowflake(),

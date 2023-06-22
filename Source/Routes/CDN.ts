@@ -1,5 +1,5 @@
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { GetFirstFrame, UploadAttachment } from "../Modules/AssetUtils";
+import { UploadAttachment } from "../Modules/AssetUtils";
 import { VerifyAuth } from "../Modules/AuthUtils";
 import { Error } from "../Modules/Logger";
 import { Router, raw } from "express";
@@ -34,8 +34,10 @@ App.get("/attachments/:ChannelID/:AttachmentID/:Filename", async (req, res) => {
             const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename.split(".")[0]}.${req.query.format}`);
             if (existsSync(ThumbnailPath)) res.sendFile(ThumbnailPath);
             else {
-                GetFirstFrame(FilePath, ThumbnailPath);
-                setTimeout(() => res.sendFile(ThumbnailPath), 5000);
+                if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".jpeg"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".jpeg"));
+                else if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".jpg"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".jpg"));
+                else if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".png"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".png"));
+                else setTimeout(() => res.sendFile(ThumbnailPath), 6000);
             }
         } else res.sendFile(FilePath);
     } else res.status(404).json({
