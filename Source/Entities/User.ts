@@ -23,101 +23,100 @@ import { OAuth2App } from "./OAuth2";
 @Entity()
 export class User extends BaseEntity {
     @PrimaryColumn()
-        ID: string;
+    ID: string;
 
     @Column({ length: 32 })
-        Username: string;
+    Username: string;
 
     @Column({ length: 4 })
-        Discriminator: string;
+    Discriminator: string;
 
     @Column()
-        Email: string;
+    Email: string;
 
     @Column()
-        Password: string;
+    Password: string;
 
     @Column({ length: 200 })
-        Bio: string;
+    Bio: string;
 
     @Column()
-        DateOfBirth: Date;
+    DateOfBirth: Date;
 
     @Column({ nullable: true })
-        AvatarID?: string;
+    AvatarID?: string;
 
     @Column({ nullable: true })
-        BannerID?: string;
+    BannerID?: string;
 
     @Column({ nullable: true })
-        AvatarDecoration?: string;
+    AvatarDecoration?: string;
 
     @Column({ nullable: true })
-        BannerColor?: string;
+    BannerColor?: string;
 
     @Column({ default: 3 })
-        AvailableSuperreactions: number;
+    AvailableSuperreactions: number;
 
     @Column({ default: false })
-        Bot: boolean;
+    Bot: boolean;
 
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
-        Badges: Badge[];
-
+    Badges: Badge[];
     @OneToMany(() => OAuth2App, (O) => O.AuthorizedUsers, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
-        AuthorizedApps: OAuth2App[];
+    AuthorizedApps: OAuth2App[];
 
     @OneToOne(() => DiscordApplication, (DA) => DA.Bot, { nullable: true, onDelete: "CASCADE" })
-        BotApplication?: DiscordApplication;
+    BotApplication?: DiscordApplication;
 
     @Column({ default: UserFlags.VERIFIED_EMAIL })
-        Flags: UserFlags;
+    Flags: UserFlags;
 
     @Column({ default: Presence.OFFLINE })
-        Presence: Presence;
+    Presence: Presence;
 
     @ManyToMany(() => Channel, (C) => C.DMRecipients)
     @JoinTable()
-        AvailableDMs: Channel[];
+    AvailableDMs: Channel[];
 
     @OneToMany(() => Message, (M) => M.Author, { orphanedRowAction: "delete" })
     @JoinTable()
-        MessagesByUser: Message[];
+    MessagesByUser: Message[];
 
     @OneToMany(() => Relation, (Rel) => Rel.From, { orphanedRowAction: "delete" })
     @JoinTable()
-        RelationsFrom: Relation[];
+    RelationsFrom: Relation[];
 
     @OneToMany(() => Relation, (Rel) => Rel.Regarding, { orphanedRowAction: "delete" })
     @JoinTable()
-        RelationsRegarding: Relation[];
+    RelationsRegarding: Relation[];
 
     @OneToMany(() => DiscordApplication, (Rel) => Rel.Owner, { orphanedRowAction: "delete" })
     @JoinTable()
-        Applications: DiscordApplication[];
+    Applications: DiscordApplication[];
 
     @OneToMany(() => Guild, (G) => G.Owner, { orphanedRowAction: "delete" })
     @JoinTable()
-        OwnedGuilds: Guild[];
+    OwnedGuilds: Guild[];
 
     @OneToMany(() => Invite, (I) => I.InviteOwner)
     @JoinTable()
-        CreatedInvites: Invite[];
+    CreatedInvites: Invite[];
 
     @OneToMany(() => Membership, (M) => M.Owner, { orphanedRowAction: "delete" })
     @JoinTable()
-        Memberships: Membership[];
+    Memberships: Membership[];
 
     @Column({ default: false })
-        TutorialSuppressed: boolean;
+    TutorialSuppressed: boolean;
 
     @Column({ type: "simple-array" })
-        TutorialReadIndicators: string[];
+    TutorialReadIndicators: string[];
 
     @Column({ default: "CgIYAWIJCgcKBWVuLVVT" })
-        SettingsProto: string;
+    SettingsProto: string;
 
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
@@ -235,34 +234,34 @@ export class User extends BaseEntity {
 @Entity()
 export class Membership extends BaseEntity {
     @PrimaryColumn()
-        ID: string;
+    ID: string;
 
     @Column()
-        CreatedAt: Date;
+    CreatedAt: Date;
 
     @Column({ nullable: true })
-        BoostingSince?: Date;
+    BoostingSince?: Date;
 
     @Column({ default: false })
-        Muted: boolean;
+    Muted: boolean;
 
     @Column({ default: false })
-        Deafened: boolean;
+    Deafened: boolean;
 
     @ManyToOne(() => User, (U) => U.Memberships, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
-        Owner: User;
+    Owner: User;
 
     @Column({ nullable: true })
-        GuildNickname?: string;
+    GuildNickname?: string;
 
     @ManyToOne(() => Guild, (G) => G.Members, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
-        ToGuild: Guild;
+    ToGuild: Guild;
 
     @ManyToMany(() => Role, (R) => R.Members, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
-        Roles: Role[];
+    Roles: Role[];
 
     Package(IncludeUser: boolean = true /*, ChannelContext: Channel*/) {
         return {
