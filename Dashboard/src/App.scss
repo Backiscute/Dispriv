@@ -135,7 +135,7 @@ input::placeholder {
 .guild-card {
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: calc(100% - 36px);
     padding: 150px;
     background-color: #383a40;
     border-radius: 4px;
