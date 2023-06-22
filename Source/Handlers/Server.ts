@@ -11,14 +11,9 @@ export const Application = express()
     .use(cors({
         origin: "*"
     }))
-    .use(
-        express.json({
-            limit: "5mb",
-        }),
-        express.raw({
-            limit: "5mb"
-        })
-    );
+    .use("*", express.json({
+        limit: "5mb",
+    }));
 
 const LoadRoutes = async () => {
     const Files = fs

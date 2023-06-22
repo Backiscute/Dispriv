@@ -1,28 +1,54 @@
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { GetFirstFrame, UploadAttachment } from "../Modules/AssetUtils";
 import { VerifyAuth } from "../Modules/AuthUtils";
-import { Router } from "express";
+import { Error } from "../Modules/Logger";
+import { Router, raw } from "express";
 import { existsSync } from "fs";
 import path from "path";
-import multer from "multer";
 
 const App = Router();
-const Multer = multer({
-    dest: path.join(__dirname, "..", "Assets", "Attachments")
-});
 
-App.put("/upload/:ChannelId/:Filename", (req, res, next) => {
+App.put("/upload/:Filename", raw({
+    type: () => true,
+    limit: "25mb",
+}), (req, res, next) => {
     req.headers.authorization = req.query.auth as string;
     next();
-}, VerifyAuth, Multer.array("files"), async (req, res) => {
-    console.log(req.files, req.body);
-    res.status(500);
+}, VerifyAuth, async (req, res) => {
+    try {
+        UploadAttachment(req.body as Buffer, req.headers["content-type"] as string, req.params.Filename);
+        res.sendStatus(200);
+    } catch (err) {
+        Error(`An error occured while saving a file to CDN. ${(err as Error | string).toString()}`);
+        res.status(500).json({
+            code: 0,
+            message: "Internal server error while uploading to CDN"
+        });
+    }
 });
 
-App.get(["/*/*/:FileName", "/*/:FileName"], (req, res) => {
-    if (!/^[a-z0-9.-]+$/g.test(req.params.FileName)) return res.status(403).json({ code: 0, message: "nuh uh" });
+App.get("/attachments/:ChannelID/:AttachmentID/:Filename", async (req, res) => {
+    const FilePath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename}`);
+    if (existsSync(FilePath)) {
+        if (["jpeg", "png", "jpg"].includes(req.query.format as string) && ["mp4", "ogv", "webm", "avi", "mpeg"].includes(req.params.Filename.split(".")[1])) {
+            const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename.split(".")[0]}.${req.query.format}`);
+            if (existsSync(ThumbnailPath)) res.sendFile(ThumbnailPath);
+            else {
+                GetFirstFrame(FilePath, ThumbnailPath);
+                setTimeout(() => res.sendFile(ThumbnailPath), 5000);
+            }
+        } else res.sendFile(FilePath);
+    } else res.status(404).json({
+        code: JsonErrorCodes.FileNotFound,
+        message: "File not found."
+    });
+});
+App.get(["/*/*/:Filename", "/*/:Filename"], (req, res) => {
+    if (!/^[a-z0-9.-]+$/g.test(req.params.Filename)) return res.status(403).json({ code: 0, message: "nuh uh" });
 
-    if (!existsSync(path.join(__dirname, "..", "Assets", req.params.FileName))) return res.status(404).send();
+    if (!existsSync(path.join(__dirname, "..", "Assets", req.params.Filename))) return res.status(404).send();
 
-    res.status(200).sendFile(path.join(__dirname, "..", "Assets", req.params.FileName));
+    res.status(200).sendFile(path.join(__dirname, "..", "Assets", req.params.Filename));
 });
 
 module.exports = {

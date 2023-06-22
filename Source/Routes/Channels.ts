@@ -4,7 +4,7 @@ import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { Embed, Message, MessageType } from "../Entities/Message";
+import { Attachment, Embed, Message, MessageType } from "../Entities/Message";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { RelationType } from "../Entities/FriendUser";
 import { Invite } from "../Entities/Guild";
@@ -23,8 +23,9 @@ import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { AttachmentReq } from "../Classes/Attachments";
+import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
+import { FindAttachment, HandleAttachment } from "../Modules/AssetUtils";
 
 const App = Router();
 
@@ -34,7 +35,6 @@ App.patch("/*/messages/:MessageID", async (req, res) => {
 
 App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
-    console.log("user");
 
     const RequestedMessage = await Message.findOne({
         where: {
@@ -69,31 +69,30 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
         guild_id: RequestedMessage.Channel.IsDM ? undefined : RequestedMessage.Channel.OwnerGuild!.ID,
     });
 
-    await Message.delete({ ID: RequestedMessage.ID });
+    await Message.remove(RequestedMessage);
     res.sendStatus(204);
 });
 
 App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
     if (!req.body.files || !Array.isArray(req.body.files))
-        return res.status(400).json({
-            code: 0,
-            message: "Bad request"
-        });
-    for (const file of req.body.files ?? [])
-        if (file.file_size > 5 * 1024 * 1024) return res.status(403).json({
-            code: 0,
-            message: "File uploads are limited at 5mb."
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No attachments provided" });
+    if (req.body.files.length > 4)
+        return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
+    for (const file of req.body.files)
+        if (file.file_size > 25 * 1024 * 1024) return res.status(403).json({
+            code: JsonErrorCodes.FileTooLarge,
+            message: "File uploads are limited at 25mb."
         });
     
     res.json({
-        attachments: req.body.files.map((file: {
-            id: string;
-            filename: string;
-        }) => ({
-            id: file.id,
-            upload_filename: `${req.params.ChannelID}/${file.filename}`,
-            upload_url: `https://cdn.discordapp.com/upload/${req.params.ChannelID}/${file.filename}?auth=${req.headers.authorization}`
-        }))
+        attachments: req.body.files.map((file: AttachmentReq) => {
+            const id = v4();
+            return {
+                id: file.id,
+                upload_filename: `${id}_${file.filename}`,
+                upload_url: `https://cdn.discordapp.com/upload/${id}_${file.filename}?auth=${req.headers.authorization}`
+            };
+        })
     });
 });
 
@@ -439,10 +438,12 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Embeds: Embed[] = [];
 
-    for await (const link of (req.body.content ?? "").match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
+    // FIXME:
+    /*for await (const link of req.body.content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
+        if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.EMBED_LINKS)) break;
         const Embed = await EmbedParser(link);
         if (Embed) Embeds.push(Embed);
-    }
+    }*/
 
     const CreatedMessage = Message.create({
         ID: GenerateSnowflake(),
@@ -453,6 +454,38 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         Channel: RequestedChannel,
         Embeds
     });
+
+    const Attachments: Attachment[] = [];
+
+    for (const Attachment of (req.body.attachments ?? []) as AttachmentMessagePost[]) {
+        if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.ATTACH_FILES))
+            return res.status(403).json({
+                code: JsonErrorCodes.MissingPermissions,
+                message: "You must have \"ATTACH_FILES\" permission to attach files."
+            });
+        const File = FindAttachment(Attachment.uploaded_filename);
+        if (!File) continue;
+        const AttachmentID = GenerateSnowflake();
+        const { ContentType, Size, ImageOrVideoSize } = await HandleAttachment(File, `${CreatedMessage.Channel.ID}-${AttachmentID}-${Attachment.filename}`);
+        
+        Attachments.push({
+            content_type: ContentType,
+            filename: Attachment.filename,
+            url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+            proxy_url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+            id: AttachmentID,
+            size: Size,
+            height: ImageOrVideoSize.height,
+            width: ImageOrVideoSize.width,
+        });
+    }
+
+    if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0) return res.status(400).json({
+        code: JsonErrorCodes.CannotSendEmptyMessage,
+        message: "Cannot send empty message."
+    });
+
+    CreatedMessage.Attachments = Attachments;
 
     if (MessageReplyingTo) {
         CreatedMessage.ReplyingTo = MessageReplyingTo;
@@ -488,23 +521,6 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     return res.sendStatus(204);
 });
 
-App.post("/:ChannelID/attachments", (req, res) => {
-    const Attachments = req.body.files as AttachmentReq[];
-    if (!Array.isArray(Attachments))
-        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No attachments provided" });
-    if (Attachments.length > 4)
-        return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
-    const Response: { id: number; upload_url: string; upload_filename: string }[] = [];
-    for (const Attachment of Attachments) {
-        // there you go
-        Response.push({
-            id: 16,
-            upload_url: v4(),
-            upload_filename: Attachment.filename,
-        });
-    }
-    res.status(200).send(Response);
-});
 module.exports = {
     DefaultAPI: "/api/v9/channels",
     App,

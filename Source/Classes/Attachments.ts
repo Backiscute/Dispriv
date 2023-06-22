@@ -3,3 +3,10 @@ export interface AttachmentReq {
     filename: string;
     id: string;
 }
+
+
+export interface AttachmentMessagePost {
+    uploaded_filename: string;
+    filename: string;
+    id: string;
+}

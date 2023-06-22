@@ -58,8 +58,8 @@ export default async function(url: string): Promise<Embed | undefined> {
             color: 1942002,
             footer: {
                 text: "Twitter",
-                proxy_icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
-                icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
+                proxy_icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
+                icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
             }
         };
     } else if (/(www\.)?(youtube\.com|youtu\.be)/.test(url)) {
@@ -138,7 +138,7 @@ async function Request(url: string, Head = false, BearerToken?: string) {
             maxContentLength: 1024 * 1024 * 5
         });
     } catch (err) {
-        Error(`An error occured while requesting embed info. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
+        Error(`An error occured while requesting embed info. Error: ${JSON.stringify((err as { res: { data: unknown } }).res?.data ?? "unknown error, debug needed")}`);
         return undefined;
     }
 }

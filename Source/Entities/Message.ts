@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
-import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryColumn, Column, BaseEntity, ManyToOne, OneToMany, BeforeRemove } from "typeorm";
 import { User } from "./User";
 import { Channel } from "./Channel";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
 import { MessageFlags } from "../Classes/Flags";
+import { glob } from "glob";
+import path from "path";
+import { rmSync } from "fs";
 
 export const enum MessageType {
     DEFAULT = 0,
@@ -89,44 +92,58 @@ export interface Embed {
 	}[];
 }
 
+export interface Attachment {
+    id: string;
+    filename: string;
+    size: number;
+    url: string;
+    proxy_url: string;
+    width?: number;
+    height?: number;
+    content_type: string;
+}
+
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
+
+    @Column({ type: "simple-json", nullable: true })
+        Attachments: Attachment[] = [];
 
     @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true })
-    Author: User;
+        Author: User;
 
     @Column({ default: MessageType.DEFAULT })
-    Type: MessageType;
+        Type: MessageType;
 
     @Column({ default: 0 })
-    Flags: MessageFlags;
+        Flags: MessageFlags;
 
     @Column()
-    Content: string;
+        Content: string;
 
     @Column()
-    CreationDate: Date;
+        CreationDate: Date;
 
     @Column({ type: "simple-json", nullable: true })
         Embeds: Embed[] = [];
 
     @OneToMany(() => Reaction, (R) => R.ToMessage, { eager: true })
-    Reactions: Reaction[];
+        Reactions: Reaction[];
 
     @OneToMany(() => Message, (M) => M.ReplyingTo)
-    Replies: Message[];
+        Replies: Message[];
 
     @ManyToOne(() => Message, (M) => M.Replies, {
         nullable: true /*, eager: true*/,
         onDelete: "SET NULL",
         orphanedRowAction: "nullify",
     })
-    ReplyingTo?: Message;
+        ReplyingTo?: Message;
 
     @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
-    Channel: Channel;
+        Channel: Channel;
 
     Package(IncludeReplyData = true): {
         message_reference?: {
@@ -135,7 +152,7 @@ export class Message extends BaseEntity {
         };
         referenced_message: ReturnType<typeof Message.prototype.Package> | undefined;
         reactions: ReturnType<typeof Reaction.prototype.Package>[];
-        attachments: [];
+        attachments: Attachment[];
         tts: boolean;
         embeds: Embed[];
         timestamp: string;
@@ -155,14 +172,14 @@ export class Message extends BaseEntity {
             message_reference:
                 this.Type === MessageType.REPLY && IncludeReplyData
                     ? {
-                          channel_id: this.ReplyingTo?.Channel?.ID,
-                          message_id: this.ReplyingTo?.ID,
-                      }
+                        channel_id: this.ReplyingTo?.Channel?.ID,
+                        message_id: this.ReplyingTo?.ID,
+                    }
                     : undefined,
             referenced_message:
                 this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
             reactions: this.Reactions?.map((R) => R.Package()),
-            attachments: [],
+            attachments: this.Attachments,
             tts: false,
             embeds: this.Embeds,
             timestamp: CreateTimestamp(this.CreationDate),
@@ -179,24 +196,33 @@ export class Message extends BaseEntity {
             flags: this.Flags,
         };
     }
+
+    @BeforeRemove()
+    private DeleteAttachments() {
+        for (const Attachment of this.Attachments) {
+            const FilePaths = glob.sync(path.join(__dirname, "..", "Assets", "Attachments", `${this.Channel.ID}-${Attachment.id}-${Attachment.filename.replace(/(\\|\?|\*|\*\*|\[|\]|!|\(|\))/g, "\\$&").split(".")[0]}.*`).replace(/\\/g, "/"));
+            for (const FilePath of FilePaths)
+                rmSync(FilePath);
+        }
+    }
 }
 
 @Entity()
 export class Reaction extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column()
-    EmojiCode: string;
+        EmojiCode: string;
 
     @Column({ type: "simple-json" })
-    UsersReacted: User[];
+        UsersReacted: User[];
 
     @ManyToOne(() => Message, (M) => M.Reactions)
-    ToMessage: Message;
+        ToMessage: Message;
 
     @Column({ default: "normal" })
-    Type: "normal" | "super";
+        Type: "normal" | "super";
 
     Package(Context?: User) {
         return {
