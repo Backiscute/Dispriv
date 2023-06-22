@@ -3,11 +3,9 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { ApplicationFlags, UserFlags } from "../Classes/Flags";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { v4 } from "uuid";
 import { VoiceSessions } from "../Handlers/RTCSocket";
-import { SendToDMOrServer } from "../Modules/DiscordUtils";
-import { OpCodes } from "../Classes/GatewayOpCodes";
-import { ActivityRoom, ActivityUserConnection, BundleItem, EmbeddedActivity } from "Classes/VoiceSession";
+import { BundleItem } from "Classes/VoiceSession";
+import { CreateOrJoinActivityRoom } from "../Modules/ActivityUtils";
 
 const App = Router();
 
@@ -54,47 +52,9 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
 
     if (!VoiceSession) return res.status(404).json({ message: "Voice session not found", code: 0 });
 
-    let ActivityRoom;
-
-    const RunningActivity = VoiceSession.Activities.find((R) => R.embedded_activity.application_id === Application.ID);
-
-    if (RunningActivity) {
-        if (RunningActivity.users.includes(MyUser.ID))
-            return res.status(403).json({ message: "Already in activity", code: 0 });
-
-        RunningActivity.users.push(MyUser.ID);
-        RunningActivity.connections.push({ user_id: MyUser.ID, metadata: { is_elegible_host: true } });
-
-        ActivityRoom = RunningActivity;
-    } else {
-        const Activity = {
-            activity_id: v4(),
-            application_id: Application.ID,
-            assets: [],
-            created_at: undefined,
-            details: undefined,
-            name: Application.DisplayName,
-            secrets: undefined,
-            state: undefined,
-            timestamps: undefined,
-            type: 0,
-        } as EmbeddedActivity;
-
-        ActivityRoom = {
-            channel_id: LinkedChannel.ID,
-            connections: [{ user_id: MyUser.ID, metadata: { is_elegible_host: true } }] as ActivityUserConnection[],
-            embedded_activity: Activity,
-            guild_id: GuildID,
-            users: [MyUser.ID],
-        } as ActivityRoom;
-
-        VoiceSession.Activities.push(ActivityRoom);
-    }
-
-    ActivityRoom.update_code = 2;
-
+    await CreateOrJoinActivityRoom(LinkedChannel, Application, MyUser, VoiceSession);
+    
     res.sendStatus(204);
-    SendToDMOrServer(LinkedChannel, OpCodes.DISPATCH, ActivityRoom, null, "EMBEDDED_ACTIVITY_UPDATE");
 });
 
 App.get("/shelf", async (req, res) => {
@@ -111,14 +71,17 @@ App.get("/shelf", async (req, res) => {
     const BundleItems: BundleItem[] = [];
 
     EmbeddedApps.forEach((R) => {
-        BundleItems.push({
-            application_id: R.ID,
-            expires_on: undefined,
-            new_until: undefined,
-            nitro_requirement: false,
-            premium_tier_level: 0,
-            always_free: true,
-        });
+        const isDuplicate = BundleItems.some(item => item.application_id === R.ID);
+        if (!isDuplicate) {
+            BundleItems.push({
+                application_id: R.ID,
+                expires_on: undefined,
+                new_until: undefined,
+                nitro_requirement: false,
+                premium_tier_level: 0,
+                always_free: true,
+            });
+        }
     });
 
     res.json({ activity_bundle_items: BundleItems, activities: EmbeddedApps.map((R) => R.PackagePublic()) });

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum JsonErrorCodes {
     GeneralError = 0,
     UnknownAccount = 10001,

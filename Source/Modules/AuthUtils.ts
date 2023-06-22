@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 import { User } from "../Entities/User";
 import { DISCORD_EPOCH } from "./DiscordUtils";
 import { NextFunction, Request, Response } from "express";
+import { OAuth2App } from "../Entities/OAuth2";
 
 export function GenerateToken(Snowflake: string, Timestamp: number, HashedPassword: string): string {
     const EncodedId = Buffer.from(Snowflake).toString("base64url");
@@ -11,10 +12,41 @@ export function GenerateToken(Snowflake: string, Timestamp: number, HashedPasswo
     return `${Content}.${Signature}`;
 }
 
+export async function GenerateOAuth2Token(OAuthSnowflake: string): Promise<string|null> {
+    const LinkedOAuth = await OAuth2App.findOne({ where: { ID: OAuthSnowflake }, relations: { AuthorizedUsers: true } });
+    if (!LinkedOAuth) return null;
+    const LinkedUser = LinkedOAuth.AuthorizedUsers;
+
+    const Content = Buffer.from(LinkedOAuth.ID).toString("base64url");
+    const Signature = crypto.createHmac("sha256", LinkedUser.Email + LinkedUser.Password).update(Content).digest("base64url");
+
+    return `${Content}.${Signature}`;
+};
+
+export async function VerifyOAuthToken(token: string): Promise<boolean> {
+    const Parts = token.split(".");
+    if (Parts.length !== 2) return false;
+
+    const EncodedID = Parts[0];
+    const Signature = Parts[1];
+
+    const ID = Buffer.from(EncodedID, "base64url").toString();
+
+    const LinkedOAuth = await OAuth2App.findOne({ where: { ID }, relations: { AuthorizedUsers: true } });
+
+    if (!LinkedOAuth) return false;
+
+    const LinkedUser = LinkedOAuth.AuthorizedUsers;
+
+    const ActualSignature = LinkedUser.Email + LinkedUser.Password;
+
+    return Signature === crypto.createHmac("sha256", ActualSignature).update(EncodedID).digest("base64url");
+}
+    
 export function GetTokenTimestamp(token: string): number {
     const Parts = token.split(".");
     if (Parts.length !== 3) {
-        throw new Error("Invalid token format");
+        return 0;
     }
     const EncodedTimestamp = Parts[1];
     const Timestamp = parseInt(Buffer.from(EncodedTimestamp, "base64url").toString()) + DISCORD_EPOCH;
@@ -24,7 +56,7 @@ export function GetTokenTimestamp(token: string): number {
 export function GetTokenUserId(token: string): string {
     const Parts = token.split(".");
     if (Parts.length !== 3) {
-        throw new Error("Invalid token format");
+        return "invaliduserid";
     }
     const EncodedId = Parts[0];
     const Id = Buffer.from(EncodedId, "base64url").toString();
@@ -68,6 +100,44 @@ export async function GetUserByToken(token: string, relations?: object) {
     return TUser!;
 }
 
+export async function GetOAppByOAuthReq(req: Request) {
+    let Token = req.headers.authorization ?? "";
+    if (Token.startsWith("Bearer ")) Token = Token.substring(7);
+
+    const ValidToken = await VerifyOAuthToken(Token);
+    if (!ValidToken) return null;
+
+    const EncodedUserID = Token.split(".")[0];
+    const UserID = Buffer.from(EncodedUserID, "base64url").toString();
+
+    const LinkedOAuth = await OAuth2App.findOne({ where: { ID: UserID }, relations: { AuthorizedUsers: true, Application: true } });
+    if (!LinkedOAuth) return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return LinkedOAuth;
+};
+
+export async function GetUserByOAuthReq(req: Request, relations?: object)
+{
+    let Token = req.headers.authorization ?? "";
+    if (Token.startsWith("Bearer ")) Token = Token.substring(7);
+
+    const ValidToken = await VerifyOAuthToken(Token);
+    if (!ValidToken) return null;
+
+    const EncodedUserID = Token.split(".")[0];
+    const UserID = Buffer.from(EncodedUserID, "base64url").toString();
+
+    if (relations === undefined) relations = {}; // to prevent crashes
+
+    const LinkedOAuth = await OAuth2App.findOne({ where: { ID: UserID }, relations: { AuthorizedUsers: relations } });
+    if (!LinkedOAuth) return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
+    return LinkedOAuth.AuthorizedUsers;
+}
+
 export async function GetUserByRequest(req: Request, relations?: object) {
     let Token = req.headers.authorization ?? "";
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
@@ -92,6 +162,22 @@ export function VerifyAuth(req: Request, res: Response, next: NextFunction) {
     if (Auth.startsWith("Bearer ")) Auth = Auth.substring(7);
 
     VerifyToken(Auth)
+        .then((Valid) => {
+            if (!Valid) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+            next();
+        })
+        .catch(() => {
+            return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+        });
+}
+
+export function VerifyOAuthReq(req: Request, res: Response, next: NextFunction) {
+    let Auth = req.headers.authorization;
+    if (!Auth) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+
+    if (Auth.startsWith("Bearer ")) Auth = Auth.substring(7);
+
+    VerifyOAuthToken(Auth)
         .then((Valid) => {
             if (!Valid) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
             next();

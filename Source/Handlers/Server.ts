@@ -20,19 +20,22 @@ const LoadRoutes = async () => {
 
     for (const File of Files) {
         const Contents = await import(path.join("..", "Routes", File));
+        if (!Contents.default) continue;
         if (!Contents.default.App) continue;
         Application.use(Contents.default.DefaultAPI || "/", Contents.default.App);
 
         Msg(`Loaded route ${italic(File)}!`, "Gateway");
     }
 
-    Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
     Application.use(
         "/discordsays",
         express.static(
             path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Applications"),
         ),
     );
+
+    Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
+    
     Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${green(process.env.PORT)}`));
 };
 

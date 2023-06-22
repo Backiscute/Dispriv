@@ -18,6 +18,7 @@ import { Guild, Invite, Role } from "./Guild";
 import { CreateTimestamp, GetHighestRoleInArr } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
+import { OAuth2App } from "./OAuth2";
 
 @Entity()
 export class User extends BaseEntity {
@@ -63,6 +64,10 @@ export class User extends BaseEntity {
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
         Badges: Badge[];
+
+    @OneToMany(() => OAuth2App, (O) => O.AuthorizedUsers, { orphanedRowAction: "nullify", eager: true })
+    @JoinTable()
+        AuthorizedApps: OAuth2App[];
 
     @OneToOne(() => DiscordApplication, (DA) => DA.Bot, { nullable: true, onDelete: "CASCADE" })
         BotApplication?: DiscordApplication;

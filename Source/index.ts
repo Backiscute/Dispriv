@@ -18,7 +18,7 @@ async function LoadHandlers() {
     }
 }
 
-const UsePublicTestsDB = true;
+const UsePublicTestsDB = false;
 export const DisprivDataSource = new DataSource({
     type: "sqlite",
     database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",

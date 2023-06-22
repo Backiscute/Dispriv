@@ -10,7 +10,6 @@ import { Application } from "../Handlers/Server";
 const App = Router();
 
 App.post("/register", async (req, res) => {
-    // so what we do ok look at dis thing look my screen
     const Email = req.body.email;
     const Username = req.body.username;
     const Password = req.body.password;
@@ -38,6 +37,7 @@ App.post("/register", async (req, res) => {
         DateOfBirth: new Date(DOB),
         Discriminator: "0000", //TODO
         TutorialReadIndicators: [],
+        AuthorizedApps: []
     });
 
     await User.insert(NewUser);
