@@ -6,10 +6,13 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
     OneToOne,
+    JoinTable,
+    OneToMany,
 } from "typeorm";
 import { ApplicationFlags } from "../Classes/Flags";
 import { User } from "./User";
 import { Team } from "./ApplicationTeam";
+import { OAuth2App } from "./OAuth2";
 
 @Entity()
 export class EmbeddedAppConfig extends BaseEntity {
@@ -132,6 +135,10 @@ export class DiscordApplication extends BaseEntity {
 
     @OneToOne(() => User, (U) => U.BotApplication, { nullable: true })
         Bot?: User;
+    
+    @OneToMany(() => OAuth2App, (U) => U.Application, {})
+    @JoinTable()
+        OAuth2Clients?: OAuth2App[];
 
     @Column({ default: -1, nullable: true })
         EmbeddedParticipants: number;
@@ -190,7 +197,7 @@ export class DiscordApplication extends BaseEntity {
             id: this.ID,
             name: this.DisplayName,
             icon: this.IconHash,
-            description: this.Description,
+            description: this.Description ?? "",
             summary: this.Summary,
             type: null,
             cover_image: null,

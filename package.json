@@ -70,6 +70,7 @@
     "fast-zlib": "^2.0.1",
     "multer": "^1.4.5-lts.1",
     "murmurhash3js": "^3.0.1",
+    "node-webrtc": "^0.0.0",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.8",
     "probe-image-size": "^7.2.3",
@@ -81,6 +82,7 @@
     "ts-node": "^10.9.1",
     "typeorm": "^0.3.16",
     "uuid": "^9.0.0",
+    "wrtc": "^0.4.7",
     "ws": "^8.13.0"
   }
 }

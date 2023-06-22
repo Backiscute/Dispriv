@@ -18,6 +18,13 @@ import {
 } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 import EmbedParser from "../Modules/EmbedParser";
+import { Presence } from "../Classes/Presence";
+import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
+import { GatewayIntents } from "../Classes/GatewayIntents";
+import { Msg } from "../Modules/Logger";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { AttachmentReq } from "../Classes/Attachments";
+import { v4 } from "uuid";
 
 const App = Router();
 
@@ -41,7 +48,8 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
         },
     });
 
-    if (!RequestedMessage) return res.status(400).json({ code: 10015, message: "Unknown Message" });
+    if (!RequestedMessage)
+        return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
 
     if (
         (RequestedMessage.Channel.IsDM &&
@@ -53,7 +61,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
                 Permissions.MANAGE_MESSAGES,
             ))
     )
-        return res.status(403).json({ code: 0, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.GeneralError, message: "Missing Access" });
 
     await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, {
         id: RequestedMessage.ID,
@@ -93,6 +101,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
+
         relations: {
             OwnerGuild: true,
             DMRecipients: true,
@@ -240,28 +249,69 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 
 App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
+    const ChannelID = req.url.split("/")[1];
     const RequestedChannel = await Channel.findOne({
-        where: { ID: req.params.ChannelID },
-        relations: { DMRecipients: true },
+        where: { ID: ChannelID },
+        relations: { DMRecipients: true, OwnerGuild: { Members: true } },
     });
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
         return res.status(400).json({ code: 0, message: "No access" });
-    // TODO: add permission check here too
 
-    // FIXME:
-    /*RequestedChannel.AllRecipientsExceptYou(MyUser).forEach(Recipient => {
-        const Conn = FindConnection(Recipient.ID);
-        //console.log(Conn);
-        if (!Conn) return;
-        if (!HasIntent(Conn.Intents, RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING)) return;
+    if (RequestedChannel.IsDM) {
+        RequestedChannel.AllRecipientsExceptYou(MyUser)?.forEach((Recipient) => {
+            const Conn = FindConnection(Recipient.ID);
+            //console.log(Conn);
+            if (!Conn) return;
+            if (
+                !HasIntent(
+                    Conn.Intents,
+                    RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+                )
+            )
+                return;
 
-        if (RequestedChannel.IsDM) SendOp(Conn, OpCodes.DISPATCH, { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID }, null, "TYPING_START");
-        // TODO: when guilds are added, add typing start for guilds
-    });*/
-
-    res.sendStatus(204);
+            if (RequestedChannel.IsDM)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
+                    null,
+                    "TYPING_START",
+                );
+            // TODO: when guilds are added, add typing start for guilds
+        });
+        return res.sendStatus(204);
+    } else {
+        const Members = RequestedChannel.OwnerGuild?.Members;
+        if (!Members) return res.sendStatus(204);
+        const Filtered = Members.map((M) => M.Owner).filter(
+            (M) => M.ID !== MyUser.ID && M.Presence !== Presence.OFFLINE,
+        );
+        if (!Filtered) return res.sendStatus(204);
+        Filtered.forEach((M) => {
+            const Conn = FindConnection(M.ID);
+            if (!Conn) return;
+            // TODO: permission check
+            if (
+                !HasIntent(
+                    Conn.Intents,
+                    RequestedChannel.IsDM ? GatewayIntents.DIRECT_MESSAGE_TYPING : GatewayIntents.GUILD_MESSAGE_TYPING,
+                )
+            )
+                return;
+            Msg("User typing", "Channels");
+            SendOp(
+                Conn,
+                OpCodes.DISPATCH,
+                { channel_id: RequestedChannel.ID, timestamp: Date.now(), user_id: MyUser.ID },
+                null,
+                "TYPING_START",
+            );
+        });
+        res.sendStatus(204);
+    }
 });
 
 App.get("/:ChannelID/call", VerifyAuth, async (req, res) => {
@@ -336,28 +386,27 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         relations: { DMRecipients: true, OwnerGuild: true },
     });
 
-    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (!RequestedChannel)
+        return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(400).json({ code: 0, message: "No access" });
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No access" });
     else if (!RequestedChannel.IsDM) {
         const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
         if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
         if (!HasPermission(Mmbr, Permissions.SEND_MESSAGES))
-            return res.status(403).json({ code: 10013, message: "Missing Access" });
+            return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
     }
 
     if (typeof req.body.content !== "string" || req.body.content.length > 2000)
-        return res.status(400).json({ code: 0, message: "Message too long" });
-
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Message too long" });
     if (RequestedChannel.Type === ChannelType.DM) {
         const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
         const RelationshipBetweenUsers = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding].find(
             (R) => R.From.ID === OtherUser.ID || R.Regarding.ID === OtherUser.ID,
         );
 
-        // TODO: add mutual guilds check
         if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
-            return res.status(400).json({ code: 0, message: "Cannot DM non-friends" });
+            return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Cannot DM non-friends" });
     }
 
     let MessageReplyingTo: Message | undefined;
@@ -379,10 +428,12 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             },
         });
 
-        if (!ChannelReference) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+        if (!ChannelReference)
+            return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
         const MessageReference = ChannelReference.Messages.find((M) => M.ID === req.body.message_reference.message_id);
 
-        if (!MessageReference) return res.status(400).json({ code: 10013, message: "Unknown Message" });
+        if (!MessageReference)
+            return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
         MessageReplyingTo = MessageReference;
     }
 
@@ -420,6 +471,40 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     });
 });
 
+App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) => {
+    const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
+        GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }),
+        Channel.findOne({
+            where: { ID: req.params.ChannelID },
+            relations: { DMRecipients: true, OwnerGuild: true },
+        }),
+        Message.findOne({
+            where: { ID: req.params.MessageID },
+            relations: { Author: true, Channel: { OwnerGuild: true } },
+        }),
+    ]);
+    const Emoji = req.params.Emoji as string;
+
+    return res.sendStatus(204);
+});
+
+App.post("/:ChannelID/attachments", (req, res) => {
+    const Attachments = req.body.files as AttachmentReq[];
+    if (!Array.isArray(Attachments))
+        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No attachments provided" });
+    if (Attachments.length > 4)
+        return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
+    const Response: { id: number; upload_url: string; upload_filename: string }[] = [];
+    for (const Attachment of Attachments) {
+        // there you go
+        Response.push({
+            id: 16,
+            upload_url: v4(),
+            upload_filename: Attachment.filename,
+        });
+    }
+    res.status(200).send(Response);
+});
 module.exports = {
     DefaultAPI: "/api/v9/channels",
     App,

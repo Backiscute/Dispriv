@@ -40,7 +40,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Discriminator = DiscrimRandom;
                 continue;
             case "discriminator":
-                //if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+                if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
                 const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
                 console.log(ExistingUserD);
                 if (ExistingUserD) return res.status(400).json({ code: 0, message: "Discriminator already taken!" });

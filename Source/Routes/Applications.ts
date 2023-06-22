@@ -4,6 +4,7 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { DiscordApplication, EmbeddedAppConfig } from "../Entities/Application";
 import { ApplicationFlags } from "../Classes/Flags";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
@@ -16,7 +17,7 @@ App.post("/", VerifyAuth, async (req, res) => {
     const AppName = req.body.name;
     const TeamID = req.body.team_id;
 
-    if (!AppName) return res.status(404).json({ message: "Missing Name", code: 0 });
+    if (!AppName) return res.status(404).json({ message: "Missing Name", code: JsonErrorCodes.InvalidFormBody });
 
     if (!TeamID) {
         const Application = DiscordApplication.create({
@@ -24,6 +25,7 @@ App.post("/", VerifyAuth, async (req, res) => {
             Owner: (await GetUserByRequest(req))!,
             ID: GenerateSnowflake(),
         });
+
         await Application.save();
         res.json(Application.Package());
     }
@@ -34,7 +36,7 @@ App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res)
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "404: Not Found", code: 0 });
+        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UnknownApplication });
 
     if (!Application.embedded_activity_config) {
         const NewAppConfig = EmbeddedAppConfig.create({
@@ -56,7 +58,7 @@ App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, re
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "404: Not Found", code: 0 });
+        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UnknownApplication });
 
     for (const Key of Object.keys(req.body))
         switch (Key) {

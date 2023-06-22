@@ -379,10 +379,10 @@ export class Guild extends BaseEntity {
         const EmbeddedActivitiesRooms = FilteredVoiceSessions.map((V) => V.Activities);
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const Result = EmbeddedActivitiesRooms.flatMap((arr) => arr.map(({ guild_id, update_code, ...rest }) => rest));
+        const EmbeddedActivities = EmbeddedActivitiesRooms.flatMap((arr) => arr.map(({ guild_id, update_code, ...rest }) => rest));
 
         return {
-            embedded_activities: Result,
+            embedded_activities: EmbeddedActivities,
             id: this.ID,
             voice_states: VoiceStates,
         };

@@ -133,3 +133,4 @@ Source/Assets
 *.db
 
 DONT-PUSH/
+Source/Assets/
