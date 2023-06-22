@@ -2,13 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import SideBar from "./components/SideBar";
 import "./App.scss";
-import {
-    BrowserRouter,
-    Route,
-    Routes,
-} from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Guild from "./pages/ManageGuilds";
 import ServerSetup from "./pages/ServerSetup";
+import Gifts from "./pages/Gifts";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <div
@@ -33,7 +30,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             {
                                 route: "/dispriv/permissions",
                                 title: "Permissions",
-                            }
+                            },
                         ],
                     },
                     {
@@ -46,7 +43,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             {
                                 route: "/qs/changelogs",
                                 title: "Changelogs",
-                            }
+                            },
                         ],
                     },
                     {
@@ -63,7 +60,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             {
                                 route: "/gs/sysmessages",
                                 title: "System Messages",
-                            }
+                            },
                         ],
                     },
                     {
@@ -96,16 +93,17 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             {
                                 route: "/mc/apps",
                                 title: "Applications",
-                            }
+                            },
                         ],
-                    }
+                    },
                 ]}
             />
             <Routes>
                 <Route path="/" element={<></>} />
                 <Route path="/mc/guilds" element={<Guild />} />,
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
+                <Route path="/mc/gifts" element={<Gifts />} />
             </Routes>
         </BrowserRouter>
-    </div>
+    </div>,
 );
