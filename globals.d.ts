@@ -8,6 +8,8 @@ declare global {
             OverrideRTC: string;
             OverrideWS: string;
             TenorAPIKey: string;
+            RTCMediaPort: string;
+            RTCMediaIP: string;
         }
     }
 }
