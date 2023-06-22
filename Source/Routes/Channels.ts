@@ -79,20 +79,21 @@ App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
     if (req.body.files.length > 4)
         return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
     for (const file of req.body.files)
-        if (file.file_size > 25 * 1024 * 1024) return res.status(403).json({
-            code: JsonErrorCodes.FileTooLarge,
-            message: "File uploads are limited at 25mb."
-        });
-    
+        if (file.file_size > 25 * 1024 * 1024)
+            return res.status(403).json({
+                code: JsonErrorCodes.FileTooLarge,
+                message: "File uploads are limited at 25mb.",
+            });
+
     res.json({
         attachments: req.body.files.map((file: AttachmentReq) => {
             const id = v4();
             return {
                 id: file.id,
                 upload_filename: `${id}_${file.filename}`,
-                upload_url: `https://cdn.discordapp.com/upload/${id}_${file.filename}?auth=${req.headers.authorization}`
+                upload_url: `https://cdn.discordapp.com/upload/${id}_${file.filename}?auth=${req.headers.authorization}`,
             };
-        })
+        }),
     });
 });
 
@@ -452,38 +453,55 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         Content: req.body.content,
         CreationDate: new Date(),
         Channel: RequestedChannel,
-        Embeds
+        Embeds,
     });
 
     const Attachments: Attachment[] = [];
 
-    for (const Attachment of (req.body.attachments ?? []) as AttachmentMessagePost[]) {
-        if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.ATTACH_FILES))
-            return res.status(403).json({
-                code: JsonErrorCodes.MissingPermissions,
-                message: "You must have \"ATTACH_FILES\" permission to attach files."
+    try {
+        for (const Attachment of (req.body.attachments ?? []) as AttachmentMessagePost[]) {
+            if (
+                !RequestedChannel.IsDM &&
+                !HasPermission(
+                    MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                    Permissions.ATTACH_FILES,
+                )
+            )
+                return res.status(403).json({
+                    code: JsonErrorCodes.MissingPermissions,
+                    message: 'You must have "ATTACH_FILES" permission to attach files.',
+                });
+            const File = FindAttachment(Attachment.uploaded_filename);
+            if (!File) continue;
+            const AttachmentID = GenerateSnowflake();
+            const { ContentType, Size, ImageOrVideoSize } = await HandleAttachment(
+                File,
+                `${CreatedMessage.Channel.ID}-${AttachmentID}-${Attachment.filename}`,
+            );
+
+            Attachments.push({
+                content_type: ContentType,
+                filename: Attachment.filename,
+                url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+                proxy_url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+                id: AttachmentID,
+                size: Size,
+                height: ImageOrVideoSize.height,
+                width: ImageOrVideoSize.width,
             });
-        const File = FindAttachment(Attachment.uploaded_filename);
-        if (!File) continue;
-        const AttachmentID = GenerateSnowflake();
-        const { ContentType, Size, ImageOrVideoSize } = await HandleAttachment(File, `${CreatedMessage.Channel.ID}-${AttachmentID}-${Attachment.filename}`);
-        
-        Attachments.push({
-            content_type: ContentType,
-            filename: Attachment.filename,
-            url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
-            proxy_url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
-            id: AttachmentID,
-            size: Size,
-            height: ImageOrVideoSize.height,
-            width: ImageOrVideoSize.width,
+        }
+    } catch (e) {
+        return res.status(400).json({
+            code: JsonErrorCodes.GeneralError,
+            message: "An error occurred while processing your attachments.",
         });
     }
 
-    if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0) return res.status(400).json({
-        code: JsonErrorCodes.CannotSendEmptyMessage,
-        message: "Cannot send empty message."
-    });
+    if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0)
+        return res.status(400).json({
+            code: JsonErrorCodes.CannotSendEmptyMessage,
+            message: "Cannot send empty message.",
+        });
 
     CreatedMessage.Attachments = Attachments;
 
