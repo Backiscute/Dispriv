@@ -20,7 +20,10 @@ App.post("/:ApplicationID/api/token", async (req, res) => {
 
     const OAuthApp = MyUser?.AuthorizedApps.find((R: OAuth2App) => R.Application.ID === req.params.ApplicationID);
 
-    if (OAuthApp === undefined) return res.status(404).json({ message: "Authorized Application not found", code: JsonErrorCodes.UnknownApplication });
+    if (OAuthApp === undefined)
+        return res
+            .status(404)
+            .json({ message: "Authorized Application not found", code: JsonErrorCodes.UnknownApplication });
 
     const TokenCheck = bcrypt.compareSync(`${OAuthApp.ID}-${MyUser?.ID}`, Token.split("-")[1]);
 
@@ -39,7 +42,8 @@ App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOA
 
     const UserMembership = MyUser.Memberships.find((M) => M.ToGuild.ID === req.params.GuildID);
 
-    if (UserMembership === undefined) return res.status(404).json({ message: "User not in guild", code: JsonErrorCodes.UnknownGuild });
+    if (UserMembership === undefined)
+        return res.status(404).json({ message: "User not in guild", code: JsonErrorCodes.UnknownGuild });
 
     res.json(UserMembership.Package());
 });

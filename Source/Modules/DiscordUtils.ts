@@ -173,7 +173,7 @@ export async function SendToDMOrServer(
 }
 
 export async function SendMessage(Msg: Message) {
-    SendToDMOrServer(Msg.Channel, OpCodes.DISPATCH, Msg.Package(), 69420, "MESSAGE_CREATE");
+    SendToDMOrServer(Msg.Channel, OpCodes.DISPATCH, Msg.Package(new User()), 69420, "MESSAGE_CREATE");
 }
 
 export function GenerateRandomString(Count = 8, OverrideChars = ""): string {

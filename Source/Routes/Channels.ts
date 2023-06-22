@@ -4,7 +4,7 @@ import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { Embed, Message, MessageType } from "../Entities/Message";
+import { Embed, Message, MessageType, Reaction } from "../Entities/Message";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { RelationType } from "../Entities/FriendUser";
 import { Invite } from "../Entities/Guild";
@@ -73,30 +73,6 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
-    if (!req.body.files || !Array.isArray(req.body.files))
-        return res.status(400).json({
-            code: 0,
-            message: "Bad request"
-        });
-    for (const file of req.body.files ?? [])
-        if (file.file_size > 5 * 1024 * 1024) return res.status(403).json({
-            code: 0,
-            message: "File uploads are limited at 5mb."
-        });
-    
-    res.json({
-        attachments: req.body.files.map((file: {
-            id: string;
-            filename: string;
-        }) => ({
-            id: file.id,
-            upload_filename: `${req.params.ChannelID}/${file.filename}`,
-            upload_url: `https://cdn.discordapp.com/upload/${req.params.ChannelID}/${file.filename}?auth=${req.headers.authorization}`
-        }))
-    });
-});
-
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
@@ -120,7 +96,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         if (!HasPermission(Mmbr, Permissions.READ_MESSAGE_HISTORY)) return res.json([]);
     }
 
-    res.json(RequestedChannel.Messages.map((M) => M.Package()).reverse());
+    res.json(RequestedChannel.Messages.map((M) => M.Package(MyUser)).reverse());
 });
 
 App.get("/:ChannelID", VerifyAuth, async (req, res) => {
@@ -439,7 +415,9 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Embeds: Embed[] = [];
 
-    for await (const link of (req.body.content ?? "").match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
+    for await (const link of (req.body.content ?? "").match(
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+    )) {
         const Embed = await EmbedParser(link);
         if (Embed) Embeds.push(Embed);
     }
@@ -451,7 +429,8 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         Content: req.body.content,
         CreationDate: new Date(),
         Channel: RequestedChannel,
-        Embeds
+        Embeds,
+        Reactions: [],
     });
 
     if (MessageReplyingTo) {
@@ -462,7 +441,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     await CreatedMessage.save();
     await SendMessage(CreatedMessage);
 
-    const PMessage = CreatedMessage.Package();
+    const PMessage = CreatedMessage.Package(MyUser);
     res.json({
         ...PMessage,
         nonce: req.body.nonce ?? undefined,
@@ -471,12 +450,14 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     });
 });
 
+// todo: refactor next 2 endpoints (reaction put & delete)
+
 App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
-        GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }),
+        GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true, Memberships: { ToGuild: true } }),
         Channel.findOne({
             where: { ID: req.params.ChannelID },
-            relations: { DMRecipients: true, OwnerGuild: true },
+            relations: { DMRecipients: true, OwnerGuild: { Members: true } },
         }),
         Message.findOne({
             where: { ID: req.params.MessageID },
@@ -484,7 +465,158 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
         }),
     ]);
     const Emoji = req.params.Emoji as string;
+    if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
+    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
+        return res.status(400).json({ code: 0, message: "No access" });
+    const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
+    if (MessageReaction) {
+        if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID))
+            return res.status(400).send({
+                code: JsonErrorCodes.ReactionBlocked,
+                message: "You have already reacted to this message",
+            });
+        MessageReaction.UsersReacted.push(MyUser!);
+        await MessageReaction.save();
+    } else {
+        const MessageReaction = Reaction.create({
+            ID: GenerateSnowflake(),
+            EmojiCode: Emoji,
+            Type: "normal",
+            UsersReacted: [],
+            ToMessage: RequestedMessage,
+        });
+        MessageReaction.UsersReacted.push(MyUser!);
+        await MessageReaction.save();
+    }
+    if (RequestedChannel.IsDM) {
+        RequestedChannel.DMRecipients?.forEach((Recipient) => {
+            const Conn = FindConnection(Recipient.ID);
+            if (Conn)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    {
+                        user_id: MyUser!.ID,
+                        type: 0,
+                        message_id: RequestedMessage.ID,
+                        message_author_id: RequestedMessage.Author.ID,
+                        emoji: {
+                            name: Emoji,
+                            id: null,
+                        },
+                        channel_id: RequestedChannel.ID,
+                        burst: false,
+                    },
+                    null,
+                    "MESSAGE_REACTION_ADD",
+                );
+        });
+    } else {
+        RequestedChannel.OwnerGuild?.Members.forEach((M) => {
+            const Conn = FindConnection(M.Owner.ID);
+            if (Conn)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    {
+                        user_id: MyUser!.ID,
+                        type: 0,
+                        message_id: RequestedMessage.ID,
+                        message_author_id: RequestedMessage.Author.ID,
+                        member: {
+                            user: MyUser!.Package(),
+                            ...MyUser!.Memberships.find(
+                                (M) => M.ToGuild.ID === RequestedChannel.OwnerGuild!.ID,
+                            )?.Package(),
+                        },
+                        emoji: {
+                            name: Emoji,
+                            id: null,
+                        },
+                        channel_id: RequestedChannel.ID,
+                        burst: false,
+                        guild_id: RequestedChannel.OwnerGuild!.ID,
+                    },
+                    null,
+                    "MESSAGE_REACTION_ADD",
+                );
+        });
+    }
+    return res.sendStatus(204);
+});
 
+App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) => {
+    const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
+        GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }),
+        Channel.findOne({
+            where: { ID: req.params.ChannelID },
+            relations: { DMRecipients: true, OwnerGuild: { Members: true } },
+        }),
+        Message.findOne({
+            where: { ID: req.params.MessageID },
+            relations: { Author: true, Channel: { OwnerGuild: { Members: true } } },
+        }),
+    ]);
+    const Emoji = req.params.Emoji as string;
+    if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
+    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
+        return res.status(400).json({ code: 0, message: "No access" });
+    const MessageReaction = RequestedMessage.Reactions?.find(
+        (R) => R.EmojiCode === Emoji && R.UsersReacted.map((U) => U.ID).includes(MyUser!.ID),
+    );
+    if (!MessageReaction)
+        return res.status(400).send({
+            code: JsonErrorCodes.GeneralError,
+            message: "You have not reacted to this message",
+        });
+    MessageReaction.UsersReacted = MessageReaction.UsersReacted.filter((U) => U.ID !== MyUser!.ID);
+    await MessageReaction.save();
+    if (RequestedChannel.IsDM) {
+        RequestedChannel.DMRecipients?.forEach((Recipient) => {
+            const Conn = FindConnection(Recipient.ID);
+            if (Conn)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    {
+                        user_id: MyUser!.ID,
+                        type: 0,
+                        message_id: RequestedMessage.ID,
+                        emoji: {
+                            name: Emoji,
+                            id: null,
+                        },
+                        channel_id: RequestedChannel.ID,
+                        burst: false,
+                    },
+                    null,
+                    "MESSAGE_REACTION_REMOVE",
+                );
+        });
+    } else {
+        RequestedChannel.OwnerGuild?.Members.forEach((M) => {
+            const Conn = FindConnection(M.Owner.ID);
+            if (Conn)
+                SendOp(
+                    Conn,
+                    OpCodes.DISPATCH,
+                    {
+                        user_id: MyUser!.ID,
+                        type: 0,
+                        message_id: RequestedMessage.ID,
+                        emoji: {
+                            name: Emoji,
+                            id: null,
+                        },
+                        channel_id: RequestedChannel.ID,
+                        burst: false,
+                        guild_id: RequestedChannel.OwnerGuild!.ID,
+                    },
+                    null,
+                    "MESSAGE_REACTION_REMOVE",
+                );
+        });
+    }
     return res.sendStatus(204);
 });
 

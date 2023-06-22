@@ -128,7 +128,10 @@ export class Message extends BaseEntity {
     @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     Channel: Channel;
 
-    Package(IncludeReplyData = true): {
+    Package(
+        CurrentUser: User,
+        IncludeReplyData = true,
+    ): {
         message_reference?: {
             channel_id: string | undefined;
             message_id: string | undefined;
@@ -160,8 +163,10 @@ export class Message extends BaseEntity {
                       }
                     : undefined,
             referenced_message:
-                this.Type === MessageType.REPLY && IncludeReplyData ? this.ReplyingTo?.Package(false) : undefined,
-            reactions: this.Reactions?.map((R) => R.Package()),
+                this.Type === MessageType.REPLY && IncludeReplyData
+                    ? this.ReplyingTo?.Package(CurrentUser, false)
+                    : undefined,
+            reactions: this.Reactions?.map((R) => R.Package(CurrentUser)) || [],
             attachments: [],
             tts: false,
             embeds: this.Embeds,
@@ -198,11 +203,25 @@ export class Reaction extends BaseEntity {
     @Column({ default: "normal" })
     Type: "normal" | "super";
 
-    Package(Context?: User) {
+    Package(CurrentUser: User): {
+        emoji: {
+            id: string | null;
+            name: string; // the emoji
+        };
+        count?: number;
+        count_details?: {
+            burst: number;
+            normal: number;
+        };
+        burst_colors?: any[];
+        me_burst?: boolean;
+        me?: boolean;
+        burst_count?: number;
+    } {
         return {
-            count: this.UsersReacted ? this.UsersReacted.length : 1,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            me: this.UsersReacted ? this.UsersReacted.includes(Context!) : false,
+            // count: this.UsersReacted ? this.UsersReacted.length : 1,
+            count: this.UsersReacted?.length,
+            me: this.UsersReacted.map((u) => u.ID).includes(CurrentUser.ID),
             emoji: {
                 id: null,
                 name: this.EmojiCode,

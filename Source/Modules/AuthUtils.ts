@@ -3,6 +3,7 @@ import { User } from "../Entities/User";
 import { DISCORD_EPOCH } from "./DiscordUtils";
 import { NextFunction, Request, Response } from "express";
 import { OAuth2App } from "../Entities/OAuth2";
+import { FindOneOptions } from "typeorm";
 
 export function GenerateToken(Snowflake: string, Timestamp: number, HashedPassword: string): string {
     const EncodedId = Buffer.from(Snowflake).toString("base64url");
@@ -12,16 +13,22 @@ export function GenerateToken(Snowflake: string, Timestamp: number, HashedPasswo
     return `${Content}.${Signature}`;
 }
 
-export async function GenerateOAuth2Token(OAuthSnowflake: string): Promise<string|null> {
-    const LinkedOAuth = await OAuth2App.findOne({ where: { ID: OAuthSnowflake }, relations: { AuthorizedUsers: true } });
+export async function GenerateOAuth2Token(OAuthSnowflake: string): Promise<string | null> {
+    const LinkedOAuth = await OAuth2App.findOne({
+        where: { ID: OAuthSnowflake },
+        relations: { AuthorizedUsers: true },
+    });
     if (!LinkedOAuth) return null;
     const LinkedUser = LinkedOAuth.AuthorizedUsers;
 
     const Content = Buffer.from(LinkedOAuth.ID).toString("base64url");
-    const Signature = crypto.createHmac("sha256", LinkedUser.Email + LinkedUser.Password).update(Content).digest("base64url");
+    const Signature = crypto
+        .createHmac("sha256", LinkedUser.Email + LinkedUser.Password)
+        .update(Content)
+        .digest("base64url");
 
     return `${Content}.${Signature}`;
-};
+}
 
 export async function VerifyOAuthToken(token: string): Promise<boolean> {
     const Parts = token.split(".");
@@ -42,7 +49,7 @@ export async function VerifyOAuthToken(token: string): Promise<boolean> {
 
     return Signature === crypto.createHmac("sha256", ActualSignature).update(EncodedID).digest("base64url");
 }
-    
+
 export function GetTokenTimestamp(token: string): number {
     const Parts = token.split(".");
     if (Parts.length !== 3) {
@@ -110,15 +117,17 @@ export async function GetOAppByOAuthReq(req: Request) {
     const EncodedUserID = Token.split(".")[0];
     const UserID = Buffer.from(EncodedUserID, "base64url").toString();
 
-    const LinkedOAuth = await OAuth2App.findOne({ where: { ID: UserID }, relations: { AuthorizedUsers: true, Application: true } });
+    const LinkedOAuth = await OAuth2App.findOne({
+        where: { ID: UserID },
+        relations: { AuthorizedUsers: true, Application: true },
+    });
     if (!LinkedOAuth) return null;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return LinkedOAuth;
-};
+}
 
-export async function GetUserByOAuthReq(req: Request, relations?: object)
-{
+export async function GetUserByOAuthReq(req: Request, relations?: object) {
     let Token = req.headers.authorization ?? "";
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
 
@@ -138,7 +147,7 @@ export async function GetUserByOAuthReq(req: Request, relations?: object)
     return LinkedOAuth.AuthorizedUsers;
 }
 
-export async function GetUserByRequest(req: Request, relations?: object) {
+export async function GetUserByRequest(req: Request, relations?: FindOneOptions<User>["relations"]) {
     let Token = req.headers.authorization ?? "";
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
 

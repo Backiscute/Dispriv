@@ -34,7 +34,7 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 
     if (!G) return res.status(404).json({ code: 0, message: "Couldn't find that guild." });
 
-    if (G.IconID) await Remove(G.IconID);
+    if (G.IconID) Remove(G.IconID);
 
     await SendToMembers(G.ID, OpCodes.DISPATCH, { id: G.ID }, 69, "GUILD_DELETE");
 
@@ -89,23 +89,23 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
     const UserTo = IsMe
         ? MyUser
         : await User.findOne({
-            where: {
-                ID: req.params.MemberID,
-                Memberships: {
-                    ToGuild: {
-                        ID: G.ID,
-                    },
-                },
-            },
-            relations: {
-                Memberships: {
-                    Owner: false,
-                    ToGuild: {
-                        Members: true,
-                    },
-                },
-            },
-        });
+              where: {
+                  ID: req.params.MemberID,
+                  Memberships: {
+                      ToGuild: {
+                          ID: G.ID,
+                      },
+                  },
+              },
+              relations: {
+                  Memberships: {
+                      Owner: false,
+                      ToGuild: {
+                          Members: true,
+                      },
+                  },
+              },
+          });
 
     if (!UserTo) return res.status(404).json({ code: 0, message: "Couldn't find that user." });
 
@@ -170,16 +170,16 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
 
     const RoleArray: Role[] = SingleRole
         ? [
-            await Role.findOne({
-                where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
-                relations: { InGuild: true },
-            }),
-        ]
+              await Role.findOne({
+                  where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
+                  relations: { InGuild: true },
+              }),
+          ]
         : await Promise.all(
-            req.body.map((r: { id: string }) =>
-                Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
-            ),
-        );
+              req.body.map((r: { id: string }) =>
+                  Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
+              ),
+          );
 
     const ResponseBody = [];
 
@@ -213,9 +213,9 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
                         Remove(Rl.IconID);
                         Rl.IconID = undefined;
                     }
-    
+
                     if (!ValidBaseURL(Value)) continue;
-    
+
                     Rl.IconID = await Upload(Value);
                     continue;
                 case "hoist":
