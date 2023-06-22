@@ -5,6 +5,8 @@ import { DiscordApplication } from "../Entities/Application";
 import { Channel } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
 import { Badge } from "../Entities/Badge";
+import { OpCodes } from "../Classes/GatewayOpCodes";
+import { SendToMembers } from "../Modules/DiscordUtils";
 
 const App = Router();
 
@@ -12,6 +14,18 @@ App.use((req, res, next) => {
     if (req.header("authorization") !== process.env.DASHBOARD_KEY)
         return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
     next();
+});
+
+App.get("/Guilds", async (req, res) => {
+    // example: GET /Guilds?search=Test
+    // should do a text search on the guilds
+    const Search = req.query.search as string | undefined;
+    const Guilds = await Guild.find();
+    if (Search) {
+        const FilteredGuilds = Guilds.filter((G) => G.Name.toLowerCase().includes(Search.toLowerCase()));
+        return res.json(FilteredGuilds.map((G) => G.Package(new User())));
+    }
+    res.json(Guilds.map((G) => G.Package(new User())));
 });
 
 App.patch("/Server/:ID", async (req, res) => {
@@ -27,7 +41,29 @@ App.patch("/Server/:ID", async (req, res) => {
 
     await ServerData.save();
     //SendToMembers(ServerData.ID, OpCodes.DISPATCH, ServerData.GatewayPackage(null), 6969, "GUILD_UPDATE");
-    res.send(ServerData);
+    res.send(ServerData.Package(new User()));
+});
+
+App.patch("/Server/:ID/Features", async (req, res) => {
+    const ServerData = await Guild.findOneBy({
+        ID: req.params.ID,
+    });
+    if (!ServerData) return;
+
+    ServerData.Features = req.body.features;
+    await ServerData.save();
+    const GatewayPackage = ServerData.GatewayPackage(new User());
+    SendToMembers(
+        ServerData.ID,
+        OpCodes.DISPATCH,
+        {
+            ...GatewayPackage,
+            ...GatewayPackage.properties,
+        },
+        6969,
+        "GUILD_UPDATE",
+    );
+    res.send(ServerData.Package(new User()));
 });
 
 App.post("/Badge", async (req, res) => {
