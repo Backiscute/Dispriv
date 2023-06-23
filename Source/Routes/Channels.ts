@@ -21,7 +21,7 @@ import EmbedParser from "../Modules/EmbedParser";
 import { Presence } from "../Classes/Presence";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
-import { Msg } from "../Modules/Logger";
+import { Error, Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
@@ -440,10 +440,24 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Embeds: Embed[] = [];
 
-    if (req.body.content) for await (const link of req.body.content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
-        if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.EMBED_LINKS)) break;
-        const Embed = await EmbedParser(link);
-        if (Embed) Embeds.push(Embed);
+    try {
+        if (req.body.content)
+            for await (const link of req.body.content.match(
+                /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+            )) {
+                if (
+                    !RequestedChannel.IsDM &&
+                    !HasPermission(
+                        MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                        Permissions.EMBED_LINKS,
+                    )
+                )
+                    break;
+                const Embed = await EmbedParser(link);
+                if (Embed) Embeds.push(Embed);
+            }
+    } catch {
+        Error("Error while parsing embeds");
     }
 
     const CreatedMessage = Message.create({
