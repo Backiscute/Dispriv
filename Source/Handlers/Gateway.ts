@@ -399,15 +399,15 @@ Socket.on("connection", async (Client, req) => {
                                 Owner: true,
                             },
                             Channels: {
-                                OwnerCategory: true
-                            }
-                        }
+                                OwnerCategory: true,
+                            },
+                        },
                     },
                     AvailableDMs: {
                         DMRecipients: true,
                     },
                     RelationsFrom: true,
-                    RelationsRegarding: true
+                    RelationsRegarding: true,
                 }))!;
                 GatewayClient.UserToken = Token;
 
@@ -444,15 +444,15 @@ Socket.on("connection", async (Client, req) => {
                                 Owner: true,
                             },
                             Channels: {
-                                OwnerCategory: true
-                            }
-                        }
+                                OwnerCategory: true,
+                            },
+                        },
                     },
                     AvailableDMs: {
                         DMRecipients: true,
                     },
                     RelationsFrom: true,
-                    RelationsRegarding: true
+                    RelationsRegarding: true,
                 }))!;
                 GatewayClient.UserToken = Token;
 

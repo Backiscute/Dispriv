@@ -153,3 +153,21 @@ input[type="text"]::placeholder {
 // .guild-card:active {
 //     background-color: #35373c;
 // }
+
+code {
+    background-color: #2b2d31;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #fff;
+}
+
+code * {
+    font-family: monospace;
+}
+
+.logs {
+    margin-top: 12px;
+    height: 120px;
+    width: calc(100vw - 218px - 120px);
+    overflow: auto;
+}
