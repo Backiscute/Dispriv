@@ -48,6 +48,15 @@ App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOA
     res.json(UserMembership.Package());
 });
 
+App.get("/:ApplicationID/discord/api/users/@me/guilds/", VerifyOAuthReq, async (req, res) => {
+    const MyUser = await GetUserByOAuthReq(req, { Memberships: { ToGuild: true } });
+
+    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UnknownUser });
+
+    const Guilds = MyUser.Memberships.map((M) => M.ToGuild.Partial());
+    res.json(Guilds);
+});
+
 module.exports = {
     DefaultAPI: "/discordsays",
     App,

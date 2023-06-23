@@ -10,7 +10,7 @@ import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import { SendGuildMemberUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
-import { green, red } from "colorette";
+import { gray, green, red } from "colorette";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "./RTCSocket";
 import bcrypt from "bcrypt";
@@ -563,4 +563,8 @@ Socket.on("connection", async (Client, req) => {
     });
 });
 
-Msg(`Gateway initialized! Listening on port ${green(Socket.options.port!)}`, "Gateway");
+console.log(
+    `${gray(new Date().toISOString())} [${green("Gateway")}] ${`Gateway initialized! Listening on port ${green(
+        Socket.options.port!,
+    )}`}`,
+);

@@ -1,0 +1,47 @@
+@keyframes loadingGradient {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.logo-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-logo-squish {
+  width: min(30%, 300px);
+  padding-bottom: 2%;
+  animation: loading-logo-squish 1.2s alternate infinite,
+    loading-logo-fade-in 1s ease-in;
+}
+
+@keyframes loading-logo-squish {
+  0% {
+    transform: translateY(-8%);
+  }
+  100% {
+    transform: translateY(8%);
+  }
+}
+
+@keyframes loading-logo-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -7,6 +7,7 @@ import { Guild } from "../Entities/Guild";
 import { Badge } from "../Entities/Badge";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { SendToMembers } from "../Modules/DiscordUtils";
+import { Connections } from "../Handlers/Gateway";
 
 const App = Router();
 
@@ -14,6 +15,10 @@ App.use((req, res, next) => {
     if (req.header("authorization") !== process.env.DASHBOARD_KEY)
         return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
     next();
+});
+
+App.get("/Websockets", async (req, res) => {
+    res.json(Connections);
 });
 
 App.get("/Guilds", async (req, res) => {
