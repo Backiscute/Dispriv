@@ -6,6 +6,7 @@ import { Channel, ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "../Handlers/RTCSocket";
 import { BundleItem } from "../Classes/VoiceSession";
 import { CreateOrJoinActivityRoom } from "../Modules/ActivityUtils";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
@@ -15,7 +16,7 @@ App.get("/:ApplicationID/test-mode", VerifyAuth, async (req, res) => {
     const UserData = await GetUserByRequest(req, { Applications: true });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
-    if (!Application) return res.status(403).json({ message: "403: No access bozo", code: 0 });
+    if (!Application) return res.status(403).json({ message: "Unauthorized", code: JsonErrorCodes.Unauthorized });
     res.sendStatus(204);
 });
 
@@ -26,8 +27,8 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
     const GuildID = req.body.guild_id;
     const SessionID = req.body.session_id;
 
-    if (!SessionID) return res.status(404).json({ message: "Missing body", code: 0 });
-    if (!GuildID) return res.status(404).json({ message: "Missing body", code: 0 });
+    if (!SessionID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.InvalidFormBody });
+    if (!GuildID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.InvalidFormBody });
 
     const LinkedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -35,7 +36,7 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
         cache: true,
     });
 
-    if (!LinkedChannel) return res.status(404).json({ message: "Channel not found", code: 0 });
+    if (!LinkedChannel) return res.status(404).json({ message: "Unknown Channel", code: JsonErrorCodes.UnknownChannel });
     if (LinkedChannel.Type != ChannelType.GUILD_VOICE)
         return res.status(404).json({ message: "Channel is not a voice channel", code: 0 });
 

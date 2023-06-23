@@ -61,7 +61,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
                 Permissions.MANAGE_MESSAGES,
             ))
     )
-        return res.status(403).json({ code: JsonErrorCodes.GeneralError, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
 
     await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, {
         id: RequestedMessage.ID,
@@ -195,12 +195,12 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(403).json({ code: 0, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
     if (
         !RequestedChannel.IsDM &&
         !HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.MANAGE_CHANNELS)
     )
-        return res.status(403).json({ code: 0, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
 
     for await (const Key of Object.keys(req.body)) {
         const Value = req.body[Key];
@@ -361,7 +361,7 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
     const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
     if (!HasPermission(Mmbr, Permissions.CREATE_INSTANT_INVITE))
-        return res.status(403).json({ code: 10013, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
 
     const NewInvite = await Invite.create({
         InviteOwner: MyUser,
