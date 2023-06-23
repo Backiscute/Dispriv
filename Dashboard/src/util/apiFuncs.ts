@@ -1,6 +1,8 @@
 import { API_KEY, API_URL } from "./constants";
 
-export async function req(url: string, method: string, body?: any) {
+type HTTPRequestTypes = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
+
+export async function req(url: string, method: HTTPRequestTypes, body?: any) {
     const res = await fetch(`${API_URL}${url}`, {
         method,
         headers: {

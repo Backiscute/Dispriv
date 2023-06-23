@@ -21,7 +21,7 @@ import EmbedParser from "../Modules/EmbedParser";
 import { Presence } from "../Classes/Presence";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
-import { Msg } from "../Modules/Logger";
+import { Error, Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
@@ -178,7 +178,6 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
             "CHANNEL_DELETE",
         );
 
-    //FIXME: foreign key constraint
     await Channel.remove(RequestedChannel);
 });
 
@@ -440,10 +439,24 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Embeds: Embed[] = [];
 
-    if (req.body.content) for await (const link of req.body.content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g)) {
-        if (!RequestedChannel.IsDM && !HasPermission(MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!, Permissions.EMBED_LINKS)) break;
-        const Embed = await EmbedParser(link);
-        if (Embed) Embeds.push(Embed);
+    try {
+        if (req.body.content)
+            for await (const link of req.body.content.match(
+                /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+            )) {
+                if (
+                    !RequestedChannel.IsDM &&
+                    !HasPermission(
+                        MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                        Permissions.EMBED_LINKS,
+                    )
+                )
+                    break;
+                const Embed = await EmbedParser(link);
+                if (Embed) Embeds.push(Embed);
+            }
+    } catch {
+        Error("Error while parsing embeds");
     }
 
     const CreatedMessage = Message.create({
@@ -469,7 +482,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             )
                 return res.status(403).json({
                     code: JsonErrorCodes.MissingPermissions,
-                    message: 'You must have "ATTACH_FILES" permission to attach files.',
+                    message: "You must have \"ATTACH_FILES\" permission to attach files.",
                 });
             const File = FindAttachment(Attachment.uploaded_filename);
             if (!File) continue;
@@ -537,14 +550,13 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     const Emoji = req.params.Emoji as string;
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
-        return res.status(400).json({ code: 0, message: "No access" });
+        return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Acess" });
+
     const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
     if (MessageReaction) {
         if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID))
-            return res.status(400).send({
-                code: JsonErrorCodes.ReactionBlocked,
-                message: "You have already reacted to this message",
-            });
+            return res.sendStatus(204);
+			
         MessageReaction.UsersReacted.push(MyUser!);
         await MessageReaction.save();
     } else {

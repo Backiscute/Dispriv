@@ -1,8 +1,11 @@
 /* eslint-disable no-unused-vars */
-import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinColumn } from "typeorm";
+import { Entity, PrimaryColumn, Column, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinColumn, BeforeRemove } from "typeorm";
 import { User } from "./User";
 import { Message } from "./Message";
 import { Guild, Invite } from "./Guild";
+import { rmSync } from "fs";
+import path from "path";
+import { glob } from "glob";
 
 export const enum ChannelType {
     GUILD_TEXT = 0,
@@ -85,6 +88,13 @@ export class Channel extends BaseEntity {
     @JoinColumn()
         Invites: Invite[];
 
+    @BeforeRemove()
+    private DeleteAttachments() {
+        const FilePaths = glob.sync(path.join(__dirname, "..", "Assets", "Attachments", `${this.ID}-*-*.*`).replace(/\\/g, "/"));
+
+        for (const FilePath of FilePaths) rmSync(FilePath);
+    }
+
     SmallDMPackage(UserContext: User) {
         return {
             id: this.ID,
@@ -124,7 +134,7 @@ export class Channel extends BaseEntity {
             id: this.ID,
             type: this.Type,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            guild_id: OverrideOwnerGuildID !== null ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
+            guild_id: OverrideOwnerGuildID ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
             parent_id: this.OwnerCategory?.ID ?? null,
             position: this.GuildPosition,
             permission_overwrites: [],

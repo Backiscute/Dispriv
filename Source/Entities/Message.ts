@@ -106,44 +106,44 @@ export interface Attachment {
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column({ type: "simple-json", nullable: true })
-    Attachments: Attachment[] = [];
+        Attachments: Attachment[] = [];
 
     @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true })
-    Author: User;
+        Author: User;
 
     @Column({ default: MessageType.DEFAULT })
-    Type: MessageType;
+        Type: MessageType;
 
     @Column({ default: 0 })
-    Flags: MessageFlags;
+        Flags: MessageFlags;
 
     @Column()
-    Content: string;
+        Content: string;
 
     @Column()
-    CreationDate: Date;
+        CreationDate: Date;
 
     @Column({ type: "simple-json", nullable: true })
-    Embeds: Embed[] = [];
+        Embeds: Embed[] = [];
 
     @OneToMany(() => Reaction, (R) => R.ToMessage, { eager: true })
-    Reactions: Reaction[];
+        Reactions: Reaction[];
 
     @OneToMany(() => Message, (M) => M.ReplyingTo)
-    Replies: Message[];
+        Replies: Message[];
 
     @ManyToOne(() => Message, (M) => M.Replies, {
         nullable: true /*, eager: true*/,
         onDelete: "SET NULL",
         orphanedRowAction: "nullify",
     })
-    ReplyingTo?: Message;
+        ReplyingTo?: Message;
 
     @ManyToOne(() => Channel, (C) => C.Messages, { onDelete: "CASCADE", orphanedRowAction: "delete" })
-    Channel: Channel;
+        Channel: Channel;
 
     Package(
         CurrentUser: User,
@@ -175,9 +175,9 @@ export class Message extends BaseEntity {
             message_reference:
                 this.Type === MessageType.REPLY && IncludeReplyData
                     ? {
-                          channel_id: this.ReplyingTo?.Channel?.ID,
-                          message_id: this.ReplyingTo?.ID,
-                      }
+                        channel_id: this.ReplyingTo?.Channel?.ID,
+                        message_id: this.ReplyingTo?.ID,
+                    }
                     : undefined,
             referenced_message:
                 this.Type === MessageType.REPLY && IncludeReplyData
@@ -226,19 +226,19 @@ export class Message extends BaseEntity {
 @Entity()
 export class Reaction extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column()
-    EmojiCode: string;
+        EmojiCode: string;
 
     @Column({ type: "simple-json" })
-    UsersReacted: User[];
+        UsersReacted: User[];
 
     @ManyToOne(() => Message, (M) => M.Reactions)
-    ToMessage: Message;
+        ToMessage: Message;
 
     @Column({ default: "normal" })
-    Type: "normal" | "super";
+        Type: "normal" | "super";
 
     Package(Context?: User) {
         return {
