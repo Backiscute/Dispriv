@@ -7,6 +7,10 @@ import Guild from "./pages/ManageGuilds";
 import ServerSetup from "./pages/ServerSetup";
 import Gifts from "./pages/Gifts";
 import Logs from "./pages/Logs";
+import { Socket } from "dgram";
+import Sockets from "./pages/Sockets";
+
+export const ws = new WebSocket("ws://localhost:6970/api/tests/ws");
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <div
@@ -35,6 +39,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             {
                                 route: "/dispriv/logs",
                                 title: "Logs",
+                            },
+                            {
+                                route: "/dispriv/sockets",
+                                title: "Gateway Connections",
                             },
                         ],
                     },
@@ -105,12 +113,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             />
             <Routes>
                 <Route path="/" element={<></>} />
-				
                 <Route path="/mc/guilds" element={<Guild />} />,
                 <Route path="/mc/gifts" element={<Gifts />} />
-
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
+                <Route path="/dispriv/sockets" element={<Sockets />} />
             </Routes>
         </BrowserRouter>
     </div>,
