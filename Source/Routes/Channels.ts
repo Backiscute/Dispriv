@@ -178,7 +178,6 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
             "CHANNEL_DELETE",
         );
 
-    //FIXME: foreign key constraint
     await Channel.remove(RequestedChannel);
 });
 
@@ -469,7 +468,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             )
                 return res.status(403).json({
                     code: JsonErrorCodes.MissingPermissions,
-                    message: 'You must have "ATTACH_FILES" permission to attach files.',
+                    message: "You must have \"ATTACH_FILES\" permission to attach files.",
                 });
             const File = FindAttachment(Attachment.uploaded_filename);
             if (!File) continue;

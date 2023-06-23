@@ -20,9 +20,15 @@ App.get("/Guilds", async (req, res) => {
     // example: GET /Guilds?search=Test
     // should do a text search on the guilds
     const Search = req.query.search as string | undefined;
-    const Guilds = await Guild.find();
+    const Guilds = await Guild.find({
+        select: {
+            Name: true,
+            ID: true,
+            Features: true
+        }
+    });
     if (Search) {
-        const FilteredGuilds = Guilds.filter((G) => G.Name.toLowerCase().includes(Search.toLowerCase()));
+        const FilteredGuilds = Guilds.filter((G) => /^\d+$/.test(Search) ? G.ID.startsWith(Search) : G.Name.toLowerCase().includes(Search.toLowerCase()));
         return res.json(FilteredGuilds.map((G) => G.Package(new User())));
     }
     res.json(Guilds.map((G) => G.Package(new User())));

@@ -153,3 +153,20 @@ input[type="text"]::placeholder {
 // .guild-card:active {
 //     background-color: #35373c;
 // }
+
+input[type=checkbox]:focus {
+    outline:2px solid var(--color-accent-fg);
+    outline-offset:-2px;
+    box-shadow:none
+}
+input[type=checkbox]:focus:not(:focus-visible){
+    outline:solid 1px transparent
+}
+input[type=checkbox]:focus-visible{
+    outline:2px solid var(--color-accent-fg);
+    outline-offset:-2px;
+    box-shadow:none
+}
+input[type=checkbox]:focus,input[type=checkbox]:focus-visible{
+    outline-offset:0
+}

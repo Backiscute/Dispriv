@@ -188,7 +188,7 @@ export default function GuildCard(props: { server: IServer }) {
         <div>
             <div className="guild-card">
                 <h3 style={{ padding: 0, margin: "0px 0px 12px 0px" }}>
-                    {server.name}
+                    {server.name} [{server.id}]
                 </h3>
                 <div>
                     {Object.keys(GuildFeatures).map((feature) => (
@@ -200,6 +200,13 @@ export default function GuildCard(props: { server: IServer }) {
                                 }}
                             >
                                 <input
+                                    style={{
+                                        marginTop: "5px",
+                                        marginBottom: "5px",
+                                        marginRight: "8px",
+                                        width: "13px",
+                                        height: "13px"
+                                    }}
                                     type="checkbox"
                                     key={feature}
                                     defaultChecked={server.features.includes(
@@ -216,13 +223,13 @@ export default function GuildCard(props: { server: IServer }) {
                                                         feature as GuildFeatures
                                                     )
                                                         ? server.features.filter(
-                                                              (f) =>
-                                                                  f !== feature
-                                                          )
+                                                            (f) =>
+                                                                f !== feature
+                                                        )
                                                         : [
-                                                              ...server.features,
-                                                              feature,
-                                                          ],
+                                                            ...server.features,
+                                                            feature,
+                                                        ],
                                             }
                                         );
                                         setServer(res);

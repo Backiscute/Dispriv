@@ -89,23 +89,23 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
     const UserTo = IsMe
         ? MyUser
         : await User.findOne({
-              where: {
-                  ID: req.params.MemberID,
-                  Memberships: {
-                      ToGuild: {
-                          ID: G.ID,
-                      },
-                  },
-              },
-              relations: {
-                  Memberships: {
-                      Owner: false,
-                      ToGuild: {
-                          Members: true,
-                      },
-                  },
-              },
-          });
+            where: {
+                ID: req.params.MemberID,
+                Memberships: {
+                    ToGuild: {
+                        ID: G.ID,
+                    },
+                },
+            },
+            relations: {
+                Memberships: {
+                    Owner: false,
+                    ToGuild: {
+                        Members: true,
+                    },
+                },
+            },
+        });
 
     if (!UserTo) return res.status(404).json({ code: 0, message: "Couldn't find that user." });
 
@@ -170,16 +170,16 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
 
     const RoleArray: Role[] = SingleRole
         ? [
-              await Role.findOne({
-                  where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
-                  relations: { InGuild: true },
-              }),
-          ]
+            await Role.findOne({
+                where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
+                relations: { InGuild: true },
+            }),
+        ]
         : await Promise.all(
-              req.body.map((r: { id: string }) =>
-                  Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
-              ),
-          );
+            req.body.map((r: { id: string }) =>
+                Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
+            ),
+        );
 
     const ResponseBody = [];
 
@@ -276,7 +276,7 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
                 where: { OwnerGuild: { ID: G.ID }, ID: Chnl.parent_id, Type: ChannelType.GUILD_CATEGORY },
             });
             if (Parent) ChnlEntry.OwnerCategory = Parent;
-        } else if (Chnl.parent_id === null) ChnlEntry.OwnerCategory = undefined;
+        } else if (!Chnl.parent_id) ChnlEntry.OwnerCategory = undefined;
 
         await ChnlEntry.save();
 
