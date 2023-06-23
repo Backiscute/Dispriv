@@ -4,7 +4,7 @@ import { ApplicationFlags, UserFlags } from "../Classes/Flags";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { VoiceSessions } from "../Handlers/RTCSocket";
-import { BundleItem } from "Classes/VoiceSession";
+import { BundleItem } from "../Classes/VoiceSession";
 import { CreateOrJoinActivityRoom } from "../Modules/ActivityUtils";
 
 const App = Router();
