@@ -18,7 +18,7 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: "gg sans Bold", sans-serif;
+    font-family: "gg sans", sans-serif;
     margin-bottom: 0px;
 }
 
@@ -190,19 +190,20 @@ code * {
     overflow: auto;
 }
 
-input[type=checkbox]:focus {
-    outline:2px solid var(--color-accent-fg);
-    outline-offset:-2px;
-    box-shadow:none
+input[type="checkbox"]:focus {
+    outline: 2px solid var(--color-accent-fg);
+    outline-offset: -2px;
+    box-shadow: none;
 }
-input[type=checkbox]:focus:not(:focus-visible){
-    outline:solid 1px transparent
+input[type="checkbox"]:focus:not(:focus-visible) {
+    outline: solid 1px transparent;
 }
-input[type=checkbox]:focus-visible{
-    outline:2px solid var(--color-accent-fg);
-    outline-offset:-2px;
-    box-shadow:none
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--color-accent-fg);
+    outline-offset: -2px;
+    box-shadow: none;
 }
-input[type=checkbox]:focus,input[type=checkbox]:focus-visible{
-    outline-offset:0
+input[type="checkbox"]:focus,
+input[type="checkbox"]:focus-visible {
+    outline-offset: 0;
 }
