@@ -69,7 +69,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 
                 if (!ValidBaseURL(Value)) continue;
 
-                U.BannerID = await Upload(Value, false);
+                U.BannerID = await Upload(Value);
                 break;
         }
     }

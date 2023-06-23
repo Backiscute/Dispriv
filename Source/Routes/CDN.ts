@@ -1,4 +1,6 @@
+import sharp from "sharp";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { PhotoFileTypes } from "../Classes/Misc";
 import { UploadAttachment } from "../Modules/AssetUtils";
 import { VerifyAuth } from "../Modules/AuthUtils";
 import { Error } from "../Modules/Logger";
@@ -45,12 +47,20 @@ App.get("/attachments/:ChannelID/:AttachmentID/:Filename", async (req, res) => {
         message: "File not found."
     });
 });
-App.get(["/*/*/:Filename", "/*/:Filename"], (req, res) => {
+App.get(["/*/*/:Filename", "/*/:Filename"], async (req, res) => {
     if (!/^[a-z0-9.-]+$/g.test(req.params.Filename)) return res.status(403).json({ code: 0, message: "nuh uh" });
+    const FilePath = path.join(__dirname, "..", "Assets", req.params.Filename.split(".")[0]);
 
-    if (!existsSync(path.join(__dirname, "..", "Assets", req.params.Filename))) return res.status(404).send();
-
-    res.status(200).sendFile(path.join(__dirname, "..", "Assets", req.params.Filename));
+    if (!existsSync(FilePath)) return res.status(404).send();
+    else {
+        const FileExtension = req.params.Filename.split(".")[1];
+        
+        if ((PhotoFileTypes as unknown as string[]).includes(FileExtension)) {
+            if (FileExtension === "webp") res.status(200).sendFile(FilePath);
+            else res.status(200).send(await sharp(FilePath)[FileExtension as typeof PhotoFileTypes[number]]().toBuffer());
+        }
+        else res.status(200).sendFile(FilePath);
+    }
 });
 
 module.exports = {

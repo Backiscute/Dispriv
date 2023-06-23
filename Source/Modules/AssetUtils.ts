@@ -7,6 +7,7 @@ import imageSize from "image-size";
 import ffmpeg from "fluent-ffmpeg";
 import { path as ffprobeBinary} from "ffprobe-static";
 import ffmpegBinary from "ffmpeg-static";
+import { PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
 
 ffmpeg.setFfprobePath(ffprobeBinary);
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -24,15 +25,15 @@ export function CreateFirstFrame(FilePath: string, OutputPath: string) {
     ffmpeg(FilePath).outputOptions("-vf", "select=eq(n\\,0)", "-q:v", "3").output(OutputPath).run();
 }
 
-export async function Upload(RawImageString: string, ToWebp = true) {
+export async function Upload(RawImageString: string) {
     const ImgBlob = URLToBuffer(RawImageString);
     const ID = v4().replaceAll("-", "");
 
-    const Buffer = ToWebp ? await sharp(ImgBlob).webp({ quality: 80 }).toBuffer() : ImgBlob;
+    const Buffer = await sharp(ImgBlob).webp({ quality: 80 }).toBuffer();
 
     if (!existsSync(path.join(__dirname, "..", "Assets"))) mkdirSync(path.join(__dirname, "..", "Assets"));
 
-    writeFileSync(path.join(__dirname, "..", "Assets", `${ID}.${ToWebp ? "webp" : "png"}`), Buffer);
+    writeFileSync(path.join(__dirname, "..", "Assets", ID), Buffer);
 
     return ID;
 }
@@ -55,12 +56,12 @@ export async function HandleAttachment(FilePath: string, NewFilename: string) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { size } = statSync(FilePath), ContentType = decodeURIComponent(FilePath.split("\\").at(-1)!.split("_")[0]), ImageOrVideoSize: { height: number | undefined; width: number | undefined; } = { height: undefined, width: undefined };
     
-    if (["image/avif", "image/webp", "image/svg+xml", "image/bmp","image/jpeg","image/x-png","image/png","image/gif"].includes(ContentType)) {
+    if ((PhotoFileTypes as unknown as string[]).includes(ContentType)) {
         const ImageDimensions = imageSize(FilePath);
         ImageOrVideoSize.height = ImageDimensions.height;
         ImageOrVideoSize.width = ImageDimensions.width;
     }
-    if (["video/x-msvideo", "video/mp4", "video/mpeg", "video/ogg", "video/webm"].includes(ContentType)) {
+    if ((VideoContentTypes as unknown as string[]).includes(ContentType)) {
         const VideoDimensions: { height: number | undefined; width: number | undefined; } = await new Promise(resolve => {
             ffmpeg.ffprobe(FilePath, (err, data) => {
                 if (err) resolve({ height: undefined, width: undefined });
@@ -81,7 +82,7 @@ export async function HandleAttachment(FilePath: string, NewFilename: string) {
     
     const NewFilePath = path.join(__dirname, "..", "Assets", "Attachments", NewFilename);
     renameSync(FilePath, NewFilePath);
-    if (["video/x-msvideo", "video/mp4", "video/mpeg", "video/ogg", "video/webm"].includes(ContentType)) {
+    if ((VideoContentTypes as unknown as string[]).includes(ContentType)) {
         const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${NewFilename.split(".")[0]}.jpg`);
         CreateFirstFrame(NewFilePath, ThumbnailPath);
     }
