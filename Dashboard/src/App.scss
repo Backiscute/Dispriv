@@ -4,6 +4,7 @@
     --discord-font-primary: "gg sans Medium", sans-serif;
     --discord-background: #313338;
     --discord-divider: #3c3e44;
+    --discord-text-muted: #8e9297;
 }
 
 * {
@@ -18,7 +19,7 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: "gg sans Bold", sans-serif;
+    font-family: "gg sans", sans-serif;
     margin-bottom: 0px;
 }
 
@@ -110,6 +111,7 @@ button:active {
     display: flex;
     flex-direction: column;
     gap: 25px;
+    width: calc(100vw - 218px - 120px - 24px);
     margin-left: calc(218px + 32px);
 }
 
@@ -129,13 +131,13 @@ input[type="text"]::placeholder {
 }
 
 .guild-search {
-    width: 450px;
+    width: 101%;
 }
 
 .guild-card {
     display: flex;
     flex-direction: column;
-    width: calc(100% - 36px);
+    width: 100%;
     padding: 150px;
     background-color: #383a40;
     border-radius: 8px;
@@ -190,19 +192,41 @@ code * {
     overflow: auto;
 }
 
-input[type=checkbox]:focus {
-    outline:2px solid var(--color-accent-fg);
-    outline-offset:-2px;
-    box-shadow:none
+input[type="checkbox"]:focus {
+    outline: 2px solid var(--color-accent-fg);
+    outline-offset: -2px;
+    box-shadow: none;
 }
-input[type=checkbox]:focus:not(:focus-visible){
-    outline:solid 1px transparent
+input[type="checkbox"]:focus:not(:focus-visible) {
+    outline: solid 1px transparent;
 }
-input[type=checkbox]:focus-visible{
-    outline:2px solid var(--color-accent-fg);
-    outline-offset:-2px;
-    box-shadow:none
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--color-accent-fg);
+    outline-offset: -2px;
+    box-shadow: none;
 }
-input[type=checkbox]:focus,input[type=checkbox]:focus-visible{
-    outline-offset:0
+input[type="checkbox"]:focus,
+input[type="checkbox"]:focus-visible {
+    outline-offset: 0;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #3c3e44;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #2b2d31;
+    border-radius: 18px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

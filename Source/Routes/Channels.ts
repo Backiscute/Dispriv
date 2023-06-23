@@ -550,14 +550,13 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     const Emoji = req.params.Emoji as string;
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
-        return res.status(400).json({ code: 0, message: "No access" });
+        return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Acess" });
+
     const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
     if (MessageReaction) {
         if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID))
-            return res.status(400).send({
-                code: JsonErrorCodes.ReactionBlocked,
-                message: "You have already reacted to this message",
-            });
+            return res.sendStatus(204);
+			
         MessageReaction.UsersReacted.push(MyUser!);
         await MessageReaction.save();
     } else {

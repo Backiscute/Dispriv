@@ -20,18 +20,15 @@ App.get("/Guilds", async (req, res) => {
     // example: GET /Guilds?search=Test
     // should do a text search on the guilds
     const Search = req.query.search as string | undefined;
-    const Guilds = await Guild.find({
-        select: {
-            Name: true,
-            ID: true,
-            Features: true
-        }
-    });
+    const Guilds = await Guild.createQueryBuilder("Guild")
+        .where("Guild.Name GLOB :SearchTerm", { SearchTerm: `*${Search}*` })
+        .limit(25)
+        .getMany();
     if (Search) {
-        const FilteredGuilds = Guilds.filter((G) => /^\d+$/.test(Search) ? G.ID.startsWith(Search) : G.Name.toLowerCase().includes(Search.toLowerCase()));
-        return res.json(FilteredGuilds.map((G) => G.Package(new User())));
+        // const FilteredGuilds = Guilds.filter((G) => /^\d+$/.test(Search) ? G.ID.startsWith(Search) : G.Name.toLowerCase().includes(Search.toLowerCase()));
+        return res.json(Guilds.map((G) => G.Package(new User())));
     }
-    res.json(Guilds.map((G) => G.Package(new User())));
+    res.json(Guilds.map((G) => G.Package()));
 });
 
 App.patch("/Server/:ID", async (req, res) => {

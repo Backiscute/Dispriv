@@ -105,9 +105,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             />
             <Routes>
                 <Route path="/" element={<></>} />
+				
                 <Route path="/mc/guilds" element={<Guild />} />,
-                <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/mc/gifts" element={<Gifts />} />
+
+                <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
             </Routes>
         </BrowserRouter>
