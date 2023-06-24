@@ -8,6 +8,8 @@ import { Badge } from "../Entities/Badge";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { SendToMembers } from "../Modules/DiscordUtils";
 import { Connections } from "../Handlers/Gateway";
+import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
+import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 const App = Router();
 
@@ -183,6 +185,67 @@ App.post("/UpdateApp/:AppID", async (req, res) => {
 App.post("/verifytoken", async (req, res) => {
     const Test = await VerifyToken(req.body.token);
     res.json({ passed: Test });
+});
+
+App.get("/Gifts/Gifts", async (req, res) => {
+    const Gifts = await Gift.find();
+    res.json(Gifts);
+});
+
+App.get("/Gifts/SKUs", async (req, res) => {
+    const SKUs = await SKU.find();
+    res.json(SKUs);
+});
+
+App.get("/Gifts/SubscriptionPlans", async (req, res) => {
+    const SubscriptionPlans = await SubscriptionPlan.find();
+    res.json(SubscriptionPlans);
+});
+
+App.put("/Gifts/Gifts", async (req, res) => {
+    try {
+        const [SKUData, SubscriptionPlanData, UserData] = await Promise.all([
+            SKU.findOne({ where: { ID: req.body.SKUID } }),
+            SubscriptionPlan.findOne({ where: { ID: req.body.SubPlanID } }),
+            User.findOne({ where: { ID: req.body.UserID } }),
+        ]);
+        if (!SKUData || !SubscriptionPlanData || !UserData)
+            return res.status(400).json({ message: "Invalid SKU or Subscription Plan" });
+        const GiftData = Gift.create({
+            ID: GenerateSnowflake(),
+            ...req.body,
+            SKU: SKUData,
+            SubscriptionPlan: SubscriptionPlanData,
+            User: UserData,
+            Code: GenerateCode(16),
+        });
+        await GiftData.save();
+        return res.json(GiftData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
+});
+
+App.put("/Gifts/SKU", async (req, res) => {
+    const SKUData = SKU.create({
+        ID: GenerateSnowflake(),
+        ...req.body,
+    });
+    await SKUData.save();
+    return res.json(SKUData);
+});
+
+App.put("/Gifts/SubPlan", async (req, res) => {
+    try {
+        const SubPlanData = SubscriptionPlan.create({
+            ID: GenerateSnowflake(),
+            ...req.body,
+        });
+        await SubPlanData.save();
+        return res.json(SubPlanData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
 });
 
 module.exports = {

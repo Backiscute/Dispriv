@@ -122,11 +122,11 @@ export class Gift extends BaseEntity {
     @PrimaryColumn()
     Code: string;
 
-    @ManyToOne(() => SKU, (S) => S.Gifts)
+    @ManyToOne(() => SKU, (S) => S.Gifts, { eager: true })
     @JoinColumn()
     SKU: SKU;
 
-    @ManyToOne(() => SubscriptionPlan, (S) => S.Gifts)
+    @ManyToOne(() => SubscriptionPlan, (S) => S.Gifts, { eager: true })
     @JoinColumn()
     SubscriptionPlan: SubscriptionPlan;
 
@@ -145,20 +145,8 @@ export class Gift extends BaseEntity {
     @Column({ default: false })
     Redeemed: boolean;
 
-    @ManyToOne(() => User, (U) => U.Gifts)
+    @ManyToOne(() => User, (U) => U.Gifts, { eager: true })
     User: User;
-
-    @Column()
-    Name: string;
-
-    @Column()
-    Slug: string;
-
-    @Column()
-    Price: number;
-
-    @Column()
-    Currency: string;
 
     @Column({ default: "521848044908576803" })
     StoreListingID: string;
@@ -193,4 +181,3 @@ export class Gift extends BaseEntity {
         };
     }
 }
-
