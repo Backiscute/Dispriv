@@ -43,6 +43,26 @@ App.get("/search", VerifyAuth, async (req, res) => {
     })));
 });
 
+App.get("/trending", VerifyAuth, async (req, res) => {
+    const MediaFormat = req.query.media_format?.toString() ?? "mp4";
+    const Locale = req.query.locale?.toString() ?? "en-US";
+
+    const Response = await axios.get(`https://tenor.googleapis.com/v2/categories?locale=${Locale}&key=${process.env.TenorAPIKey}`).then(res => res.data.tags).catch((err) => {
+        Error(`An error occured while requesting trending categories from tenor. Error: ${JSON.stringify(err.response.data)}`);
+        return [];
+    });
+
+    res.status(200).json({ categories: Response.map((Category: {
+        searchterm: string;
+        path: string;
+        image: string;
+        name: string;
+    }) => ({
+        name: Category.searchterm,
+        src: Category.image.replace(".gif", `.${MediaFormat}`).replace("AAAAM", "AAAPo"), // discord cries if we dont change the path
+    })), gifs: [] });
+});
+
 module.exports = {
     DefaultAPI: "/api/v9/gifs",
     App,

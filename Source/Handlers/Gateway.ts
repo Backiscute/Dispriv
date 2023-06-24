@@ -349,6 +349,32 @@ Socket.on("connection", async (Client, req) => {
                     await SendToMembers(VoiceState.guild_id, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
 
                     if (VoiceSession.voice_states.length === 0) {
+                        
+                        const LinkedChannel = await Channel.findOne({
+                            where: { ID: VoiceSession.channel_id },
+                            relations: { OwnerGuild: true },
+                        });
+
+                        if (!LinkedChannel) return;
+
+                        VoiceSession.Activities.forEach(async (Activity) => {
+                            VoiceSession.Activities.splice(VoiceSession.Activities.indexOf(Activity), 1);
+                            await SendToDMOrServer(
+                                LinkedChannel,
+                                OpCodes.DISPATCH,
+                                {
+                                    channel_id: Activity.channel_id,
+                                    connections: [],
+                                    embedded_activity: { application_id: Activity.embedded_activity.application_id },
+                                    guild_id: Activity.guild_id,
+                                    update_code: 3,
+                                    users: [],
+                                },
+                                null,
+                                "EMBEDDED_ACTIVITY_UPDATE",
+                            );
+                        });
+                        
                         VoiceSessions.splice(VoiceSessions.indexOf(VoiceSession), 1);
                     }
                 }
