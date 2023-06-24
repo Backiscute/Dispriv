@@ -42,6 +42,17 @@ export default function Gifts() {
                         style={{
                             marginBottom: 28,
                         }}
+                        handleSave={(e) => {
+                            req(`/gifts/gifts/${gift.Code}`, "PATCH", {
+                                Code: e.Code,
+                                ...e,
+                            }).then(() => {
+                                setGifts((prev) => {
+                                    prev[index] = e;
+                                    return [...prev];
+                                });
+                            });
+                        }}
                         key={index}
                         data={gift}
                         title={gift.Code}
@@ -52,7 +63,6 @@ export default function Gifts() {
                             }}
                             onClick={() => {
                                 navigator.clipboard.writeText(`discord.gift/${gift.Code}`);
-                                toast.success("Copied gift link to clipboard");
                             }}
                         >
                             Copy gift link to clipboard

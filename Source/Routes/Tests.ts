@@ -248,6 +248,22 @@ App.put("/Gifts/SubPlan", async (req, res) => {
     }
 });
 
+App.patch("/Gifts/Gifts/:Code", async (req, res) => {
+    try {
+        console.log(req.body);
+        const GiftData = await Gift.findOne({ where: { Code: req.params.Code } });
+        if (!GiftData) return res.status(400).json({ message: "Invalid Gift Code" });
+        Object.keys(req.body).forEach((K) => {
+            //@ts-expect-error test endpoint, checks not needed
+            GiftData[K] = req.body[K];
+        });
+        await GiftData.save();
+        return res.json(GiftData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
+});
+
 module.exports = {
     DefaultAPI: "/api/tests",
     App,

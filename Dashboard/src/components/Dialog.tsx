@@ -1,10 +1,23 @@
+type TextType = {
+    type: "text";
+    label: string;
+    placeholder?: string;
+};
+
+type SelectType = {
+    type: "select";
+    label: string;
+    options: {
+        label: string;
+        value: string;
+    }[];
+};
+
+type ElementType = TextType | SelectType;
+
 export default function Dialog(props: {
     title: string;
-    elements: {
-        type: "text";
-        label: string;
-        placeholder?: string;
-    }[];
+    elements: ElementType[];
     innerRef?: React.Ref<HTMLDialogElement>;
 }) {
     return (
@@ -19,12 +32,30 @@ export default function Dialog(props: {
                     <div>Gift ID</div>
                     <input type="text" />
                 </div> */}
-                {props.elements.map((element, index) => (
-                    <div key={index} className="form-input">
-                        <div>{element.label}</div>
-                        <input type={element.type} placeholder={element.placeholder} />
-                    </div>
-                ))}
+                {props.elements.map((element, index) => {
+                    switch (element.type) {
+                        case "text":
+                            return (
+                                <div key={index} className="form-input">
+                                    <div>{element.label}</div>
+                                    <input type={element.type} placeholder={element.placeholder} />
+                                </div>
+                            );
+                        case "select":
+                            return (
+                                <div key={index} className="form-input">
+                                    <div>{element.label}</div>
+                                    <select>
+                                        {element.options.map((option, index) => (
+                                            <option key={index} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                    }
+                })}
                 <div className="form-submit-container">
                     <button
                         style={{
