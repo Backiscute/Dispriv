@@ -9,6 +9,7 @@ import Gifts from "./pages/Gifts";
 import Logs from "./pages/Logs";
 import { Socket } from "dgram";
 import Sockets from "./pages/Sockets";
+import { ToastContainer } from "react-toastify";
 
 export const ws = new WebSocket("ws://localhost:6970/api/tests/ws");
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     >
         <BrowserRouter>
             <SideBar
+                readyState={ws.readyState}
                 sidebarContent={[
                     {
                         title: "Dispriv",

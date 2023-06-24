@@ -280,3 +280,79 @@ ul {
     padding-inline-start: 12px;
     list-style-type: none;
 }
+
+@keyframes dialog {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes dialog-backdrop {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+dialog {
+    background-color: var(--discord-background);
+    border: none;
+    animation: 0.3s cubic-bezier(0.09, 1.44, 0.82, 0.98) 1 normal forwards running dialog;
+    border-radius: 4px;
+}
+
+dialog::backdrop {
+    background-color: #000;
+    opacity: 0.6;
+    animation: 0.2s ease-out 0s 1 normal forwards running dialog-backdrop;
+}
+
+dialog > h1,
+dialog > h2,
+dialog > h3,
+dialog > h4,
+dialog > h5,
+dialog > h6 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.dialog-form {
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    min-width: 500px;
+}
+
+.form-input > input[type="text"] {
+    height: 24px;
+    background-color: #1e1f22;
+    width: calc(100% - 24px);
+}
+
+.form-input > div {
+    color: #b5bac1;
+    font-size: 12px;
+    font-family: "gg sans", sans-serif;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    margin-left: 2px;
+}
+
+.form-submit-container {
+    display: flex;
+    justify-content: flex-end;
+    background-color: #2b2d31;
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-bottom: -16px;
+    padding: 12px;
+}

@@ -62,7 +62,7 @@ export class SubscriptionPlan extends BaseEntity {
 
 @Entity()
 export class SKU extends BaseEntity {
-    @PrimaryColumn()
+    @PrimaryColumn({ default: "521847234246082599" })
     ID: string;
 
     @Column({ default: 5 })
@@ -157,13 +157,13 @@ export class Gift extends BaseEntity {
     Package() {
         return {
             code: this.Code,
-            sku_id: this.SKU,
+            sku_id: this.SKU.ID,
             application_id: this.ApplicationID,
             uses: this.Uses,
             max_uses: this.MaxUses,
             expires_at: this.ExpiresAt,
             redeemed: this.Redeemed,
-            user: this.User,
+            user: this.User.PackagePublic(),
             store_listing: {
                 id: this.StoreListingID,
                 summary: " ",
@@ -177,7 +177,7 @@ export class Gift extends BaseEntity {
                 },
             },
             subscription_plan_id: this.SubscriptionPlan.ID,
-            subscription_plan: this.SubscriptionPlan,
+            subscription_plan: this.SubscriptionPlan.Package(),
         };
     }
 }
