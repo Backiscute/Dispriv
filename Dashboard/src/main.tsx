@@ -100,12 +100,25 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                                 title: "Discovery",
                             },
                             {
-                                route: "/mc/gifts",
+                                route: "/mc/apps",
+                                title: "Applications",
+                            },
+                        ],
+                    },
+                    {
+                        title: "Manage Gifts",
+                        content: [
+                            {
+                                route: "/mg/gifts",
                                 title: "Gifts",
                             },
                             {
-                                route: "/mc/apps",
-                                title: "Applications",
+                                route: "/mg/skus",
+                                title: "SKUs",
+                            },
+                            {
+                                route: "/mg/subscriptionplans",
+                                title: "Subscription Plans",
                             },
                         ],
                     },
@@ -114,10 +127,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             <Routes>
                 <Route path="/" element={<></>} />
                 <Route path="/mc/guilds" element={<Guild />} />,
-                <Route path="/mc/gifts" element={<Gifts />} />
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
                 <Route path="/dispriv/sockets" element={<Sockets />} />
+                <Route path="/mg/gifts" element={<Gifts />} />
             </Routes>
         </BrowserRouter>
     </div>,
