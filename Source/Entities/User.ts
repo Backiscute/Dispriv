@@ -19,6 +19,7 @@ import { CreateTimestamp, GetHighestRoleInArr } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
+import { Gift } from "./Gift";
 
 @Entity()
 export class User extends BaseEntity {
@@ -117,6 +118,9 @@ export class User extends BaseEntity {
 
     @Column({ default: "CgIYAWIJCgcKBWVuLVVT" })
     SettingsProto: string;
+
+    @OneToMany(() => Gift, (G) => G.User)
+    Gifts: Gift[];
 
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;

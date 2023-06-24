@@ -39,7 +39,8 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Discriminator = DiscrimRandom;
                 continue;
             case "discriminator":
-                if (!/^[0-9]{4}$/g.test(Value)) return res.status(403).json({ code: 0, message: "weird discriminator" });
+                if (!/^[0-9]{4}$/g.test(Value))
+                    return res.status(403).json({ code: 0, message: "weird discriminator" });
                 const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
                 if (ExistingUserD) return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
 
@@ -394,6 +395,47 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
         console.error(err);
         return res.status(500).json({ code: 0, message: "Internal Server Error" });
     }
+});
+
+App.get("/@me/billing/subscriptions", VerifyAuth, async (req, res) => {
+    res.json({
+        id: "0",
+        sku_id: "6969",
+        application_id: "521842831262875670",
+        user_id: "Dispriv",
+        promotion_id: null,
+        type: 6,
+        deleted: false,
+        gift_code_flags: 0,
+        consumed: true,
+        gifter_user_id: "805530068860403742",
+        subscription_plan: {
+            id: "511651871736201216",
+            name: "Nitro Classic Monthly",
+            interval: 1,
+            interval_count: 1,
+            tax_inclusive: true,
+            sku_id: "6969",
+            currency: "usd",
+            price: 499,
+            price_tier: null,
+        },
+        sku: {
+            id: "521846918637420545",
+            type: 5,
+            dependent_sku_id: null,
+            application_id: "521842831262875670",
+            manifest_labels: null,
+            access_type: 1,
+            name: "Nitro Classic",
+            features: [],
+            release_date: null,
+            premium: false,
+            slug: "nitro-classic",
+            flags: 68,
+            show_age_gate: false,
+        },
+    });
 });
 
 module.exports = {
