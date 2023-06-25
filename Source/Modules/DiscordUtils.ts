@@ -1,12 +1,13 @@
 import MurmurHash3 from "murmurhash3js";
 import { Message } from "../Entities/Message";
-import { Channel } from "../Entities/Channel";
+import { Channel, ChannelType } from "../Entities/Channel";
 import { FindConnection, HasIntent, SendOp } from "./GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Guild, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { Permissions } from "../Classes/Flags";
+import { VoiceSessions } from "../Handlers/RTCSocket";
 
 export const DISCORD_EPOCH = 1420070400000;
 
@@ -133,6 +134,26 @@ export async function SendToMembers(
         if (!Conn) return;
         //if (!HasIntent(Conn.Intents, GatewayIntents.GUILD_MESSAGES)) return;
 
+        SendOp(Conn, Opcode, Data, s, t);
+    });
+}
+
+export async function SendToVC(
+    Chnl: Channel,
+    Opcode: OpCodes,
+    Data: unknown = null,
+    s: unknown = null,
+    t: unknown = null,
+) {
+    if (Chnl.Type !== ChannelType.GUILD_VOICE) return;
+
+    const VoiceSession = VoiceSessions.find((x) => x.channel_id === Chnl.ID);
+    if (!VoiceSession) return;
+
+    VoiceSession.voice_states.forEach((x) => {
+        const Conn = FindConnection(x.user_id);
+        if (!Conn) return;
+        
         SendOp(Conn, Opcode, Data, s, t);
     });
 }

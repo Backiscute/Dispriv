@@ -168,6 +168,7 @@ export enum JsonErrorCodes {
     VoiceMetadata,
     NoVoiceEdit,
     CannotDeleteSubscriptionIntegration,
+    UserMustBeInVoiceChannelToSendVoiceChannelEffect = 50168,
     CannotSendVoiceMessage = 50173,
     EmailVerificationRequired = 50178,
     NoPermissionToSendSticker = 50600,

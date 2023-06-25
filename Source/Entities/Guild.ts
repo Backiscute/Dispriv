@@ -142,54 +142,54 @@ export const enum GuildFeatures {
 @Entity()
 export class Guild extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column()
-    Name: string;
+        Name: string;
 
     @Column({ nullable: true })
-    IconID?: string;
+        IconID?: string;
 
     @Column({ nullable: true })
-    BannerID?: string;
+        BannerID?: string;
 
     @ManyToOne(() => User, (U) => U.OwnedGuilds, { eager: true, onDelete: "CASCADE", orphanedRowAction: "nullify" })
     @JoinColumn()
-    Owner: User;
+        Owner: User;
 
     @Column({ nullable: true })
-    VanityInviteURL?: string;
+        VanityInviteURL?: string;
 
     @Column({ default: false })
-    ClassifiedAsNSFW: boolean;
+        ClassifiedAsNSFW: boolean;
 
     @Column({ nullable: true })
-    Description?: string;
+        Description?: string;
 
     @Column({ default: false })
-    Disabled: boolean;
+        Disabled: boolean;
 
     @Column({ type: "simple-array" })
-    Features: GuildFeatures[];
+        Features: GuildFeatures[];
 
     @Column({ default: 1000 })
-    MaximumMembers: number;
+        MaximumMembers: number;
 
     @OneToMany(() => Membership, (U) => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinTable()
-    Members: Membership[];
+        Members: Membership[];
 
     @OneToMany(() => Channel, (C) => C.OwnerGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-    Channels: Channel[];
+        Channels: Channel[];
 
     @OneToMany(() => Role, (R) => R.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-    Roles: Role[];
+        Roles: Role[];
 
     @OneToMany(() => Invite, (I) => I.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
-    Invites: Invite[];
+        Invites: Invite[];
 
     get DefaultRole() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -394,35 +394,35 @@ export class Guild extends BaseEntity {
 @Entity()
 export class Role extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column()
-    Name: string;
+        Name: string;
 
     @Column({ length: 90, nullable: true })
-    Description?: string;
+        Description?: string;
 
     @Column()
-    Color: number;
+        Color: number;
 
     @Column({ default: 0 })
-    Position: number;
+        Position: number;
 
     @Column({ default: true })
-    ShownOnMemberlist: boolean;
+        ShownOnMemberlist: boolean;
 
     @Column({ nullable: true })
-    IconID?: string;
+        IconID?: string;
 
     @Column({ nullable: true })
-    UnicodeEmoji?: string;
+        UnicodeEmoji?: string;
 
     @ManyToOne(() => Guild, (G) => G.Roles, { onDelete: "CASCADE", orphanedRowAction: "delete" })
-    InGuild: Guild;
+        InGuild: Guild;
 
     @ManyToMany(() => Membership, (M) => M.Roles, { orphanedRowAction: "nullify" })
     @JoinTable()
-    Members: Membership[];
+        Members: Membership[];
 
     @Column({
         default:
@@ -434,10 +434,10 @@ export class Role extends BaseEntity {
             Permissions.READ_MESSAGE_HISTORY |
             Permissions.USE_EMBEDDED_ACTIVITIES,
     })
-    Permissions: Permissions;
+        Permissions: Permissions;
 
     @Column({ default: false })
-    AnyoneCanMention: boolean;
+        AnyoneCanMention: boolean;
 
     Package() {
         return {
@@ -461,31 +461,31 @@ export class Role extends BaseEntity {
 @Entity()
 export class Invite extends BaseEntity {
     @PrimaryColumn()
-    InviteCode: string;
+        InviteCode: string;
 
     @Column()
-    MaxUses: number;
+        MaxUses: number;
 
     @Column({ default: 0 })
-    CurrentUses: number;
+        CurrentUses: number;
 
     @Column()
-    Created: Date;
+        Created: Date;
 
     @Column({ nullable: true })
-    Expires?: Date;
+        Expires?: Date;
 
     @ManyToOne(() => Guild, (G) => G.Invites)
-    InGuild: Guild;
+        InGuild: Guild;
 
     @Column({ default: InviteType.GUILD })
-    Type: InviteType;
+        Type: InviteType;
 
     @ManyToOne(() => Channel, (C) => C.Invites, { eager: true, nullable: true })
-    LinkedChannel?: Channel;
+        LinkedChannel?: Channel;
 
     @ManyToOne(() => User, (U) => U.CreatedInvites, { eager: true })
-    InviteOwner: User;
+        InviteOwner: User;
 
     Package() {
         return {

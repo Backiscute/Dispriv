@@ -15,6 +15,7 @@ import {
     SendMessage,
     SendToDMOrServer,
     SendToMembers,
+    SendToVC,
 } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 import EmbedParser from "../Modules/EmbedParser";
@@ -26,6 +27,8 @@ import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
 import { FindAttachment, HandleAttachment } from "../Modules/AssetUtils";
+import { User } from "../Entities/User";
+import { VoiceSessions } from "../Handlers/RTCSocket";
 
 const App = Router();
 
@@ -700,6 +703,125 @@ App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res
         });
     }
     return res.sendStatus(204);
+});
+
+App.get("/:ChannelID/pins", VerifyAuth, async (req, res) => {
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, Messages: { Channel: true } } });
+    
+    if (!RequestedChannel) return res.status(404).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+
+    const MyUser = await GetUserByRequest(req);
+
+    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+    // TODO: add permission check for guilds
+
+    const PinnedMessages = RequestedChannel.Messages.filter((M) => M.Pinned);
+
+    res.json(PinnedMessages.map((M) => M.Package(MyUser!)));
+});
+
+App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
+    const MessageToPin = await Message.findOne({ where: { ID: req.params.MessageID }, relations: { Channel: { OwnerGuild: true, Messages: true } } });
+
+    if (!MessageToPin) return res.status(404).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
+
+    if (MessageToPin.Channel.ID !== req.params.ChannelID) return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+    
+    const MyUser = await GetUserByRequest(req);
+
+    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+    // TODO: add permission check for guilds
+
+    if (MessageToPin.Type != MessageType.DEFAULT && MessageToPin.Type != MessageType.REPLY) return res.json({ code: JsonErrorCodes.UnknownMessage, message: "Cannot Execute On Message Type" });
+    if (MessageToPin.Pinned) return res.sendStatus(204);
+
+    const PinnedMessages = MessageToPin.Channel.Messages.filter((M) => M.Pinned);
+
+    if (PinnedMessages.length >= 50) return res.status(400).json({ code: JsonErrorCodes.TooManyPinsInChannel, message: "Too Many Pins In Channel" });
+
+    MessageToPin.Pinned = true;
+
+    await MessageToPin.save();
+
+    const PinnedMessage = Message.create({
+        ID: GenerateSnowflake(),
+        Channel: MessageToPin.Channel,
+        Type: MessageType.CHANNEL_PINNED_MESSAGE,
+        Author: MyUser!,
+        ReplyingTo: MessageToPin,
+        Content: "",
+        CreationDate: new Date()
+    });
+
+    await PinnedMessage.save();
+
+    await SendMessage(PinnedMessage);
+    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, MessageToPin.Package(new User()), null, "MESSAGE_UPDATE"); // update the original message
+    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, { channel_id: MessageToPin.Channel.ID, last_pin_timestamp: new Date().toISOString() }, null, "CHANNEL_PINS_UPDATE"); // reload pins
+
+    res.sendStatus(204);
+});
+
+App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
+    const MessageToPin = await Message.findOne({ where: { ID: req.params.MessageID }, relations: { Channel: { OwnerGuild: true } } });
+
+    if (!MessageToPin) return res.status(404).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
+
+    if (MessageToPin.Channel.ID !== req.params.ChannelID) return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+    
+    const MyUser = await GetUserByRequest(req);
+
+    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+    // TODO: add permission check for guilds
+
+    if (!MessageToPin.Pinned) return res.sendStatus(204);
+
+    MessageToPin.Pinned = false;
+
+    await MessageToPin.save();
+
+    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, MessageToPin.Package(new User()), null, "MESSAGE_UPDATE"); // update the original message
+
+    res.sendStatus(204);
+});
+
+App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res) => {
+    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true } });
+
+    if (!RequestedChannel) return res.status(404).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+
+    if (RequestedChannel.Type != ChannelType.GUILD_VOICE) return res.status(400).json({ code: JsonErrorCodes.CannotExecuteOnChannelType, message: "Cannot Execute On Channel Type" });
+
+    const VoiceSession = VoiceSessions.find((S) => S.channel_id == RequestedChannel.ID);
+
+    if (VoiceSession === undefined) return res.status(403).json({ code: JsonErrorCodes.UserMustBeInVoiceChannelToSendVoiceChannelEffect, message: "User must be in voice channel to send voice channel effect" });
+
+    const MyUser = await GetUserByRequest(req);
+    const VoiceState = VoiceSession.voice_states.find((S) => S.user_id == MyUser!.ID);
+
+    if (VoiceState === undefined) return res.status(403).json({ code: JsonErrorCodes.UserMustBeInVoiceChannelToSendVoiceChannelEffect, message: "User must be in voice channel to send voice channel effect" });
+
+    const AnimationID = req.body.animation_id ?? 0;
+    const AnimationType = req.body.animation_type ?? 1;
+    const EmojiID = req.body.emoji_id;
+    const EmojiName = req.body.emoji_name;
+
+    if (!EmojiName) return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+
+    if (typeof AnimationID != "number") return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+    if (AnimationID > 20) return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+    if (typeof EmojiName != "string") return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+    if (typeof AnimationType != "number") return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+    if (AnimationType > 1) return res.status(400).json({ code: JsonErrorCodes.InvalidFormBody, message: "Invalid Form Body" });
+
+    // TODO: Add nitro check for animationtype 0
+
+    const EmojiRegex = /\p{Emoji}/u;
+
+    if (!EmojiID && !EmojiRegex.test(EmojiName)) return res.status(400).json({ code: JsonErrorCodes.UnknownEmoji, message: "Unknown Emoji" });
+
+    await SendToVC(RequestedChannel, OpCodes.DISPATCH, { guild_id: RequestedChannel.OwnerGuild!.ID, channel_id: RequestedChannel.ID, user_id: MyUser!.ID, animation_id: AnimationID, animation_type: AnimationType, emoji: { animated: false, id: EmojiID, name: EmojiName } }, null, "VOICE_CHANNEL_EFFECT_SEND");
+    res.sendStatus(204);
 });
 
 module.exports = {

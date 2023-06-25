@@ -9,6 +9,14 @@ import { Application } from "../Handlers/Server";
 
 const App = Router();
 
+App.get("/location-metadata", async (req, res) => {
+    res.json({
+        consent_required: false,
+        country_code: "US",
+        promotional_email_opt_in: { required: true, pre_checked: false },
+    });
+});
+
 App.post("/register", async (req, res) => {
     const Email = req.body.email;
     const Username = req.body.username;
@@ -37,7 +45,7 @@ App.post("/register", async (req, res) => {
         DateOfBirth: new Date(DOB),
         Discriminator: "0000", //TODO
         TutorialReadIndicators: [],
-        AuthorizedApps: []
+        AuthorizedApps: [],
     });
 
     await User.insert(NewUser);
