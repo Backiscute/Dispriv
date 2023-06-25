@@ -6,18 +6,13 @@ import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
 import { Msg } from "../Modules/Logger";
-import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
-<<<<<<< HEAD
-import { GenerateRandomString, SendGuildMemberUpdate, SendToUser, SendToSelf } from "../Modules/DiscordUtils";
+import { GenerateRandomString, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
-=======
->>>>>>> 9df48b5b3ea1d93cd52ee9551edab6d14575c07c
 
 const App = Router();
 

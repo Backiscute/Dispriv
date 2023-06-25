@@ -22,8 +22,6 @@ export function GenerateSnowflake(options: SnowflakeOptions = {}): string {
     return Snowflake.toString();
 }
 
-// related
-
 export function GenerateCode(length: number): string {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let code = "";

@@ -7,7 +7,7 @@ const App = Router();
 
 App.get("/gift-codes/:code", VerifyAuth, async (req, res) => {
     const UserGift = await Gift.findOne({ where: { Code: req.params.code }, relations: { SKU: true, User: true } });
-    if (!UserGift) return res.json({ code: JsonErrorCodes.UnknownGiftCode, message: "Unknown Gift Code" });
+    if (!UserGift) return res.json({ code: JsonErrorCodes.UNKNOWN_GIFT_CODE, message: "Unknown Gift Code" });
     // res.json({
     //     code: req.params.code,
     //     sku_id: "521847234246082599",
