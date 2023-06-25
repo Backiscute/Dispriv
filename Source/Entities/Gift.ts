@@ -16,34 +16,34 @@ import { User } from "./User";
 @Entity()
 export class SubscriptionPlan extends BaseEntity {
     @PrimaryColumn()
-    ID: string;
+        ID: string;
 
     @Column({ default: "Nitro Monthly" })
-    Name: string;
+        Name: string;
 
     @Column({ default: 1 })
-    Interval: number;
+        Interval: number;
 
     @Column({ default: 1 })
-    IntervalCount: number;
+        IntervalCount: number;
 
     @Column({ default: true })
-    TaxInclusive: boolean;
+        TaxInclusive: boolean;
 
     @Column({ default: "521847234246082599" })
-    SKUID: string;
+        SKUID: string;
 
     @Column({ default: "usd" })
-    Currency: string;
+        Currency: string;
 
     @Column({ default: 999 })
-    Price: number;
+        Price: number;
 
     @Column({ nullable: true })
-    PriceTier?: number;
+        PriceTier?: number;
 
     @OneToMany(() => Gift, (Gift) => Gift.SubscriptionPlan)
-    Gifts: Gift[];
+        Gifts: Gift[];
 
     Package() {
         return {
@@ -63,40 +63,40 @@ export class SubscriptionPlan extends BaseEntity {
 @Entity()
 export class SKU extends BaseEntity {
     @PrimaryColumn({ default: "521847234246082599" })
-    ID: string;
+        ID: string;
 
     @Column({ default: 5 })
-    Type: number;
+        Type: number;
 
     @Column({ nullable: true })
-    DependentSKUID?: string;
+        DependentSKUID?: string;
 
     @Column({ default: "521842831262875670" })
-    ApplicationID: string;
+        ApplicationID: string;
 
     @Column({ nullable: true })
-    ManifestLabels?: string;
+        ManifestLabels?: string;
 
     @Column({ default: 1 })
-    AccessType: number;
+        AccessType: number;
 
     @Column({ default: "Nitro" })
-    Name: string;
+        Name: string;
 
     @Column({ default: false })
-    Premium: boolean;
+        Premium: boolean;
 
     @Column({ default: "nitro" })
-    Slug: string;
+        Slug: string;
 
     @Column({ default: 68 })
-    Flags: number;
+        Flags: number;
 
     @Column({ default: false })
-    ShowAgeGate: boolean;
+        ShowAgeGate: boolean;
 
     @OneToMany(() => Gift, (gift) => gift.SKU)
-    Gifts: Gift[];
+        Gifts: Gift[];
 
     Package() {
         return {
@@ -120,39 +120,39 @@ export class SKU extends BaseEntity {
 @Entity()
 export class Gift extends BaseEntity {
     @PrimaryColumn()
-    Code: string;
+        Code: string;
 
     @ManyToOne(() => SKU, (S) => S.Gifts, { eager: true })
     @JoinColumn()
-    SKU: SKU;
+        SKU: SKU;
 
     @ManyToOne(() => SubscriptionPlan, (S) => S.Gifts, { eager: true })
     @JoinColumn()
-    SubscriptionPlan: SubscriptionPlan;
+        SubscriptionPlan: SubscriptionPlan;
 
     @Column({ default: "521842831262875670" })
-    ApplicationID: string;
+        ApplicationID: string;
 
     @Column({ default: 0 })
-    Uses: number;
+        Uses: number;
 
     @Column({ default: 1 })
-    MaxUses: number;
+        MaxUses: number;
 
     @Column({ default: "999-99-99T99:99:99+99:99" })
-    ExpiresAt: string;
+        ExpiresAt: string;
 
     @Column({ default: false })
-    Redeemed: boolean;
+        Redeemed: boolean;
 
     @ManyToOne(() => User, (U) => U.Gifts, { eager: true })
-    User: User;
+        User: User;
 
     @Column({ default: "521848044908576803" })
-    StoreListingID: string;
+        StoreListingID: string;
 
     @Column({ default: 5 })
-    Type: number;
+        Type: number;
 
     Package() {
         return {
@@ -163,7 +163,7 @@ export class Gift extends BaseEntity {
             max_uses: this.MaxUses,
             expires_at: this.ExpiresAt,
             redeemed: this.Redeemed,
-            user: this.User.PackagePublic(),
+            user: this.User?.PackagePublic(),
             store_listing: {
                 id: this.StoreListingID,
                 summary: " ",
