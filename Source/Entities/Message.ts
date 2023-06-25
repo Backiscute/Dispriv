@@ -176,14 +176,16 @@ export class Message extends BaseEntity {
     } {
         return {
             message_reference:
-                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) && IncludeReplyData
+                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) &&
+                IncludeReplyData
                     ? {
                         channel_id: this.ReplyingTo?.Channel?.ID,
                         message_id: this.ReplyingTo?.ID,
                     }
                     : undefined,
             referenced_message:
-                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) && IncludeReplyData
+                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) &&
+                IncludeReplyData
                     ? this.ReplyingTo?.Package(CurrentUser, false)
                     : undefined,
             reactions: this.Reactions?.map((R) => R.Package(CurrentUser)) || [],

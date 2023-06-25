@@ -5,3 +5,4 @@ Source/Applications/*
 .eslintignore
 .prettierrc.json
 .prettierignore
+Dashboard/
