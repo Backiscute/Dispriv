@@ -11,13 +11,26 @@ import { Connections } from "../Handlers/Gateway";
 import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
 import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { SendOp } from "../Modules/GatewayUtils";
+import { UserFlags } from "../Classes/Flags";
 
 const App = Router();
 
 App.use((req, res, next) => {
     if (req.header("authorization") !== process.env.DASHBOARD_KEY)
-        return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
+        return res.status(403).json({ code: 0, message: "You are not authorized to use the TEST API." });
     next();
+});
+
+App.get("/HasSystemAccount", async (req, res) => {
+    const Account = await User.findOneBy({
+        Flags: UserFlags.SYSTEM,
+        Bot: true
+    });
+
+    return res.json({
+        exists: Account !== null,
+        data: Account?.Package()
+    });
 });
 
 App.get("/Websockets", async (req, res) => {
@@ -51,7 +64,19 @@ App.patch("/Server/:ID", async (req, res) => {
     });
 
     await ServerData.save();
-    //SendToMembers(ServerData.ID, OpCodes.DISPATCH, ServerData.GatewayPackage(null), 6969, "GUILD_UPDATE");
+
+    const GatewayPackage = ServerData.GatewayPackage(new User());
+    SendToMembers(
+        ServerData.ID,
+        OpCodes.DISPATCH,
+        {
+            ...GatewayPackage,
+            ...GatewayPackage.properties,
+        },
+        6969,
+        "GUILD_UPDATE",
+    );
+
     res.send(ServerData.Package(new User()));
 });
 

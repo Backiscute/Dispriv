@@ -17,7 +17,7 @@ import {
     SendToMembers,
     SendToVC,
 } from "../Modules/DiscordUtils";
-import { Permissions } from "../Classes/Flags";
+import { Permissions, UserFlags } from "../Classes/Flags";
 import EmbedParser from "../Modules/EmbedParser";
 import { Presence } from "../Classes/Presence";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
@@ -410,6 +410,9 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
         if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
             return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Cannot DM non-friends" });
+
+        if (OtherUser.HasFlag(UserFlags.SYSTEM)) // its impossible to dm a system account in normal discord
+            return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Cannot DM a system account" });
     }
 
     let MessageReplyingTo: Message | undefined;
@@ -553,7 +556,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     const Emoji = req.params.Emoji as string;
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
-        return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Acess" });
+        return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
 
     const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
     if (MessageReaction) {

@@ -2,7 +2,6 @@ import Dialog from "@/components/Dialog";
 import { JSONToCard } from "@/components/JSONToCard";
 import { req } from "@/util/apiFuncs";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
 
 export default function Gifts() {
     const dialog = useRef<HTMLDialogElement>(null);
