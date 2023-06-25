@@ -19,7 +19,14 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.5.1",
+    "@types/react-json-editor-ajrm": "^2.5.3",
     "electron-updater": "^5.3.0",
+    "i": "^0.3.7",
+    "monaco-editor": "^0.39.0",
+    "npm": "^9.7.2",
+    "react-dropdown": "^1.11.0",
+    "react-json-editor-ajrm": "^2.5.14",
     "react-router-dom": "^6.13.0",
     "react-toastify": "^9.1.3"
   },

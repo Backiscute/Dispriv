@@ -10,6 +10,7 @@ import { SendToMembers } from "../Modules/DiscordUtils";
 import { Connections } from "../Handlers/Gateway";
 import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
 import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
+import { SendOp } from "../Modules/GatewayUtils";
 
 const App = Router();
 
@@ -262,6 +263,13 @@ App.patch("/Gifts/Gifts/:Code", async (req, res) => {
     } catch (e) {
         return res.status(500).json({ message: e });
     }
+});
+
+App.post("/ws/:id", async (req, res) => {
+    const WS = Connections.find((C) => C.ID === req.params.id);
+    if (!WS) return res.status(404).json({ message: "No WS found" });
+    SendOp(WS, req.body.op, req.body.d, req.body.s, req.body.t);
+    res.json({ message: "Sent" });
 });
 
 module.exports = {

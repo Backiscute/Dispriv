@@ -15,9 +15,7 @@ import { update } from "./update";
 //
 process.env.DIST_ELECTRON = join(__dirname, "../");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
-process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
-    ? join(process.env.DIST_ELECTRON, "../public")
-    : process.env.DIST;
+process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL ? join(process.env.DIST_ELECTRON, "../public") : process.env.DIST;
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith("6.1")) app.disableHardwareAcceleration();
@@ -53,6 +51,7 @@ async function createWindow() {
             // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
             nodeIntegration: true,
             contextIsolation: false,
+            webSecurity: false,
         },
     });
 
@@ -67,10 +66,7 @@ async function createWindow() {
 
     // Test actively push message to the Electron-Renderer
     win.webContents.on("did-finish-load", () => {
-        win?.webContents.send(
-            "main-process-message",
-            new Date().toLocaleString()
-        );
+        win?.webContents.send("main-process-message", new Date().toLocaleString());
     });
 
     // Make all links open with the browser, not with the application
@@ -123,3 +119,4 @@ ipcMain.handle("open-win", (_, arg) => {
         childWindow.loadFile(indexHtml, { hash: arg });
     }
 });
+

@@ -338,7 +338,7 @@ dialog > h6 {
     width: calc(100% - 24px);
 }
 
-.form-input > div {
+.form-label {
     color: #b5bac1;
     font-size: 12px;
     font-family: "gg sans", sans-serif;
@@ -357,6 +357,51 @@ dialog > h6 {
     padding: 12px;
 }
 
-select {
-    color: #000;
+.Dropdown-control {
+    background-color: #1e1f22;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+}
+
+.Dropdown-root * {
+    font-size: 16px;
+}
+
+.Dropdown-arrow {
+    top: 20px;
+    right: 12px;
+    border-color: #dbdee1 transparent transparent !important;
+}
+
+.is-open > .Dropdown-control {
+    border-radius: 8px 8px 0px 0px;
+}
+
+.is-open > div > div.Dropdown-arrow-wrapper > span {
+    border-color: transparent transparent #dbdee1 !important;
+}
+
+.Dropdown-menu {
+    border: solid thin #1e1f22;
+    border-radius: 0px 0px 4px 4px;
+    background-color: #2b2d31;
+}
+
+.Dropdown-option {
+    color: #dbdee1 !important;
+    background-color: #2b2d31 !important;
+}
+
+.Dropdown-option.is-selected {
+    background-color: #3f4248 !important;
+    color: #fff !important;
+}
+
+.Dropdown-option:not(.is-selected):hover {
+    background-color: #35373c !important;
+}
+
+.editor * {
+    font-family: monospace;
 }

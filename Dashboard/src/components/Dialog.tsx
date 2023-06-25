@@ -1,27 +1,67 @@
+import { req } from "@/util/apiFuncs";
+import { useRef, useState } from "react";
+import ReactDropdown from "react-dropdown";
+
 type TextType = {
     type: "text";
     label: string;
+    jsonName: string;
     placeholder?: string;
 };
 
 type SelectType = {
     type: "select";
     label: string;
+    jsonName: string;
     options: {
         label: string;
         value: string;
     }[];
+    onChange?: (value: string | number) => void;
 };
 
-type ElementType = TextType | SelectType;
+type CustomType = {
+    type: "custom";
+    label: string;
+    element: JSX.Element;
+    jsonName: string;
+    grabValue?: () => Object;
+};
+
+export type ElementType = TextType | SelectType | CustomType;
+
+function setNestedValue(obj: any, path: string, value: any) {
+    const properties = path.split(".");
+    const lastProperty = properties.pop();
+
+    let currentObj = obj;
+    for (const property of properties) {
+        if (!currentObj[property]) {
+            currentObj[property] = {};
+        }
+        currentObj = currentObj[property];
+    }
+
+    if (lastProperty) {
+        currentObj[lastProperty] = value;
+    }
+}
 
 export default function Dialog(props: {
     title: string;
     elements: ElementType[];
     innerRef?: React.Ref<HTMLDialogElement>;
+    onClose?: (data: any) => void;
 }) {
+    const obj = useRef<Object>({});
     return (
-        <dialog ref={props.innerRef}>
+        <dialog
+            style={{
+                position: "relative",
+                overflow: "visible",
+            }}
+            ref={props.innerRef}
+        >
             <h2>{props.title}</h2>
             <form method="dialog" className="dialog-form">
                 {/* <div className="form-input">
@@ -37,21 +77,29 @@ export default function Dialog(props: {
                         case "text":
                             return (
                                 <div key={index} className="form-input">
-                                    <div>{element.label}</div>
+                                    <div className="form-label">{element.label}</div>
                                     <input type={element.type} placeholder={element.placeholder} />
                                 </div>
                             );
                         case "select":
                             return (
                                 <div key={index} className="form-input">
-                                    <div>{element.label}</div>
-                                    <select>
-                                        {element.options.map((option, index) => (
-                                            <option key={index} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="form-label">{element.label}</div>
+                                    <ReactDropdown
+                                        onChange={(o) => {
+                                            if (element.onChange) {
+                                                element.onChange(o.value);
+                                            }
+                                        }}
+                                        options={element.options}
+                                    />
+                                </div>
+                            );
+                        case "custom":
+                            return (
+                                <div key={index} className="form-input">
+                                    <div className="form-label">{element.label}</div>
+                                    <div className="fix-yo-shit">{element.element}</div>
                                 </div>
                             );
                     }
@@ -60,6 +108,50 @@ export default function Dialog(props: {
                     <button
                         style={{
                             width: 75,
+                        }}
+                        onClick={() => {
+                            props.elements.forEach((el) => {
+                                if (el.type === "custom") {
+                                    setNestedValue(obj.current, el.jsonName, el.grabValue?.());
+                                } else {
+                                    Array.from(document.getElementsByClassName("form-input")).forEach((e) => {
+                                        const element = e as HTMLDivElement;
+                                        const label = element.getElementsByClassName("form-label")[0];
+                                        if (label?.innerHTML === el.label) {
+                                            switch (el.type) {
+                                                case "text":
+                                                    setNestedValue(
+                                                        obj.current,
+                                                        el.jsonName,
+                                                        (element.getElementsByTagName("input")[0] as HTMLInputElement)
+                                                            .value,
+                                                    );
+                                                    break;
+                                                case "select":
+                                                    const root = element.getElementsByClassName("Dropdown-root")[0];
+                                                    if (root) {
+                                                        const selected =
+                                                            root.getElementsByClassName("Dropdown-control")[0];
+                                                        if (selected) {
+                                                            const placeholder =
+                                                                selected.getElementsByClassName(
+                                                                    "Dropdown-placeholder",
+                                                                )[0];
+                                                            if (placeholder) {
+                                                                setNestedValue(
+                                                                    obj.current,
+                                                                    el.jsonName,
+                                                                    placeholder.innerHTML,
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                            props.onClose?.(obj.current);
                         }}
                     >
                         OK
