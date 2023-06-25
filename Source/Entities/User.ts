@@ -19,6 +19,7 @@ import { CreateTimestamp, GetHighestRoleInArr } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
+import { Gift } from "./Gift";
 
 @Entity()
 export class User extends BaseEntity {
@@ -118,6 +119,9 @@ export class User extends BaseEntity {
     @Column({ type: "simple-array" })
         SettingsProto: string[] = ["CgIYAWIJCgcKBWVuLVVT"];
 
+    @OneToMany(() => Gift, (G) => G.User)
+        Gifts: Gift[];
+
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
     }
@@ -134,7 +138,7 @@ export class User extends BaseEntity {
             discriminator: this.Discriminator,
             display_name: this.Username,
             email: this.Email,
-            flags: 0,
+            flags: this.Flags,
             global_name: this.Username,
             id: this.ID,
             mfa_enabled: true,
@@ -147,6 +151,7 @@ export class User extends BaseEntity {
             public_flags: this.Flags,
             purchased_flags: 3,
             username: this.Username,
+            system: this.HasFlag(UserFlags.SYSTEM),
             verified: true,
             bot: this.Bot,
         };
@@ -162,9 +167,10 @@ export class User extends BaseEntity {
             bio: this.Bio,
             discriminator: this.Discriminator,
             display_name: this.Username,
-            flags: 1 << 1, // 1 << 0 = Nitro Classic, 1 << 1 = Nitro, 1 << 2 = Guild Boost, 1 << 3 = Nitro Basic
+            flags: this.Flags, // 1 << 0 = Nitro Classic, 1 << 1 = Nitro, 1 << 2 = Guild Boost, 1 << 3 = Nitro Basic
             global_name: this.Username,
             id: this.ID,
+            system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
             username: this.Username,
             bot: this.Bot,
@@ -180,6 +186,7 @@ export class User extends BaseEntity {
             display_name: this.Username,
             global_name: this.Username,
             id: this.ID,
+            system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
             username: this.Username,
         };

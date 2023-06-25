@@ -206,6 +206,7 @@ code * {
     height: calc(100vh - 72px);
     width: calc(100vw - 218px - 120px);
     overflow: auto;
+    user-select: all;
     line-break: anywhere;
 }
 
@@ -235,11 +236,13 @@ input[type="checkbox"]:focus-visible {
 /* Track */
 ::-webkit-scrollbar-track {
     background: #3c3e44;
+    width: 4px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
     background: #2b2d31;
+    width: 4px;
     border-radius: 18px;
 }
 
@@ -258,4 +261,153 @@ td {
 td {
     padding: 8px;
     line-break: anywhere;
+}
+
+.collapse-button {
+    width: 32px;
+    height: 32px;
+    padding: 0px;
+    margin-right: 10px;
+}
+
+ul {
+    display: block;
+    list-style-type: disc;
+    margin-block-start: 0.5em;
+    margin-block-end: 0.25em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 12px;
+    list-style-type: none;
+}
+
+@keyframes dialog {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes dialog-backdrop {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.data-box {
+    background-color: var(--discord-background);
+    border: none;
+    border-radius: 4px;
+}
+
+dialog {
+    background-color: var(--discord-background);
+    border: none;
+    animation: 0.3s cubic-bezier(0.09, 1.44, 0.82, 0.98) 1 normal forwards running dialog;
+    border-radius: 4px;
+}
+
+dialog::backdrop {
+    background-color: #000;
+    opacity: 0.6;
+    animation: 0.2s ease-out 0s 1 normal forwards running dialog-backdrop;
+}
+
+dialog > h1,
+dialog > h2,
+dialog > h3,
+dialog > h4,
+dialog > h5,
+dialog > h6 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.dialog-form {
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    min-width: 500px;
+}
+
+.form-input > input[type="text"] {
+    height: 24px;
+    background-color: #1e1f22;
+    width: calc(100% - 24px);
+}
+
+.form-label {
+    color: #b5bac1;
+    font-size: 12px;
+    font-family: "gg sans", sans-serif;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    margin-left: 2px;
+}
+
+.form-submit-container {
+    display: flex;
+    justify-content: flex-end;
+    background-color: #2b2d31;
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-bottom: -16px;
+    padding: 12px;
+}
+
+.Dropdown-control {
+    background-color: #1e1f22;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+}
+
+.Dropdown-root * {
+    font-size: 16px;
+}
+
+.Dropdown-arrow {
+    top: 20px;
+    right: 12px;
+    border-color: #dbdee1 transparent transparent !important;
+}
+
+.is-open > .Dropdown-control {
+    border-radius: 8px 8px 0px 0px;
+}
+
+.is-open > div > div.Dropdown-arrow-wrapper > span {
+    border-color: transparent transparent #dbdee1 !important;
+}
+
+.Dropdown-menu {
+    border: solid thin #1e1f22;
+    border-radius: 0px 0px 4px 4px;
+    background-color: #2b2d31;
+}
+
+.Dropdown-option {
+    color: #dbdee1 !important;
+    background-color: #2b2d31 !important;
+}
+
+.Dropdown-option.is-selected {
+    background-color: #3f4248 !important;
+    color: #fff !important;
+}
+
+.Dropdown-option:not(.is-selected):hover {
+    background-color: #35373c !important;
+}
+
+.editor * {
+    font-family: monospace;
 }

@@ -2,19 +2,124 @@ import { Router } from "express";
 import { User } from "../Entities/User";
 import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
-import { Channel } from "../Entities/Channel";
+import { Channel, ChannelType } from "../Entities/Channel";
 import { Guild } from "../Entities/Guild";
 import { Badge } from "../Entities/Badge";
 import { OpCodes } from "../Classes/GatewayOpCodes";
-import { SendToMembers } from "../Modules/DiscordUtils";
+import { SendMessage, SendToMembers, SendToUser } from "../Modules/DiscordUtils";
 import { Connections } from "../Handlers/Gateway";
+import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
+import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
+import { SendOp } from "../Modules/GatewayUtils";
+import { MessageFlags, UserFlags } from "../Classes/Flags";
+import { Presence } from "../Classes/Presence";
+import { Msg } from "../Modules/Logger";
+import { green, red } from "colorette";
+import { Message, MessageType } from "../Entities/Message";
 
 const App = Router();
 
 App.use((req, res, next) => {
     if (req.header("authorization") !== process.env.DASHBOARD_KEY)
-        return res.status(401).json({ code: 0, message: "You are not authorized to use the TEST API." });
+        return res.status(403).json({ code: 0, message: "You are not authorized to use the TEST API." });
     next();
+});
+
+App.get("/SystemAccount", async (req, res) => {
+    let Account = await User.findOneBy({
+        Flags: UserFlags.SYSTEM,
+        Bot: true
+    });
+
+    if (!Account)
+        Account = await User.create({
+            ID: GenerateSnowflake(),
+            Username: "Discord",
+            Email: "-",
+            Password: "-",
+            Bio: "This is the official Discord account on this Dispriv instance.",
+            DateOfBirth: new Date(),
+            Presence: Presence.UNKNOWN,
+            Discriminator: "0",
+            Flags: UserFlags.SYSTEM,
+            Bot: true,
+            TutorialReadIndicators: [],
+            AuthorizedApps: []
+        }).save();
+
+    return res.json({
+        data: Account.Package()
+    });
+});
+
+App.post("/SystemMessages", async (req, res) => {
+    if (typeof req.body.Content !== "string") return res.status(400).json({ success: false, errorMessage: "'Content' must be a string" });
+
+    const SystemUser = await User.findOne({
+        where: {
+            Flags: UserFlags.SYSTEM,
+            Bot: true
+        },
+    });
+
+    if (!SystemUser)
+        return res.status(400).json({ success: false, errorMessage: "Please create a System User before sending System Messages!" });
+
+    const AllUsers = await User.find();
+
+    for await (const U of AllUsers) {
+        let UrgentChannel = await Channel.findOne({
+            where: {
+                DMRecipients: [
+                    { ID: U.ID },
+                    { ID: SystemUser.ID }
+                ]
+            },
+            relations: {
+                DMRecipients: true
+            }
+        });
+
+        if (U.ID === SystemUser.ID) continue;
+
+        console.log(`${U.ID} -> ${U.Username}#${U.Discriminator}`);
+        console.log(`${SystemUser.ID} -> ${SystemUser.Username}#${SystemUser.Discriminator}`);
+
+        console.log(UrgentChannel?.DMRecipients);
+
+        if (!UrgentChannel) {
+            Msg(`Urgent message DM with ${red(U.Username + "#" + U.Discriminator)} doesn't exist, creating new!`);
+
+            UrgentChannel = await Channel.create({
+                ID: GenerateSnowflake(),
+                Type: ChannelType.DM,
+                Owner: SystemUser,
+                DMRecipients: [ SystemUser, U ]
+            }).save();
+
+            SendToUser(U, OpCodes.DISPATCH, UrgentChannel.SmallDMPackage(U), null, "CHANNEL_CREATE");
+        }
+        else
+            Msg(`Urgent message DM with ${green(U.Username + "#" + U.Discriminator)} exists!`);
+
+        const UrgentMessage = await Message.create({
+            ID: GenerateSnowflake(),
+            Author: SystemUser,
+            Type: MessageType.DEFAULT,
+            Flags: MessageFlags.URGENT,
+            Content: req.body.Content,
+            CreationDate: new Date(),
+            Channel: UrgentChannel,
+        }).save();
+        
+        Msg(`Sent urgent DM to ${green(U.Username + "#" + U.Discriminator)}!`);
+
+        await SendMessage(UrgentMessage);
+    }
+
+    res.json({
+        success: true
+    });
 });
 
 App.get("/Websockets", async (req, res) => {
@@ -48,7 +153,19 @@ App.patch("/Server/:ID", async (req, res) => {
     });
 
     await ServerData.save();
-    //SendToMembers(ServerData.ID, OpCodes.DISPATCH, ServerData.GatewayPackage(null), 6969, "GUILD_UPDATE");
+
+    const GatewayPackage = ServerData.GatewayPackage(new User());
+    SendToMembers(
+        ServerData.ID,
+        OpCodes.DISPATCH,
+        {
+            ...GatewayPackage,
+            ...GatewayPackage.properties,
+        },
+        6969,
+        "GUILD_UPDATE",
+    );
+
     res.send(ServerData.Package(new User()));
 });
 
@@ -183,6 +300,90 @@ App.post("/UpdateApp/:AppID", async (req, res) => {
 App.post("/verifytoken", async (req, res) => {
     const Test = await VerifyToken(req.body.token);
     res.json({ passed: Test });
+});
+
+App.get("/Gifts/Gifts", async (req, res) => {
+    const Gifts = await Gift.find();
+    res.json(Gifts);
+});
+
+App.get("/Gifts/SKUs", async (req, res) => {
+    const SKUs = await SKU.find();
+    res.json(SKUs);
+});
+
+App.get("/Gifts/SubscriptionPlans", async (req, res) => {
+    const SubscriptionPlans = await SubscriptionPlan.find();
+    res.json(SubscriptionPlans);
+});
+
+App.put("/Gifts/Gifts", async (req, res) => {
+    try {
+        const [SKUData, SubscriptionPlanData, UserData] = await Promise.all([
+            SKU.findOne({ where: { ID: req.body.SKUID } }),
+            SubscriptionPlan.findOne({ where: { ID: req.body.SubPlanID } }),
+            User.findOne({ where: { ID: req.body.UserID } }),
+        ]);
+        if (!SKUData || !SubscriptionPlanData || !UserData)
+            return res.status(400).json({ message: "Invalid SKU or Subscription Plan" });
+        const GiftData = Gift.create({
+            ID: GenerateSnowflake(),
+            ...req.body,
+            SKU: SKUData,
+            SubscriptionPlan: SubscriptionPlanData,
+            User: UserData,
+            Code: GenerateCode(16),
+        });
+        await GiftData.save();
+        return res.json(GiftData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
+});
+
+App.put("/Gifts/SKU", async (req, res) => {
+    const SKUData = SKU.create({
+        ID: GenerateSnowflake(),
+        ...req.body,
+    });
+    await SKUData.save();
+    return res.json(SKUData);
+});
+
+App.put("/Gifts/SubPlan", async (req, res) => {
+    try {
+        const SubPlanData = SubscriptionPlan.create({
+            ID: GenerateSnowflake(),
+            ...req.body,
+        });
+        await SubPlanData.save();
+        return res.json(SubPlanData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
+});
+
+App.patch("/Gifts/Gifts/:Code", async (req, res) => {
+    try {
+        console.log(req.body);
+        const GiftData = await Gift.findOne({ where: { Code: req.params.Code } });
+        if (!GiftData) return res.status(400).json({ message: "Invalid Gift Code" });
+        Object.keys(req.body).forEach((K) => {
+            //@ts-expect-error test endpoint, checks not needed
+            GiftData[K] = req.body[K];
+        });
+        await GiftData.save();
+        return res.json(GiftData);
+    } catch (e) {
+        return res.status(500).json({ message: e });
+    }
+});
+
+App.post("/ws/:id", async (req, res) => {
+    const WS = Connections.find((C) => C.ID === req.params.id);
+    if (!WS) return res.status(404).json({ message: "No WS found" });
+    SendOp(WS, req.body.op, req.body.d, req.body.s, req.body.t);
+    res.json({ message: "Sent" });
 });
 
 module.exports = {

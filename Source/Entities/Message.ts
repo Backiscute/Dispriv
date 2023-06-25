@@ -123,6 +123,9 @@ export class Message extends BaseEntity {
     @Column()
         Content: string;
 
+    @Column({ default: false })
+        Pinned: boolean;
+
     @Column()
         CreationDate: Date;
 
@@ -173,14 +176,16 @@ export class Message extends BaseEntity {
     } {
         return {
             message_reference:
-                this.Type === MessageType.REPLY && IncludeReplyData
+                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) &&
+                IncludeReplyData
                     ? {
                         channel_id: this.ReplyingTo?.Channel?.ID,
                         message_id: this.ReplyingTo?.ID,
                     }
                     : undefined,
             referenced_message:
-                this.Type === MessageType.REPLY && IncludeReplyData
+                (this.Type === MessageType.REPLY || this.Type === MessageType.CHANNEL_PINNED_MESSAGE) &&
+                IncludeReplyData
                     ? this.ReplyingTo?.Package(CurrentUser, false)
                     : undefined,
             reactions: this.Reactions?.map((R) => R.Package(CurrentUser)) || [],
@@ -190,7 +195,7 @@ export class Message extends BaseEntity {
             timestamp: CreateTimestamp(this.CreationDate),
             mention_everyone: this.Content.includes("@everyone"),
             id: this.ID,
-            pinned: false /*Channel.PinnedMessages.includes(this)*/,
+            pinned: this.Pinned,
             edited_timestamp: null,
             author: this.Author.PackagePublic(),
             mention_roles: [],

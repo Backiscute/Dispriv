@@ -1,14 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import SideBar from "./components/SideBar";
-import "./App.scss";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Guild from "./pages/ManageGuilds";
 import ServerSetup from "./pages/ServerSetup";
 import Gifts from "./pages/Gifts";
 import Logs from "./pages/Logs";
-import { Socket } from "dgram";
 import Sockets from "./pages/Sockets";
+import "react-dropdown/style.css";
+import "./App.scss";
+import { loader } from "@monaco-editor/react";
+import path from "path";
 
 export const ws = new WebSocket("ws://localhost:6970/api/tests/ws");
 
@@ -20,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     >
         <BrowserRouter>
             <SideBar
+                readyState={ws.readyState}
                 sidebarContent={[
                     {
                         title: "Dispriv",
@@ -100,12 +103,25 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                                 title: "Discovery",
                             },
                             {
-                                route: "/mc/gifts",
+                                route: "/mc/apps",
+                                title: "Applications",
+                            },
+                        ],
+                    },
+                    {
+                        title: "Manage Gifts",
+                        content: [
+                            {
+                                route: "/mg/gifts",
                                 title: "Gifts",
                             },
                             {
-                                route: "/mc/apps",
-                                title: "Applications",
+                                route: "/mg/skus",
+                                title: "SKUs",
+                            },
+                            {
+                                route: "/mg/subscriptionplans",
+                                title: "Subscription Plans",
                             },
                         ],
                     },
@@ -114,10 +130,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             <Routes>
                 <Route path="/" element={<></>} />
                 <Route path="/mc/guilds" element={<Guild />} />,
-                <Route path="/mc/gifts" element={<Gifts />} />
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
                 <Route path="/dispriv/sockets" element={<Sockets />} />
+                <Route path="/mg/gifts" element={<Gifts />} />
             </Routes>
         </BrowserRouter>
     </div>,

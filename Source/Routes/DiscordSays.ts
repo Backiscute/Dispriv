@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import { OAuth2App } from "../Entities/OAuth2";
 import { User } from "../Entities/User";
 
+// Authorization endpoints for different applications
+
 const App = Router();
 
 App.post("/:ApplicationID/api/token", async (req, res) => {
@@ -34,6 +36,7 @@ App.post("/:ApplicationID/api/token", async (req, res) => {
     const GeneratedOAuthToken = await GenerateOAuth2Token(OAuthApp.ID);
     res.json({ access_token: GeneratedOAuthToken });
 });
+
 
 App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOAuthReq, async (req, res) => {
     const MyUser = await GetUserByOAuthReq(req, { Memberships: { ToGuild: true } });
