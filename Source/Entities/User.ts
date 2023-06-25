@@ -65,6 +65,7 @@ export class User extends BaseEntity {
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
     Badges: Badge[];
+	
     @OneToMany(() => OAuth2App, (O) => O.AuthorizedUsers, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
     AuthorizedApps: OAuth2App[];

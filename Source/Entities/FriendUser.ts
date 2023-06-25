@@ -45,7 +45,7 @@ export class Relation extends BaseEntity {
             nickname: this.Nickname,
             should_notify: true,
             type: TypeDecided,
-            user: IncludeUserData ? UserDecided.PackagePublic() : undefined,
+            user: IncludeUserData ? UserDecided.Partial() : undefined,
             user_id: !IncludeUserData ? UserDecided.ID : undefined,
             since: CreateTimestamp(),
         };

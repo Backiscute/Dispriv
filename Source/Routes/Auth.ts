@@ -45,7 +45,7 @@ App.post("/register", async (req, res) => {
         DateOfBirth: new Date(DOB),
         Discriminator: "0000", //TODO
         TutorialReadIndicators: [],
-        AuthorizedApps: [],
+        AuthorizedApps: []
     });
 
     await User.insert(NewUser);

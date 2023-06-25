@@ -14,7 +14,7 @@ import {
     MembershipFromGuild,
     SendGuildMemberUpdate,
     SendToMembers,
-    SendToSelf,
+    SendToUser,
 } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
@@ -452,7 +452,7 @@ App.post("/", VerifyAuth, async (req, res) => {
     MyUser.Memberships.push(Mmbr);
 
     res.json(CreatedGuild.Package(MyUser));
-    SendToSelf(MyUser, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");
+    SendToUser(MyUser, OpCodes.DISPATCH, CreatedGuild.GatewayPackageEvent(MyUser), 24, "GUILD_CREATE");
 });
 
 module.exports = {

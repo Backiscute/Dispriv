@@ -12,6 +12,7 @@ import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
 import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { SendOp } from "../Modules/GatewayUtils";
 import { UserFlags } from "../Classes/Flags";
+import { Presence } from "../Classes/Presence";
 
 const App = Router();
 
@@ -21,15 +22,30 @@ App.use((req, res, next) => {
     next();
 });
 
-App.get("/HasSystemAccount", async (req, res) => {
-    const Account = await User.findOneBy({
+App.get("/SystemAccount", async (req, res) => {
+    let Account = await User.findOneBy({
         Flags: UserFlags.SYSTEM,
         Bot: true
     });
 
+    if (!Account)
+        Account = await User.create({
+            ID: GenerateSnowflake(),
+            Username: "Discord",
+            Email: "-",
+            Password: "-",
+            Bio: "This is the official Discord account on this Dispriv instance.",
+            DateOfBirth: new Date(),
+            Presence: Presence.UNKNOWN,
+            Discriminator: "0",
+            Flags: UserFlags.SYSTEM,
+            Bot: true,
+            TutorialReadIndicators: [],
+            AuthorizedApps: []
+        }).save();
+
     return res.json({
-        exists: Account !== null,
-        data: Account?.Package()
+        data: Account.Package()
     });
 });
 

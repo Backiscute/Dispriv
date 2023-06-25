@@ -11,7 +11,7 @@ import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
-import { GenerateRandomString, SendGuildMemberUpdate, SendToSelf } from "../Modules/DiscordUtils";
+import { GenerateRandomString, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 //import { PreloadedUserSettings } from "discord-protos";
 
@@ -80,7 +80,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 
     res.json(U.Package());
 
-    SendToSelf(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
+    SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
@@ -253,7 +253,18 @@ App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => 
     Msg(
         `Relation between ${MyUser.Username}#${MyUser.Discriminator} <-> ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and not BLOCKED.`,
     );
+
+    SendToUser(RelationTarget, OpCodes.DISPATCH, {
+        id: MyUser.ID,
+        type: TargetRelation.Type
+    }, null, "RELATIONSHIP_REMOVE");
+    SendToUser(MyUser, OpCodes.DISPATCH, {
+        id: RelationTarget.ID,
+        type: TargetRelation.Type
+    }, null, "RELATIONSHIP_REMOVE");
+
     await TargetRelation.remove();
+
     res.status(204).send();
 });
 
@@ -315,16 +326,15 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
         }).save();
         NChannel = CreatedChannel;
     }
+    
+    SendToUser(RelationTarget, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+    SendToUser(MyUser, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
 
-    const TargetConnection = FindConnection(RelationTarget.ID);
-    if (TargetConnection && HasIntent(TargetConnection.Intents, GatewayIntents.GUILDS))
-        SendOp(TargetConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
-    // if (TargetConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
-
-    const MyConnection = FindConnection(MyUser.ID);
-    if (MyConnection && HasIntent(MyConnection.Intents, GatewayIntents.GUILDS))
-        SendOp(MyConnection, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
-    // if (MyConnection != null) SendOp(TargetConnection, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
+    if (!ChannelCheck) {
+        SendToUser(RelationTarget, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
+        SendToUser(MyUser, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
+    }
+    
     res.status(204).send();
 });
 
@@ -371,25 +381,21 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);
 
-        const TargetConnection = FindConnection(RelationTarget.ID);
-        if (TargetConnection != null)
-            SendOp(
-                TargetConnection,
-                OpCodes.DISPATCH,
-                CreatedRelation.PackageGateway(true, RelationTarget),
-                null,
-                "RELATIONSHIP_ADD",
-            );
+        SendToUser(
+            RelationTarget,
+            OpCodes.DISPATCH,
+            CreatedRelation.PackageGateway(true, RelationTarget),
+            null,
+            "RELATIONSHIP_ADD",
+        );
 
-        const MyConnection = FindConnection(MyUser.ID);
-        if (MyConnection != null)
-            SendOp(
-                MyConnection,
-                OpCodes.DISPATCH,
-                CreatedRelation.PackageGateway(true, MyUser),
-                null,
-                "RELATIONSHIP_ADD",
-            );
+        SendToUser(
+            MyUser,
+            OpCodes.DISPATCH,
+            CreatedRelation.PackageGateway(true, MyUser),
+            null,
+            "RELATIONSHIP_ADD",
+        );
 
         return res.sendStatus(204);
     } catch (err) {

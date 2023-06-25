@@ -42,7 +42,7 @@ export function GetHighestRole(Usr: Membership) {
     return GetHighestRoleInArr(Usr.Roles);
 }
 
-export async function SendToSelf(
+export async function SendToUser(
     Usr: User,
     Opcode: OpCodes,
     Data: unknown = null,
