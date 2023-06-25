@@ -84,6 +84,13 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
+App.get("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req))!;
+    res.json({
+    	settings: MyUser.SettingsProto
+    });
+});
+
 App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
     if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });

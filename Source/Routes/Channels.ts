@@ -730,14 +730,15 @@ App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
 
     if (MessageToPin.Channel.ID !== req.params.ChannelID) return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
     
-    const MyUser = await GetUserByRequest(req);
+    const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
 
     if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
-    // TODO: add permission check for guilds
+    if (!MessageToPin.Channel.IsDM && !HasPermission(MembershipFromGuild(MyUser!, MessageToPin.Channel.OwnerGuild!)!, Permissions.MANAGE_MESSAGES)) return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
 
     if (MessageToPin.Type != MessageType.DEFAULT && MessageToPin.Type != MessageType.REPLY) return res.json({ code: JsonErrorCodes.UnknownMessage, message: "Cannot Execute On Message Type" });
     if (MessageToPin.Pinned) return res.sendStatus(204);
 
+    // TODO: sort by pinning date (latest on top, oldest on bottom)
     const PinnedMessages = MessageToPin.Channel.Messages.filter((M) => M.Pinned);
 
     if (PinnedMessages.length >= 50) return res.status(400).json({ code: JsonErrorCodes.TooManyPinsInChannel, message: "Too Many Pins In Channel" });
