@@ -12,7 +12,8 @@ import { Channel, ChannelType } from "../Entities/Channel";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { GenerateRandomString, SendGuildMemberUpdate, SendToSelf } from "../Modules/DiscordUtils";
-//import { PreloadedUserSettings } from "discord-protos";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 
 const App = Router();
 
@@ -46,7 +47,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Discriminator = Value;
                 continue;
             case "bio":
-                if (!/^[a-z 0-9!?,.*`]{0,250}$/gi.test(Value))
+                if (!/^[a-z 0-9!?,.*-_#!;()[\]|`]{0,250}$/gi.test(Value))
                     return res.status(403).json({ code: 0, message: "Bio failed validation" });
 
                 U.Bio = Value;
@@ -59,7 +60,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 
                 if (!ValidBaseURL(Value)) continue;
 
-                U.AvatarID = await Upload(Value);
+                U.AvatarID = await Upload(Value, "Users");
                 continue;
             case "banner":
                 if (U.BannerID && U.BannerID !== Value) {
@@ -69,7 +70,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
 
                 if (!ValidBaseURL(Value)) continue;
 
-                U.BannerID = await Upload(Value);
+                U.BannerID = await Upload(Value, "Users");
                 break;
         }
     }
@@ -82,16 +83,53 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
-App.patch("/@me/settings-proto/*", VerifyAuth, async (req, res) => {
+App.use("/@me/settings-proto/:index", (req, res, next) => {
+    const Index = parseInt(req.params.index);
+    if (isNaN(Index)) return res.status(400).json({
+        code: JsonErrorCodes.GENERAL_ERROR,
+        message: "Index can only be an integer."
+    });
+    else if (Index < 1 || Index > 3) return res.status(400).json({
+        code: JsonErrorCodes.GENERAL_ERROR,
+        message: "Settings proto index can only be between 1 and 3."
+    });
+    else next();
+    
+});
+App.get("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
+    
+    res.send({ settings: MyUser.SettingsProto[parseInt(req.params.index) - 1] });
+});
+
+App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req))!, Index = parseInt(req.params.index);
     if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
+    
+    switch (Index) {
+        case 1:
+            const PreloadedUSettings = PreloadedUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
+            const PreloadedUSettingsChange = PreloadedUserSettings.fromBase64(req.body.settings);
+            
+            for (const [Key, Value] of Object.entries(PreloadedUSettingsChange)) PreloadedUSettings[Key as keyof PreloadedUserSettings] = Value;
 
-    //console.log(PreloadedUserSettings.fromBase64(req.body.settings));
+            MyUser.SettingsProto[Index - 1] = PreloadedUserSettings.toBase64(PreloadedUSettings);
+            break;
+        case 2:
+            const FrenecyUSettings = FrecencyUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
+            const FrenecyUSettingsChange = FrecencyUserSettings.fromBase64(req.body.settings);
+    
+            for (const [Key, Value] of Object.entries(FrenecyUSettingsChange)) FrenecyUSettings[Key as keyof FrecencyUserSettings] = Value;
 
-    // ok after i finish nicknames and roles on memberships i come k
-    MyUser.SettingsProto = req.body.settings;
+            MyUser.SettingsProto[Index - 1] = FrecencyUserSettings.toBase64(FrenecyUSettings);
+            break;
+        case 3:
+            MyUser.SettingsProto[Index - 1] = req.body.settings;
+            break;
+    }
+
     await MyUser.save();
-    //res.send(PreloadedUserSettings.fromBase64(req.body.settings));
+    res.send({ settings: MyUser.SettingsProto[Index - 1] });
 });
 
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {

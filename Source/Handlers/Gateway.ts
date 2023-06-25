@@ -518,7 +518,7 @@ Socket.on("connection", async (Client, req) => {
                         },
                         user: GatewayClient.Account!.Package(),
                         user_guild_settings: { entries: [], partial: false, version: 0 }, // guild settings for the user (notifications, etc)
-                        user_settings_proto: GatewayClient.Account!.SettingsProto, // settings of the client
+                        user_settings_proto: GatewayClient.Account!.SettingsProto[0], // settings of the client
                         users: [
                             GatewayClient.Account!.PackageSmall(),
                             ...GatewayClient.Account!.AvailableDMs.map((C) =>

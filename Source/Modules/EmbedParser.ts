@@ -5,7 +5,7 @@ import probe from "probe-image-size";
 import { Error } from "./Logger";
 
 export default async function (url: string): Promise<Embed | undefined> {
-    if (/((media4\.)?giphy\.com|((c|media)\.)?tenor\.com)/.test(url)) return await HandleImage(url);
+    if (/((media\d+\.)?giphy\.com|((c|media)\.)?tenor\.com)/.test(url)) return await HandleGif(url);
     else if (/(www\.)?twitter\.com\/(\w+)\/status\/(\d+)/.test(url)) {
         /*const Matches = (url.match(/twitter\.com\/(\w+)\/status\/(\d+)/) ?? []);
         const TweetID = Matches[2];
@@ -105,9 +105,13 @@ export default async function (url: string): Promise<Embed | undefined> {
             if (!Image && !Metadata.title && !Metadata.description) return;
 
             if (Image && (!Metadata.height || !Metadata.width)) {
-                const ImageMetadata = await probe(Image);
-                Metadata.width = ImageMetadata.width;
-                Metadata.height = ImageMetadata.height;
+                try {
+                    const ImageMetadata = await probe(Image);
+                    Metadata.width = ImageMetadata.width;
+                    Metadata.height = ImageMetadata.height;
+                } catch (e) {
+                    if (!Metadata.title && !Metadata.description) return;
+                }
             }
 
             return {
@@ -115,12 +119,12 @@ export default async function (url: string): Promise<Embed | undefined> {
                 type: EmbedType.link,
                 title: Metadata.title,
                 color: Metadata.color,
-                thumbnail: {
+                thumbnail: Image ? {
                     width: Metadata.width,
                     height: Metadata.height,
                     url: Image,
                     proxy_url: Image,
-                },
+                } : undefined,
                 description: Metadata.description,
             };
         }
@@ -142,23 +146,124 @@ async function Request(url: string, Head = false, BearerToken?: string) {
     }
 }
 
+async function HandleGif(url: string): Promise<Embed | undefined> {
+    const GifID = url.match(/((media4\.)?giphy\.com\/gifs\/|((c|media)\.)?tenor\.com\/view\/)([^/?&]+)/)?.at(-1)?.split("-").at(-1), Provider = /(media4\.)?giphy\.com/.test(url) ? "giphy" : "tenor";
+    if (!GifID) return;
+
+    let Gif: {
+        Thumbnail: {
+            url: string;
+            width: number;
+            height: number;
+        },
+        Author?: {
+            url: string;
+            name: string;
+            iconUrl: string;
+        },
+        url: string;
+        Video: {
+            url: string;
+            width: number;
+            height: number;
+        }
+    } | undefined;
+
+    if (Provider === "giphy") {
+        const Response = await Request(`https://api.giphy.com/v1/gifs/${GifID}?api_key=${process.env.GiphyAPIKey}`);
+        if (!Response) return;
+        const GifData = Response.data.data;
+        Gif = {
+            Thumbnail: {
+                url: GifData.images.preview_gif.url,
+                width: GifData.images.preview_gif.width,
+                height: GifData.images.preview_gif.height,
+            },
+            Author: {
+                name: GifData.user.display_name,
+                url: GifData.user.profile_url,
+                iconUrl: GifData.user.avatar_url
+            },
+            url: GifData.url,
+            Video: {
+                url: GifData.images.original.mp4,
+                width: parseInt(GifData.images.original.width),
+                height: parseInt(GifData.images.original.height),
+            }
+        };
+    } else {
+        const Response = await Request(`https://tenor.googleapis.com/v2/posts?ids=${GifID}&key=${process.env.TenorAPIKey}`);
+        if (!Response || !Array.isArray(Response.data.results)) return;
+        const GifData = Response.data.results[0];
+
+        Gif = {
+            Thumbnail: {
+                url: GifData.media_formats.gifpreview.url,
+                width: GifData.media_formats.gifpreview.dims[0],
+                height: GifData.media_formats.gifpreview.dims[1]
+            },
+            url: GifData.itemurl,
+            Video: {
+                url: GifData.media_formats.mp4.url,
+                width: GifData.media_formats.mp4.dims[0],
+                height: GifData.media_formats.mp4.dims[1],
+            }
+        };
+    }
+
+    return {
+        type: EmbedType.gifv,
+        provider: Provider === "giphy" ? {
+            name: "Giphy",
+            url: "https://giphy.com"
+        } : {
+            name: "Tenor",
+            url: "https://tenor.co"
+        },
+        author: Gif.Author ? {
+            name: Gif.Author.name,
+            url: Gif.Author.url,
+            icon_url: Gif.Author.iconUrl,
+            proxy_icon_url: Gif.Author.iconUrl
+        } : undefined,
+        thumbnail: {
+            url: Gif.Thumbnail.url,
+            proxy_url: Gif.Thumbnail.url,
+            width: Gif.Thumbnail.width,
+            height: Gif.Thumbnail.height
+        },
+        url: Gif.url,
+        video: {
+            url: Gif.Video.url,
+            proxy_url: Gif.Video.url,
+            width: Gif.Video.width,
+            height: Gif.Video.height
+        }
+    };
+}
+
 async function HandleImage(url: string): Promise<Embed | undefined> {
     const Response = await Request(url, true);
     if (!Response) return;
 
     if (Response.headers["content-type"].includes("image")) {
-        const ImageMetadata = await probe(url);
+        try {
+            const ImageMetadata = await probe(url);
 
-        return {
-            url,
-            type: EmbedType.image,
-            thumbnail: {
-                width: ImageMetadata.width,
-                height: ImageMetadata.height,
+            return {
                 url,
-                proxy_url: url,
-            },
-        };
+                type: EmbedType.image,
+                thumbnail: {
+                    width: ImageMetadata.width,
+                    height: ImageMetadata.height,
+                    url,
+                    proxy_url: url,
+                },
+            };
+        } catch (err) {
+            Error(`An error occured while probing image. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
+            return undefined;
+        }
     } else {
         const Response = await Request(url);
         if (!Response) return;

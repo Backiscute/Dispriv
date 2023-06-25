@@ -17,7 +17,7 @@ App.post("/", VerifyAuth, async (req, res) => {
     const AppName = req.body.name;
     const TeamID = req.body.team_id;
 
-    if (!AppName) return res.status(404).json({ message: "Missing Name", code: JsonErrorCodes.InvalidFormBody });
+    if (!AppName) return res.status(404).json({ message: "Missing Name", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
 
     if (!TeamID) {
         const Application = DiscordApplication.create({
@@ -36,7 +36,7 @@ App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res)
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UnknownApplication });
+        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
     if (!Application.embedded_activity_config) {
         const NewAppConfig = EmbeddedAppConfig.create({
@@ -58,7 +58,7 @@ App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, re
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UnknownApplication });
+        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
     for (const Key of Object.keys(req.body))
         switch (Key) {

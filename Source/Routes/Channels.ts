@@ -49,7 +49,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
     });
 
     if (!RequestedMessage)
-        return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
 
     if (
         (RequestedMessage.Channel.IsDM &&
@@ -61,7 +61,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
                 Permissions.MANAGE_MESSAGES,
             ))
     )
-        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, {
         id: RequestedMessage.ID,
@@ -75,13 +75,13 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
 
 App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
     if (!req.body.files || !Array.isArray(req.body.files))
-        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No attachments provided" });
+        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No attachments provided" });
     if (req.body.files.length > 4)
-        return res.status(400).json({ code: JsonErrorCodes.TooManyAttachments, message: "Too many attachments" });
+        return res.status(400).json({ code: JsonErrorCodes.MAXIMUM_ATTACHMENTS_IN_MESSAGE_REACHED, message: "Too many attachments" });
     for (const file of req.body.files)
         if (file.file_size > 25 * 1024 * 1024)
             return res.status(403).json({
-                code: JsonErrorCodes.FileTooLarge,
+                code: JsonErrorCodes.REQUEST_ENTITY_TOO_LARGE,
                 message: "File uploads are limited at 25mb.",
             });
 
@@ -195,12 +195,12 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 
     if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     if (
         !RequestedChannel.IsDM &&
         !HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.MANAGE_CHANNELS)
     )
-        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     for await (const Key of Object.keys(req.body)) {
         const Value = req.body[Key];
@@ -361,7 +361,7 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
     const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
     if (!HasPermission(Mmbr, Permissions.CREATE_INSTANT_INVITE))
-        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     const NewInvite = await Invite.create({
         InviteOwner: MyUser,
@@ -387,18 +387,18 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     });
 
     if (!RequestedChannel)
-        return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "No access" });
+        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No access" });
     else if (!RequestedChannel.IsDM) {
         const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
         if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
         if (!HasPermission(Mmbr, Permissions.SEND_MESSAGES))
-            return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+            return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     }
 
     if (typeof req.body.content !== "string" || req.body.content.length > 2000)
-        return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Message too long" });
+        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Message too long" });
     if (RequestedChannel.Type === ChannelType.DM) {
         const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
         const RelationshipBetweenUsers = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding].find(
@@ -406,7 +406,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         );
 
         if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
-            return res.status(400).json({ code: JsonErrorCodes.GeneralError, message: "Cannot DM non-friends" });
+            return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM non-friends" });
     }
 
     let MessageReplyingTo: Message | undefined;
@@ -429,11 +429,11 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         });
 
         if (!ChannelReference)
-            return res.status(400).json({ code: JsonErrorCodes.UnknownChannel, message: "Unknown Channel" });
+            return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
         const MessageReference = ChannelReference.Messages.find((M) => M.ID === req.body.message_reference.message_id);
 
         if (!MessageReference)
-            return res.status(400).json({ code: JsonErrorCodes.UnknownMessage, message: "Unknown Message" });
+            return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
         MessageReplyingTo = MessageReference;
     }
 
@@ -441,9 +441,9 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     try {
         if (req.body.content)
-            for await (const link of req.body.content.match(
+            for await (const link of (req.body.content.match(
                 /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
-            )) {
+            )) ?? []) {
                 if (
                     !RequestedChannel.IsDM &&
                     !HasPermission(
@@ -455,7 +455,8 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
                 const Embed = await EmbedParser(link);
                 if (Embed) Embeds.push(Embed);
             }
-    } catch {
+    } catch (e) {
+        console.log(e);
         Error("Error while parsing embeds");
     }
 
@@ -481,7 +482,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
                 )
             )
                 return res.status(403).json({
-                    code: JsonErrorCodes.MissingPermissions,
+                    code: JsonErrorCodes.MISSING_ACCESS,
                     message: "You must have \"ATTACH_FILES\" permission to attach files.",
                 });
             const File = FindAttachment(Attachment.uploaded_filename);
@@ -505,14 +506,14 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         }
     } catch (e) {
         return res.status(400).json({
-            code: JsonErrorCodes.GeneralError,
+            code: JsonErrorCodes.GENERAL_ERROR,
             message: "An error occurred while processing your attachments.",
         });
     }
 
     if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0)
         return res.status(400).json({
-            code: JsonErrorCodes.CannotSendEmptyMessage,
+            code: JsonErrorCodes.CANNOT_SEND_EMPTY_MESSAGE,
             message: "Cannot send empty message.",
         });
 
@@ -550,7 +551,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     const Emoji = req.params.Emoji as string;
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
-        return res.status(400).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Acess" });
+        return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Acess" });
 
     const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
     if (MessageReaction) {
@@ -648,7 +649,7 @@ App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res
     );
     if (!MessageReaction)
         return res.status(400).send({
-            code: JsonErrorCodes.GeneralError,
+            code: JsonErrorCodes.GENERAL_ERROR,
             message: "You have not reacted to this message",
         });
     MessageReaction.UsersReacted = MessageReaction.UsersReacted.filter((U) => U.ID !== MyUser!.ID);

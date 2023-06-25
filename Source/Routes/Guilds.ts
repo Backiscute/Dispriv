@@ -38,7 +38,8 @@ App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
 
     await SendToMembers(G.ID, OpCodes.DISPATCH, { id: G.ID }, 69, "GUILD_DELETE");
 
-    await Guild.delete({ ID: G.ID });
+    console.log(JSON.stringify(G, null, 4));
+    await Guild.remove(G);
 
     res.status(204).send();
 });
@@ -207,7 +208,7 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
                     continue;
                 case "icon":
                     if (!G.Features.includes(GuildFeatures.ROLE_ICONS))
-                        return res.status(403).json({ code: JsonErrorCodes.MissingAccess, message: "Missing Access" });
+                        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
                     if (Rl.IconID && Rl.IconID !== Value) {
                         Remove(Rl.IconID);
@@ -216,7 +217,7 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
 
                     if (!ValidBaseURL(Value)) continue;
 
-                    Rl.IconID = await Upload(Value);
+                    Rl.IconID = await Upload(Value, "Guilds");
                     continue;
                 case "hoist":
                     Rl.ShownOnMemberlist = Value;
@@ -412,7 +413,7 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
 
                 if (!ValidBaseURL(Value)) continue;
 
-                G.IconID = await Upload(Value);
+                G.IconID = await Upload(Value, "Guilds");
                 continue;
         }
     }

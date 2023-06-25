@@ -8,6 +8,7 @@ import {
     OneToOne,
     JoinTable,
     OneToMany,
+    JoinColumn,
 } from "typeorm";
 import { ApplicationFlags } from "../Classes/Flags";
 import { User } from "./User";
@@ -128,12 +129,15 @@ export class DiscordApplication extends BaseEntity {
         TermsOfService?: string;
 
     @ManyToOne(() => User, (U) => U.Applications, { eager: true, nullable: true })
+    @JoinColumn()
         Owner?: User;
 
     @ManyToOne(() => Team, (T) => T.Applications, { eager: true, nullable: true })
+    @JoinColumn()
         Team?: Team;
 
     @OneToOne(() => User, (U) => U.BotApplication, { nullable: true })
+    @JoinColumn()
         Bot?: User;
     
     @OneToMany(() => OAuth2App, (U) => U.Application, {})

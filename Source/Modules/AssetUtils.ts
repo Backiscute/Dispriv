@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync, mkdirSync, rmSync, renameSync, statSync } from "fs";
+import { writeFileSync, existsSync, mkdirSync, rmSync, renameSync, statSync, watchFile, unwatchFile } from "fs";
 import path from "path";
 import { v4 } from "uuid";
 import sharp from "sharp";
@@ -21,19 +21,33 @@ export function URLToBuffer(URL: string) {
     return Buffer.from(URL.split(",")[1], "base64");
 }
 
-export function CreateFirstFrame(FilePath: string, OutputPath: string) {
-    ffmpeg(FilePath).outputOptions("-vf", "select=eq(n\\,0)", "-q:v", "3").output(OutputPath).run();
+export async function GetFirstFrame(FilePath: string, OutputPath: string) {
+    await new Promise<void>((resolve, reject) => {
+        try {
+            ffmpeg(FilePath).outputOptions("-vf", "select=eq(n\\,0)", "-q:v", "3").output(OutputPath).run();
+            watchFile(OutputPath, (curr) => {
+                if (curr.ctimeMs !== new Date("1970-01-01T00:00:00.000").getTime()) {
+                    unwatchFile(OutputPath);
+                    resolve();
+                }
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
 
-export async function Upload(RawImageString: string) {
+export async function Upload(RawImageString: string, Directory: "Users" | "Guilds" | "Other") {
     const ImgBlob = URLToBuffer(RawImageString);
     const ID = v4().replaceAll("-", "");
 
     const Buffer = await sharp(ImgBlob).webp({ quality: 80 }).toBuffer();
 
-    if (!existsSync(path.join(__dirname, "..", "Assets"))) mkdirSync(path.join(__dirname, "..", "Assets"));
+    if (!existsSync(path.join(__dirname, "..", "Assets", Directory))) mkdirSync(path.join(__dirname, "..", "Assets", Directory), {
+        recursive: true
+    });
 
-    writeFileSync(path.join(__dirname, "..", "Assets", ID), Buffer);
+    writeFileSync(path.join(__dirname, "..", "Assets", Directory, ID), Buffer);
 
     return ID;
 }
@@ -83,8 +97,8 @@ export async function HandleAttachment(FilePath: string, NewFilename: string) {
     const NewFilePath = path.join(__dirname, "..", "Assets", "Attachments", NewFilename);
     renameSync(FilePath, NewFilePath);
     if ((VideoContentTypes as unknown as string[]).includes(ContentType)) {
-        const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${NewFilename.split(".")[0]}.jpg`);
-        CreateFirstFrame(NewFilePath, ThumbnailPath);
+        const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${NewFilename.split(".")[0]}.jpeg`);
+        await GetFirstFrame(NewFilePath, ThumbnailPath);
     }
 
     return {

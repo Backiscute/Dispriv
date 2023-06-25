@@ -10,24 +10,24 @@ const App = Router();
 App.post("/:ApplicationID/api/token", async (req, res) => {
     const Token = req.body.code;
 
-    if (!Token) return res.status(404).json({ message: "Missing Token", code: JsonErrorCodes.InvalidFormBody });
+    if (!Token) return res.status(404).json({ message: "Missing Token", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
 
     const UserID = Token.split("-")[0];
 
     const MyUser = await User.findOne({ where: { ID: UserID }, relations: { AuthorizedApps: { Application: true } } });
 
-    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UnknownUser });
+    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UNKNOWN_USER });
 
     const OAuthApp = MyUser?.AuthorizedApps.find((R: OAuth2App) => R.Application.ID === req.params.ApplicationID);
 
     if (OAuthApp === undefined)
         return res
             .status(404)
-            .json({ message: "Authorized Application not found", code: JsonErrorCodes.UnknownApplication });
+            .json({ message: "Authorized Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
     const TokenCheck = bcrypt.compareSync(`${OAuthApp.ID}-${MyUser?.ID}`, Token.split("-")[1]);
 
-    if (!TokenCheck) return res.status(404).json({ message: "Invalid Token", code: JsonErrorCodes.InvalidToken });
+    if (!TokenCheck) return res.status(404).json({ message: "Invalid Token", code: JsonErrorCodes.INVALID_OAUTH2_ACCESS_TOKEN });
 
     // generate a token for api and stuff ig
 
@@ -38,12 +38,12 @@ App.post("/:ApplicationID/api/token", async (req, res) => {
 App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOAuthReq, async (req, res) => {
     const MyUser = await GetUserByOAuthReq(req, { Memberships: { ToGuild: true } });
 
-    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UnknownUser });
+    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UNKNOWN_USER });
 
     const UserMembership = MyUser.Memberships.find((M) => M.ToGuild.ID === req.params.GuildID);
 
     if (UserMembership === undefined)
-        return res.status(404).json({ message: "User not in guild", code: JsonErrorCodes.UnknownGuild });
+        return res.status(404).json({ message: "User not in guild", code: JsonErrorCodes.UNKNOWN_GUILD });
 
     res.json(UserMembership.Package());
 });
@@ -51,7 +51,7 @@ App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOA
 App.get("/:ApplicationID/discord/api/users/@me/guilds/", VerifyOAuthReq, async (req, res) => {
     const MyUser = await GetUserByOAuthReq(req, { Memberships: { ToGuild: true } });
 
-    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UnknownUser });
+    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UNKNOWN_USER });
 
     const Guilds = MyUser.Memberships.map((M) => M.ToGuild.Partial());
     res.json(Guilds);

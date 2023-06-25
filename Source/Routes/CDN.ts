@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { PhotoFileTypes } from "../Classes/Misc";
+import { PhotoFileTypes, PhotoMap } from "../Classes/Misc";
 import { UploadAttachment } from "../Modules/AssetUtils";
 import { VerifyAuth } from "../Modules/AuthUtils";
 import { Error } from "../Modules/Logger";
@@ -32,18 +32,20 @@ App.put("/upload/:Filename", raw({
 App.get("/attachments/:ChannelID/:AttachmentID/:Filename", async (req, res) => {
     const FilePath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename}`);
     if (existsSync(FilePath)) {
-        if (["jpeg", "png", "jpg"].includes(req.query.format as string) && ["mp4", "ogv", "webm", "avi", "mpeg"].includes(req.params.Filename.split(".")[1])) {
-            const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename.split(".")[0]}.${req.query.format}`);
-            if (existsSync(ThumbnailPath)) res.sendFile(ThumbnailPath);
-            else {
-                if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".jpeg"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".jpeg"));
-                else if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".jpg"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".jpg"));
-                else if (existsSync(ThumbnailPath.replace(`.${req.query.format}`, ".png"))) res.sendFile(ThumbnailPath.replace(`.${req.query.format}`, ".png"));
-                else setTimeout(() => res.sendFile(ThumbnailPath), 6000);
-            }
+        if (["jpeg", "png", "jpg", "webp", "avif"].includes(req.query.format as string) && ["mp4", "ogv", "webm", "avi", "mpeg"].includes(req.params.Filename.split(".")[1])) {
+            const ThumbnailPath = path.join(__dirname, "..", "Assets", "Attachments", `${req.params.ChannelID}-${req.params.AttachmentID}-${req.params.Filename.split(".")[0]}.jpeg`);
+            if (req.query.format === "jpg") req.query.format = "jpeg";
+            if (existsSync(ThumbnailPath)) {
+                const FileInterpreter = sharp(ThumbnailPath)[req.query.format as "png" | "jpeg" | "webp" | "avif"]();
+                if (/^\d{2,4}$/.test(req.query.width as string) && /^\d{2,4}$/.test(req.query.height as string)) FileInterpreter.resize(parseInt(req.query.width as string), parseInt(req.query.height as string));
+                res.setHeader("Content-Type", PhotoMap[req.query.format  as "png" | "jpeg" | "webp" | "avif"]).send(await FileInterpreter.toBuffer());
+            } else res.status(404).json({
+                code: JsonErrorCodes.UPLOADED_FILE_NOT_FOUND,
+                message: "File not found."
+            });
         } else res.sendFile(FilePath);
     } else res.status(404).json({
-        code: JsonErrorCodes.FileNotFound,
+        code: JsonErrorCodes.UPLOADED_FILE_NOT_FOUND,
         message: "File not found."
     });
 });
@@ -60,7 +62,7 @@ App.get(["/*/*/:Filename", "/*/:Filename"], async (req, res) => {
             else res.status(200).send(await sharp(FilePath)[FileExtension as typeof PhotoFileTypes[number]]().toBuffer());
         }
         else res.status(200).sendFile(FilePath);
-    }
+    }"";
 });
 
 module.exports = {

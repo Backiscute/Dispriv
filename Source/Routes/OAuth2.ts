@@ -108,7 +108,7 @@ App.delete("/tokens/:OAuthID", VerifyAuth, async (req, res) => {
     const MyUser = await GetUserByRequest(req, { AuthorizedApps: { Application: true } });
     const OAuthApp = MyUser?.AuthorizedApps.find((A) => A.ID == req.params.OAuthID);
 
-    if (OAuthApp === undefined) return res.status(400).json({ message: "Invalid OAuth", code: JsonErrorCodes.InvalidOAuthToken });
+    if (OAuthApp === undefined) return res.status(400).json({ message: "Invalid OAuth", code: JsonErrorCodes.INVALID_OAUTH2_ACCESS_TOKEN });
 
     await OAuthApp.remove();
 

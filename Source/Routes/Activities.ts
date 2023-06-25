@@ -16,7 +16,7 @@ App.get("/:ApplicationID/test-mode", VerifyAuth, async (req, res) => {
     const UserData = await GetUserByRequest(req, { Applications: true });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
-    if (!Application) return res.status(403).json({ message: "Unauthorized", code: JsonErrorCodes.Unauthorized });
+    if (!Application) return res.status(403).json({ message: "Unauthorized", code: JsonErrorCodes.UNAUTHORIZED });
     res.sendStatus(204);
 });
 
@@ -27,8 +27,8 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
     const GuildID = req.body.guild_id;
     const SessionID = req.body.session_id;
 
-    if (!SessionID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.InvalidFormBody });
-    if (!GuildID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.InvalidFormBody });
+    if (!SessionID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+    if (!GuildID) return res.status(404).json({ message: "Invalid Form Body", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
 
     const LinkedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -36,7 +36,7 @@ App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
         cache: true,
     });
 
-    if (!LinkedChannel) return res.status(404).json({ message: "Unknown Channel", code: JsonErrorCodes.UnknownChannel });
+    if (!LinkedChannel) return res.status(404).json({ message: "Unknown Channel", code: JsonErrorCodes.UNKNOWN_CHANNEL });
     if (LinkedChannel.Type != ChannelType.GUILD_VOICE)
         return res.status(404).json({ message: "Channel is not a voice channel", code: 0 });
 
