@@ -5,7 +5,7 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
-import { Msg } from "../Modules/Logger";
+import { Error, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
@@ -106,30 +106,35 @@ App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!, Index = parseInt(req.params.index);
     if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
     
-    switch (Index) {
-        case 1:
-            const PreloadedUSettings = PreloadedUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
-            const PreloadedUSettingsChange = PreloadedUserSettings.fromBase64(req.body.settings);
-            
-            for (const [Key, Value] of Object.entries(PreloadedUSettingsChange)) PreloadedUSettings[Key as keyof PreloadedUserSettings] = Value;
-
-            MyUser.SettingsProto[Index - 1] = PreloadedUserSettings.toBase64(PreloadedUSettings);
-            break;
-        case 2:
-            const FrenecyUSettings = FrecencyUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
-            const FrenecyUSettingsChange = FrecencyUserSettings.fromBase64(req.body.settings);
+    try 
+    {
+        switch (Index) {
+            case 1:
+                const PreloadedUSettings = PreloadedUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
+                const PreloadedUSettingsChange = PreloadedUserSettings.fromBase64(req.body.settings);
+                
+                for (const [Key, Value] of Object.entries(PreloadedUSettingsChange)) PreloadedUSettings[Key as keyof PreloadedUserSettings] = Value;
     
-            for (const [Key, Value] of Object.entries(FrenecyUSettingsChange)) FrenecyUSettings[Key as keyof FrecencyUserSettings] = Value;
-
-            MyUser.SettingsProto[Index - 1] = FrecencyUserSettings.toBase64(FrenecyUSettings);
-            break;
-        case 3:
-            MyUser.SettingsProto[Index - 1] = req.body.settings;
-            break;
+                MyUser.SettingsProto[Index - 1] = PreloadedUserSettings.toBase64(PreloadedUSettings);
+                break;
+            case 2:
+                const FrenecyUSettings = FrecencyUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
+                const FrenecyUSettingsChange = FrecencyUserSettings.fromBase64(req.body.settings);
+        
+                for (const [Key, Value] of Object.entries(FrenecyUSettingsChange)) FrenecyUSettings[Key as keyof FrecencyUserSettings] = Value;
+    
+                MyUser.SettingsProto[Index - 1] = FrecencyUserSettings.toBase64(FrenecyUSettings);
+                break;
+            case 3:
+                MyUser.SettingsProto[Index - 1] = req.body.settings;
+                break;
+        }
+        res.json({ settings: MyUser.SettingsProto[Index - 1] });
     }
-
-    await MyUser.save();
-    res.send({ settings: MyUser.SettingsProto[Index - 1] });
+    catch (e) {
+        Error("Error in settings proto patch: " + e);
+        res.status(500).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Internal Server Error" });
+    }
 });
 
 App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
