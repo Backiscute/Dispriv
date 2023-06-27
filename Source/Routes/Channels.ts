@@ -29,6 +29,7 @@ import { v4 } from "uuid";
 import { FindAttachment, HandleAttachment } from "../Modules/AssetUtils";
 import { User } from "../Entities/User";
 import { VoiceSessions } from "../Handlers/RTCSocket";
+import { FindOptionsWhere, LessThan, MoreThan } from "typeorm";
 
 const App = Router();
 
@@ -101,14 +102,28 @@ App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
 });
 
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!, Before = /^\d+$/.test(req.query.before as string) ? req.query.before as string : undefined, After = /^\d+$/.test(req.query.after as string) ? req.query.after as string : undefined;
+    let Limit = /^\d+$/.test(req.query.limit as string) ? parseInt(req.query.limit as string) : 50;
+    if (Limit > 250) Limit = 250;
+    if ((After && After > GenerateSnowflake()) || (Before && Before < req.params.ChannelID)) 
+        return res.status(422).json({
+            code: JsonErrorCodes.GENERAL_ERROR,
+            message: "After is more than latest snowflake or Before less than channel snowflake."
+        });
+
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
-
         relations: {
             OwnerGuild: true,
             DMRecipients: true,
-            Messages: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } },
+        },
+        select: {
+            ID: true,
+            DMRecipients: true,
+            Type: true,
+            Owner: {
+                ID: true
+            }
         },
     });
 
@@ -123,7 +138,24 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         if (!HasPermission(Mmbr, Permissions.READ_MESSAGE_HISTORY)) return res.json([]);
     }
 
-    res.json(RequestedChannel.Messages.map((M) => M.Package(MyUser)).reverse());
+    const Where: FindOptionsWhere<Message> = {
+        Channel: {
+            ID: RequestedChannel.ID
+        }
+    };
+    if (Before) Where.ID = LessThan(Before);
+    if (After) Where.ID = MoreThan(After);
+
+    const Messages = await Message.find({
+        order: { ID: "DESC" },
+        where: Where,
+        take: Limit,
+        relations: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } }
+    });
+    let PackagedMessages = Messages.map((M) => M.Package(MyUser));
+    if (Before && After) PackagedMessages = PackagedMessages.filter((M) => M.id < Before);
+
+    res.json(PackagedMessages);
 });
 
 App.get("/:ChannelID", VerifyAuth, async (req, res) => {

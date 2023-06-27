@@ -121,6 +121,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Gift, (G) => G.User)
         Gifts: Gift[];
+    
+    @Column({ type: "simple-array", nullable: true })
+        ThemeColors: number[] = [];
 
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
@@ -131,9 +134,6 @@ export class User extends BaseEntity {
             accent_color: null,
             avatar: this.AvatarID,
             avatar_decoration: null,
-            banner: this.BannerID,
-            banner_color: null,
-            bio: this.Bio,
             desktop: true,
             discriminator: this.Discriminator,
             display_name: this.Username,
@@ -154,6 +154,7 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             verified: true,
             bot: this.Bot,
+            theme_colors: this.ThemeColors
         };
     }
 
@@ -173,7 +174,7 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
             username: this.Username,
-            bot: this.Bot,
+            bot: this.Bot
         };
     }
 
@@ -188,13 +189,15 @@ export class User extends BaseEntity {
             id: this.ID,
             system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
-            username: this.Username,
+            username: this.Username
         };
     }
 
     Gateway(MemberOf: Membership) {
         return {
-            avatar: this.AvatarID,
+            avatar: MemberOf.AvatarID ?? this.AvatarID,
+            banner: MemberOf.BannerID ?? this.BannerID,
+            bio: MemberOf.Bio,
             communication_disabled_until: null,
             deaf: MemberOf.Deafened,
             flags: 0,
@@ -219,7 +222,7 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             banner: this.BannerID,
             accent_color: 0,
-            public_flags: this.Flags,
+            public_flags: this.Flags
         };
     }
 
@@ -233,7 +236,7 @@ export class User extends BaseEntity {
             global_name: null,
             id: this.ID,
             public_flags: this.Flags,
-            username: this.Username,
+            username: this.Username
         };
     }
 }
@@ -242,6 +245,15 @@ export class User extends BaseEntity {
 export class Membership extends BaseEntity {
     @PrimaryColumn()
         ID: string;
+
+    @Column({ nullable: true })
+        AvatarID?: string;
+
+    @Column({ nullable: true })
+        BannerID?: string;
+
+    @Column({ length: 200, nullable: true })
+        Bio: string = "";
 
     @Column()
         CreatedAt: Date;
@@ -262,6 +274,9 @@ export class Membership extends BaseEntity {
     @Column({ nullable: true })
         GuildNickname?: string;
 
+    @Column({ type: "simple-array", nullable: true })
+        ThemeColors: number[] = [];
+        
     @ManyToOne(() => Guild, (G) => G.Members, { onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
         ToGuild: Guild;
@@ -273,6 +288,9 @@ export class Membership extends BaseEntity {
     Package(IncludeUser: boolean = true /*, ChannelContext: Channel*/) {
         return {
             user: IncludeUser ? this.Owner.Partial() : undefined,
+            avatar: this.AvatarID,
+            banner: this.BannerID,
+            bio: this.Bio,
             nick: this.GuildNickname,
             roles: this.Roles ? this.Roles.map((R) => R.ID) : [],
             joined_at: CreateTimestamp(this.CreatedAt),
@@ -281,12 +299,13 @@ export class Membership extends BaseEntity {
             premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
             pending: false,
             permissions: GetHighestRoleInArr(this.Roles).Permissions.toString(),
+            theme_colors: this.ThemeColors
         };
     }
 
     PackageGatewayVoice() {
         return {
-            avatar: null,
+            avatar: this.AvatarID,
             communication_disabled_until: null,
             deaf: this.Deafened,
             flags: 0,
@@ -303,7 +322,9 @@ export class Membership extends BaseEntity {
     PackageGateway() {
         return [
             {
-                avatar: null,
+                avatar: this.AvatarID,
+                banner: this.BannerID,
+                bio: this.Bio,
                 nick: this.GuildNickname,
                 roles: this.Roles ? this.Roles.map((R) => R.ID) : [],
                 joined_at: CreateTimestamp(this.CreatedAt),

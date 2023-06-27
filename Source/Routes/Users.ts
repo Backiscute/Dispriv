@@ -24,6 +24,40 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     for (const PropKey of Object.keys(req.body)) {
         const Value = req.body[PropKey];
         switch (PropKey) {
+            case "avatar":
+                if (U.AvatarID && U.AvatarID !== Value) {
+                    Remove(U.AvatarID);
+                    U.AvatarID = undefined;
+                }
+                
+                if (!ValidBaseURL(Value)) continue;
+
+                U.AvatarID = await Upload(Value, "Users");
+                continue;
+            case "banner":
+                if (U.BannerID && U.BannerID !== Value) {
+                    Remove(U.BannerID);
+                    U.BannerID = undefined;
+                }
+
+                if (!ValidBaseURL(Value)) continue;
+                
+                U.BannerID = await Upload(Value, "Users");
+                break;
+            case "bio":
+                if (!/^[a-z 0-9!?,.*-_#!;()[\]|`]{0,250}$/gi.test(Value))
+                    return res.status(403).json({ code: 0, message: "Bio failed validation" });
+    
+                U.Bio = Value;
+                continue;
+            case "discriminator":
+                if (!/^[0-9]{4}$/g.test(Value))
+                    return res.status(403).json({ code: 0, message: "weird discriminator" });
+                const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
+                if (ExistingUserD) return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
+
+                U.Discriminator = Value;
+                continue;
             case "username":
                 if (!/^[a-z 0-9]{2,32}$/gi.test(Value))
                     return res.status(403).json({ code: 0, message: "Username failed validation" });
@@ -38,40 +72,6 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Username = Value.trim();
                 U.Discriminator = DiscrimRandom;
                 continue;
-            case "discriminator":
-                if (!/^[0-9]{4}$/g.test(Value))
-                    return res.status(403).json({ code: 0, message: "weird discriminator" });
-                const ExistingUserD = await User.findOne({ where: { Username: U.Username, Discriminator: Value } });
-                if (ExistingUserD) return res.status(400).json({ code: 0, message: "Discriminator already taken!" });
-
-                U.Discriminator = Value;
-                continue;
-            case "bio":
-                if (!/^[a-z 0-9!?,.*-_#!;()[\]|`]{0,250}$/gi.test(Value))
-                    return res.status(403).json({ code: 0, message: "Bio failed validation" });
-
-                U.Bio = Value;
-                continue;
-            case "avatar":
-                if (U.AvatarID && U.AvatarID !== Value) {
-                    Remove(U.AvatarID);
-                    U.AvatarID = undefined;
-                }
-
-                if (!ValidBaseURL(Value)) continue;
-
-                U.AvatarID = await Upload(Value, "Users");
-                continue;
-            case "banner":
-                if (U.BannerID && U.BannerID !== Value) {
-                    Remove(U.BannerID);
-                    U.BannerID = undefined;
-                }
-
-                if (!ValidBaseURL(Value)) continue;
-
-                U.BannerID = await Upload(Value, "Users");
-                break;
         }
     }
 
@@ -83,6 +83,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 
+//TODO: check if all update or only key
 App.use("/@me/settings-proto/:index", (req, res, next) => {
     const Index = parseInt(req.params.index);
     if (isNaN(Index)) return res.status(400).json({
@@ -217,9 +218,38 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
 
     const FoundUser = await User.findOneBy({ ID: UserID });
     if (!FoundUser) return res.status(404).json({ message: "Unknown User", code: 10013 });
+    const Guild: { [Key: string]: unknown } = {};
 
-    /*const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
-    const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;*/
+    if (req.query.guild_id) {
+        const Mmbr = await Membership.findOne({
+            where: {
+                ID: req.query.guild_id as string,
+                Owner: {
+                    ID: FoundUser.ID
+                }
+            },
+            relations: {
+                Owner: true
+            }
+        });
+        
+        if (Mmbr) {
+            Guild.guild_member = Mmbr.Package(true);
+            Guild.guild_member_profile = {
+                bio: Mmbr.Bio,
+                accent_color: null,
+                banner: Mmbr.BannerID,
+                guild_id: Mmbr.ID,
+                emoji: null,
+                popout_animation_particle_type: null,
+                theme_colors: null,
+            };
+        }
+    }
+
+    // const IncludeMutualGuilds = req.query.with_mutual_guilds || false;
+    // const IncludeMutualFriendsCount = req.query.with_mutual_friends_count || false;
+
     res.json({
         badges: FoundUser.Badges.map((B) => B.Package()),
         connected_accounts: [], // TODO
@@ -239,6 +269,7 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
             popout_animation_particle_type: null,
             theme_colors: null,
         },
+        ...Guild
     });
 });
 

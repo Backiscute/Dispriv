@@ -11,7 +11,6 @@ import {
     GetHighestRole,
     GetHighestRoleInArr,
     HasPermission,
-    MembershipFromGuild,
     SendGuildMemberUpdate,
     SendToMembers,
     SendToUser,
@@ -77,46 +76,62 @@ App.post("/:GuildID/roles", VerifyAuth, async (req, res) => {
     res.json(CreatedRole.Package());
 });
 
-App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
+App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], VerifyAuth, async (req, res) => {
     //if (req.params.MemberID === "@me") return res.sendStatus(403);
     const IsMe = req.params.MemberID === "@me";
 
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true } } }))!;
+    const MyUser = (await GetUserByRequest(req))!;
 
-    const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
-    if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+    const Mmbr = await Membership.findOne({
+        where: {
+            ID: req.params.GuildID,
+            Owner: {
+                ID: MyUser.ID
+            }
+        }
+    });
+    if (!Mmbr) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "You aren't participating in that guild." });
     const G = Mmbr.ToGuild;
+    const GuildMember = IsMe ? Mmbr : await Membership.findOne({
+        where: {
+            ID: req.params.GuildID,
+            Owner: {
+                ID: req.params.MemberID
+            }
+        }
+    });
 
-    const UserTo = IsMe
-        ? MyUser
-        : await User.findOne({
-            where: {
-                ID: req.params.MemberID,
-                Memberships: {
-                    ToGuild: {
-                        ID: G.ID,
-                    },
-                },
-            },
-            relations: {
-                Memberships: {
-                    Owner: false,
-                    ToGuild: {
-                        Members: true,
-                    },
-                },
-            },
-        });
-
-    if (!UserTo) return res.status(404).json({ code: 0, message: "Couldn't find that user." });
-
-    const GuildMember = IsMe ? Mmbr : MembershipFromGuild(UserTo, G);
-
-    if (!GuildMember) return res.status(404).json({ code: 0, message: "That user isn't a member of this guild." });
+    if (!GuildMember) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "That user isn't a member of this guild." });
 
     for (const PropKey of Object.keys(req.body)) {
         const Value = req.body[PropKey];
         switch (PropKey) {
+            case "avatar":
+                if (GuildMember.AvatarID && GuildMember.AvatarID !== Value) {
+                    Remove(GuildMember.AvatarID);
+                    GuildMember.AvatarID = undefined;
+                }
+
+                if (!ValidBaseURL(Value)) continue;
+
+                GuildMember.AvatarID = await Upload(Value, "Guilds/Users");
+                continue;
+            case "banner":
+                if (GuildMember.BannerID && GuildMember.BannerID !== Value) {
+                    Remove(GuildMember.BannerID);
+                    GuildMember.BannerID = undefined;
+                }
+
+                if (!ValidBaseURL(Value)) continue;
+
+                GuildMember.BannerID = await Upload(Value, "Guilds/Users");
+                break;
+            case "bio":
+                if (!/^[a-z 0-9!?,.*-_#!;()[\]|`]{0,250}$/gi.test(Value))
+                    return res.status(403).json({ code: 0, message: "Bio failed validation" });
+
+                GuildMember.Bio = Value ? Value : undefined;
+                continue;
             case "nick":
                 if (!HasPermission(Mmbr, IsMe ? Permissions.CHANGE_NICKNAME : Permissions.MANAGE_NICKNAMES))
                     return res.status(403).json({ code: 40003, message: "Missing Access" });
@@ -153,9 +168,20 @@ App.patch("/:GuildID/members/:MemberID", VerifyAuth, async (req, res) => {
     }
 
     await GuildMember.save();
-    res.json(GuildMember.Package());
+    res.json(req.path.includes("/profile/") ? { guild_id: GuildMember.ID } : GuildMember.Package());
 
-    SendGuildMemberUpdate(UserTo);
+    SendGuildMemberUpdate((await User.findOne({
+        where: {
+            ID: GuildMember.Owner.ID
+        },
+        relations: {
+            Memberships: {
+                ToGuild: {
+                    Members: true
+                }
+            }
+        }
+    }))!);
 });
 
 App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req, res) => {

@@ -7,14 +7,14 @@ import imageSize from "image-size";
 import ffmpeg from "fluent-ffmpeg";
 import { path as ffprobeBinary} from "ffprobe-static";
 import ffmpegBinary from "ffmpeg-static";
-import { PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
+import { Folders, PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
 
 ffmpeg.setFfprobePath(ffprobeBinary);
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 ffmpeg.setFfmpegPath(ffmpegBinary!);
 
 export function ValidBaseURL(URL: string) {
-    return /^data:image\/png;base64,/g.test(URL);
+    return /^data:(image\/png|application\/octet-stream);base64,/g.test(URL);
 }
 
 export function URLToBuffer(URL: string) {
@@ -37,7 +37,7 @@ export async function GetFirstFrame(FilePath: string, OutputPath: string) {
     });
 }
 
-export async function Upload(RawImageString: string, Directory: "Users" | "Guilds" | "Other") {
+export async function Upload(RawImageString: string, Directory: Folders) {
     const ImgBlob = URLToBuffer(RawImageString);
     const ID = v4().replaceAll("-", "");
 

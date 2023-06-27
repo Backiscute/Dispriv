@@ -10,3 +10,19 @@ export const PhotoMap = {
     png: ["image/x-png", "image/png"],
     tiff: ["image/tiff"]
 } as const;
+export const FolderMap = {
+    avatars: "Users",
+    banners: "Users",
+    icons: "Guilds",
+    guilds: "Guilds",
+    users: "Users",
+    "role-icons": "Guilds",
+    "app-assets": "Applications",
+    "channel-icons": "Channels",
+    emojis: "Guilds/Emojis",
+    members: "Guilds/Users"
+} as const;
+export type ValuesOfType<T, U> = {
+  [K in keyof T]: T[K] extends U ? T[K] : never;
+}[keyof T];
+export type Folders = ValuesOfType<typeof FolderMap, string>
