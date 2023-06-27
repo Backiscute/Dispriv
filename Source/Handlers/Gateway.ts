@@ -471,7 +471,7 @@ Socket.on("connection", async (Client, req) => {
                                 Owner: true,
                             },
                             Channels: {
-                                OwnerCategory: true,
+                                OwnerCategory: true
                             },
                         },
                     },

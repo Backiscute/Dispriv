@@ -8,6 +8,7 @@ import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { HasPermission } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
@@ -23,14 +24,22 @@ App.get("/:InviteCode", VerifyAuth, async (req, res) => {
         });
         if (!VanityGuild) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
 
+        const InviteChannel = VanityGuild.Channels.find((C) => C.ID === VanityGuild.SystemChannelID) ?? VanityGuild.Channels[0];
+        if (!InviteChannel) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_INVITE, message: "Unknown Invite" });
+
         return res.json({
             code: VanityGuild.VanityInviteURL,
             guild: VanityGuild.Partial(),
-            type: "GUILD",
+            type: InviteType.GUILD,
             expires_at: null,
+            //TODO:
             aproximate_member_count: 0,
             aproximate_presence_count: 0,
-            channel: null,
+            channel: {
+                id: InviteChannel.ID,
+                name: InviteChannel.DisplayName,
+                type: InviteChannel.Type
+            },
         });
     }
 
@@ -69,7 +78,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
             where: { VanityInviteURL: req.params.InviteCode },
             relations: { Members: true, Channels: true },
         });
-        if (!VanityGuild) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
+        if (!VanityGuild) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_INVITE, message: "Unknown Invite" });
 
         if (MyUser.Memberships.find((x) => x.ToGuild.ID === VanityGuild.ID))
             return res.json({
@@ -77,10 +86,14 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
                 guild: VanityGuild.Partial(),
                 type: InviteType.GUILD,
                 expires_at: null,
+                //TODO:
                 approximate_member_count: 0,
                 approximate_presence_count: 0,
                 channel: null,
             });
+
+        const InviteChannel = VanityGuild.Channels.find((C) => C.ID === VanityGuild.SystemChannelID) ?? VanityGuild.Channels[0];
+        if (!InviteChannel) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_INVITE, message: "Unknown Invite" });
 
         await Membership.create({
             ID: GenerateSnowflake(),
@@ -95,20 +108,26 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
             guild: VanityGuild.Partial(),
             type: InviteType.GUILD,
             expires_at: null,
+            //TODO:
             approximate_member_count: 0,
             approximate_presence_count: 0,
-            channel: null,
+            channel: {
+                id: InviteChannel.ID,
+                name: InviteChannel.DisplayName,
+                type: InviteChannel.Type,
+                guild_id: VanityGuild.ID
+            },
+            new_member:	true
         });
 
         const Conn = FindConnection(MyUser.ID);
         if (!Conn) return;
 
-        SendOp(Conn, OpCodes.DISPATCH, VanityGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
+        SendOp(Conn, OpCodes.DISPATCH, { ...VanityGuild.GatewayPackage(MyUser), ...VanityGuild.GatewaySupplementalPackage(), members: VanityGuild.Members.map((C) => C.Package()) }, 24, "GUILD_CREATE");
         return;
     }
 
     const TargetGuild = RequestedInvite.InGuild;
-
     if (MyUser.Memberships.find((x) => x.ToGuild.ID === TargetGuild.ID)) return res.json(RequestedInvite.Package());
 
     await Membership.create({
@@ -119,7 +138,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
         Roles: [TargetGuild.DefaultRole],
     }).save();
 
-    res.json(RequestedInvite.PackagePublic());
+    res.json(RequestedInvite.PackagePublic(true));
 
     RequestedInvite.CurrentUses++;
     RequestedInvite.save();
@@ -127,7 +146,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
     const Conn = FindConnection(MyUser.ID);
     if (!Conn) return;
 
-    SendOp(Conn, OpCodes.DISPATCH, TargetGuild.GatewayPackage(MyUser), 24, "GUILD_CREATE");
+    SendOp(Conn, OpCodes.DISPATCH, { ...TargetGuild.GatewayPackage(MyUser), ...TargetGuild.GatewaySupplementalPackage(), members: TargetGuild.Members.map((C) => C.Package()) }, 24, "GUILD_CREATE");
 });
 
 module.exports = {

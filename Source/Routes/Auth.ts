@@ -43,12 +43,20 @@ App.post("/register", async (req, res) => {
         Bio: "Hey there! I am a new user on Dispriv!",
         Password: HashedPassword,
         DateOfBirth: new Date(DOB),
-        Discriminator: "0000", //TODO
         TutorialReadIndicators: [],
         AuthorizedApps: []
     });
 
-    await User.insert(NewUser);
+    try {
+        await User.insert(NewUser);
+    } catch (err) {
+        if ((err as Error).cause === "USERNAME_TOO_MANY_USERS")
+            return res.status(403).json({
+                code: "USERNAME_TOO_MANY_USERS",
+                message: (err as Error).message
+            });
+        else throw err;
+    }
 
     const NewToken = GenerateToken(NewUser.ID, Date.now(), HashedPassword);
     Msg(`Generated token ${NewToken} for user ${Username}, Registered`, "Auth");

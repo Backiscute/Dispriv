@@ -134,9 +134,9 @@ App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
                 MyUser.SettingsProto[Index - 1] = req.body.settings;
                 break;
         }
+        await MyUser.save();
         res.json({ settings: MyUser.SettingsProto[Index - 1] });
-    }
-    catch (e) {
+    } catch (e) {
         Error("Error in settings proto patch: " + e);
         res.status(500).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Internal Server Error" });
     }

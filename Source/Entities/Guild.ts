@@ -190,6 +190,9 @@ export class Guild extends BaseEntity {
     @JoinColumn()
         Invites: Invite[];
 
+    @Column({ nullable: true })
+        SystemChannelID?: string;
+
     get DefaultRole() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.Roles.find((R) => R.ID === this.ID)!;
@@ -211,12 +214,14 @@ export class Guild extends BaseEntity {
     @AfterInsert()
     private async CreateDefaultChannels() {
         // categories made the thing logout for osme rason
-        await Channel.create({
+        const GeneralChannel = await Channel.create({
             ID: GenerateSnowflake(),
             DisplayName: "general",
             OwnerGuild: this,
             //OwnerCategory: TextCategory,
         }).save();
+
+        this.SystemChannelID = GeneralChannel.ID;
 
         await Channel.create({
             ID: GenerateSnowflake(),
@@ -240,6 +245,7 @@ export class Guild extends BaseEntity {
             features: this.Features,
             approximate_member_count: 0,
             approximate_presence_count: 0,
+            vanity_url_code: this.VanityInviteURL,
             emojis: [],
             stickers: [],
         };
@@ -273,23 +279,24 @@ export class Guild extends BaseEntity {
             large: this.Members?.length > 100,
             unavailable: this.Disabled,
             member_count: this.Members?.length,
-            channels: this.Channels?.map((C) => C.GuildPackage(this.ID)),
+            channels: this.Channels?.map((C) => C.GuildPackage(this.ID, UserContext?.ID)),
             threads: [],
             max_members: this.MaximumMembers,
-            vanity_url: this.VanityInviteURL,
+            vanity_url_code: this.VanityInviteURL,
             description: this.Description,
             banner: this.BannerID,
             premium_tier: Boosters >= 14 ? 3 : Boosters >= 7 ? 2 : Boosters >= 2 ? 1 : 0,
             premium_subscription_count: Boosters,
             preferred_locale: "en-US",
             nsfw_level: 0,
+            system_channel_id: this.SystemChannelID
         };
     }
 
     GatewayPackage(UserContext: User) {
         return {
             application_command_counts: {},
-            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID)) : [],
+            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
             data_mode: "full",
             emojis: [],
             guild_scheduled_events: [],
@@ -305,6 +312,7 @@ export class Guild extends BaseEntity {
             stickers: [],
             threads: [],
             version: Date.now(),
+            system_channel_id: this.SystemChannelID,
         };
     }
 
@@ -333,7 +341,7 @@ export class Guild extends BaseEntity {
     GatewayPackageEvent(UserContext: User) {
         return {
             application_command_counts: {},
-            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID)) : [],
+            channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
             data_mode: "full",
             emojis: [],
             guild_scheduled_events: [],
@@ -480,8 +488,8 @@ export class Invite extends BaseEntity {
     @Column({ default: InviteType.GUILD })
         Type: InviteType;
 
-    @ManyToOne(() => Channel, (C) => C.Invites, { eager: true, nullable: true })
-        LinkedChannel?: Channel;
+    @ManyToOne(() => Channel, (C) => C.Invites, { eager: true })
+        LinkedChannel: Channel;
 
     @ManyToOne(() => User, (U) => U.CreatedInvites, { eager: true })
         InviteOwner: User;
@@ -495,13 +503,17 @@ export class Invite extends BaseEntity {
             expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
             uses: this.CurrentUses,
             max_uses: this.MaxUses,
-            temporary: false,
             inviter: this.InviteOwner.PackageSmall(),
-            channel: this.LinkedChannel?.GuildPackage(this.InGuild.ID) ?? null,
+            channel: {
+                id: this.LinkedChannel.ID,
+                name: this.LinkedChannel.DisplayName,
+                type: this.LinkedChannel.Type,
+                guild_id: this.InGuild.ID
+            },
         };
     }
 
-    PackagePublic() {
+    PackagePublic(NewMember = false) {
         return {
             code: this.InviteCode,
             guild: this.InGuild.Partial(),
@@ -509,7 +521,13 @@ export class Invite extends BaseEntity {
             expires_at: this.Expires ? CreateTimestamp(this.Expires) : null,
             approximate_member_count: 0,
             approximate_presence_count: 0, // TODO
-            channel: this.LinkedChannel?.GuildPackage(this.InGuild.ID) ?? null,
+            channel: {
+                id: this.LinkedChannel.ID,
+                name: this.LinkedChannel.DisplayName,
+                type: this.LinkedChannel.Type,
+                guild_id: this.InGuild.ID
+            },
+            new_member:	NewMember ? undefined : true,
         };
     }
 }

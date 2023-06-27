@@ -8,6 +8,7 @@ import {
     ManyToMany,
     JoinTable,
     OneToOne,
+    BeforeInsert,
 } from "typeorm";
 import { UserFlags } from "../Classes/Flags";
 import { Message } from "./Message";
@@ -127,6 +128,23 @@ export class User extends BaseEntity {
 
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
+    }
+
+    @BeforeInsert()
+    private async SetDiscriminator() {
+        const Users = await User.find({
+            where: {
+                Username: this.Username
+            },
+            select: {
+                Discriminator: true
+            }
+        });
+        const AvailableDiscrims = [];
+        for (let Discrim = 1; Discrim < 10000; Discrim++)
+            if (!Users.find((U) => parseInt(U.Discriminator) === Discrim)) AvailableDiscrims.push(Discrim);
+        if (AvailableDiscrims.length === 0) throw "Too many users have that username.";
+        this.Discriminator = AvailableDiscrims[0].toString().padStart(4, "0");
     }
 
     Package() {
