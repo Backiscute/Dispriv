@@ -94,7 +94,10 @@ export default async function (url: string): Promise<Embed | undefined> {
             },
         };
     } else {
-        const Response = await Request(url);
+        // TODO: temp
+        return;
+
+        /*const Response = await Request(url);
         if (!Response) return;
 
         if (Response.headers["content-type"].includes("image")) return await HandleImage(url);
@@ -127,7 +130,7 @@ export default async function (url: string): Promise<Embed | undefined> {
                 } : undefined,
                 description: Metadata.description,
             };
-        }
+        }*/
     }
 }
 

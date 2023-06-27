@@ -336,6 +336,10 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
 
                 RequestedChannel.Topic = Value;
                 break;
+            case "nsfw":
+                if (typeof Value !== "boolean") break;
+                RequestedChannel.IsNSFW = Value;
+                break;
         }
     }
 

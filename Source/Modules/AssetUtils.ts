@@ -7,7 +7,7 @@ import imageSize from "image-size";
 import ffmpeg from "fluent-ffmpeg";
 import { path as ffprobeBinary} from "ffprobe-static";
 import ffmpegBinary from "ffmpeg-static";
-import { Folders, PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
+import { Folders, PhotoContentTypes, PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
 
 ffmpeg.setFfprobePath(ffprobeBinary);
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -70,7 +70,7 @@ export async function HandleAttachment(FilePath: string, NewFilename: string) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const { size } = statSync(FilePath), ContentType = decodeURIComponent(FilePath.split("\\").at(-1)!.split("_")[0]), ImageOrVideoSize: { height: number | undefined; width: number | undefined; } = { height: undefined, width: undefined };
     
-    if ((PhotoFileTypes as unknown as string[]).includes(ContentType)) {
+    if ((PhotoContentTypes as unknown as string[]).includes(ContentType)) {
         const ImageDimensions = imageSize(FilePath);
         ImageOrVideoSize.height = ImageDimensions.height;
         ImageOrVideoSize.width = ImageDimensions.width;
