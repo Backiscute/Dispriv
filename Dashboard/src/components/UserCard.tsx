@@ -1,4 +1,5 @@
 import { API_HOST } from "@/util/constants";
+import { SnToDate } from "@/util/snowflake";
 import { useEffect, useState } from "react";
 
 export const enum UserFlags {
@@ -85,13 +86,22 @@ export interface IUser {
 	theme_colors: number[]
 }
 
+function hasFlag(user: IUser, flag: UserFlags) {
+	return (user.flags & flag) === flag;
+}
+
 type UserCardDisplayType = "GENERAL_INFO" | "DETAILS";
 
 export default function UserCard(props: { user: IUser, displayMode: UserCardDisplayType, style?: React.CSSProperties }) {
 	const [userPfp, setUserPfp] = useState<string>();
+	const [userCreationDate, setUserCreationDate] = useState<string>();
 
 	useEffect(() => {
-		if ((props.user.flags & UserFlags.SYSTEM) === UserFlags.SYSTEM)
+		setUserCreationDate(SnToDate(props.user.id).toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" }));
+	}, []); // i dont think its very efficient to do it every frame
+
+	useEffect(() => {
+		if (hasFlag(props.user, UserFlags.SYSTEM))
 			return setUserPfp("https://cdn.discordapp.com/embed/avatars/0.png");
 
 		if (props.user.avatar !== null)
@@ -115,10 +125,15 @@ export default function UserCard(props: { user: IUser, displayMode: UserCardDisp
 			</span>
 			{
 				props.displayMode !== "GENERAL_INFO" ? (
+					
 					<div style={{ borderRadius: "8px", margin: "10px 0px 0px 0px", padding: "10px", backgroundColor: "var(--discord-background-secondary)" }}>
-						<span>
-							TEST
-						</span>
+						<p className="dataHeader">Dispriv member since</p>
+						<span>{userCreationDate}</span>
+						<br/><br/>
+						<p className="dataHeader">Permission level</p>
+						<span>{hasFlag(props.user, UserFlags.SYSTEM) ? "System" :
+							   hasFlag(props.user, UserFlags.STAFF) ? "Staff" :
+							   "@everyone"}</span>
 					</div>
 				) : null
 			}

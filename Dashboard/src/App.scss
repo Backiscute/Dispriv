@@ -6,6 +6,7 @@
 	--discord-background-secondary: #2b2d31;
     --discord-divider: #3c3e44;
     --discord-text-muted: #8e9297;
+	--discord-text-normal: hsl(210 calc(1*9.1%) 87.1%/1);
 }
 
 * {
@@ -21,6 +22,7 @@ h4,
 h5,
 h6 {
     font-family: "gg sans", sans-serif;
+	color: var(--discord-text-normal);
     margin-bottom: 0px;
 }
 
@@ -317,6 +319,13 @@ ul {
 	max-height: 550px;
 }
 
+.data-box p.dataHeader {
+	font-family: "gg sans", sans-serif;
+	text-transform: uppercase;
+	margin: 3px 0px 3px 0px;
+	font-size: 13px;
+}
+
 dialog {
     background-color: var(--discord-background);
     border: none;
@@ -392,6 +401,10 @@ dialog > h6 {
 
 .is-open > .Dropdown-control {
     border-radius: 8px 8px 0px 0px;
+}
+
+span {
+	color: var(--discord-text-normal)
 }
 
 .is-open > div > div.Dropdown-arrow-wrapper > span {
