@@ -87,7 +87,7 @@ export interface IUser {
 
 type UserCardDisplayType = "GENERAL_INFO" | "DETAILS";
 
-export default function UserCard(props: { user: IUser, displayMode: UserCardDisplayType }) {
+export default function UserCard(props: { user: IUser, displayMode: UserCardDisplayType, style?: React.CSSProperties }) {
 	const [userPfp, setUserPfp] = useState<string>();
 
 	useEffect(() => {
@@ -104,7 +104,7 @@ export default function UserCard(props: { user: IUser, displayMode: UserCardDisp
 	}, []);
 
 	return (
-	<div style={{ border: "none", borderRadius: "10px", overflow: "hidden", maxWidth: "700px" }}>
+	<div style={{ border: "none", borderRadius: "10px", overflow: "hidden", ...props.style }}>
 		<div className="data-box" style={{ borderRadius: "0" }}>
 			<img src={userPfp} style={{ verticalAlign: "middle" }} className="profile-picture"></img>
 			<h2 style={{ padding: "0px 0px 0px 10px", margin: "0px 5px 12px 0px", display: "inline", verticalAlign: "middle" }}>

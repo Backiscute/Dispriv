@@ -228,8 +228,11 @@ export default function Sockets() {
             {sockets?.map((socket) => {
                 return (
                     <div key={socket.ID}>
-						{ socket.PackagedAccount ? (<UserCard displayMode="GENERAL_INFO" user={socket.PackagedAccount} />) : null }
+						{ socket.PackagedAccount ? (<UserCard style={{ width: "calc(100% + 36px)", borderRadius: "10px 10px 0px 0px"}} displayMode="GENERAL_INFO" user={socket.PackagedAccount} />) : null }
                         <JSONToCard
+                        style={{
+                            borderRadius: "0px 0px 10px 10px"
+                        }}
                             data={socket}
                             title={socket.Account ? `${socket.Account.Username} (${socket.ID})` : socket.ID}
                         >
