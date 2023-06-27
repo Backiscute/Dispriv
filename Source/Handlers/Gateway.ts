@@ -436,6 +436,7 @@ Socket.on("connection", async (Client, req) => {
                     RelationsRegarding: true,
                 }))!;
                 GatewayClient.UserToken = Token;
+                GatewayClient.PackagedAccount = GatewayClient.Account.Package();
 
                 console.log("--- RESUME ACCOUNT GOTTEN");
                 GatewayClient.Intents = 0; // TODO: add check for privileged intents
@@ -481,7 +482,8 @@ Socket.on("connection", async (Client, req) => {
                     RelationsRegarding: true,
                 }))!;
                 GatewayClient.UserToken = Token;
-
+                GatewayClient.PackagedAccount = GatewayClient.Account.Package();
+				
                 console.log("--- ACCOUNT GOTTEN");
                 const ConnectionIntents = UnpackedData.d.intents ?? 0;
                 GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents

@@ -1,0 +1,47 @@
+import Dialog from "@/components/Dialog";
+import UserCard, { IUser } from "@/components/UserCard";
+import { req } from "@/util/apiFuncs";
+import { useEffect, useRef, useState } from "react";
+
+export default function SystemMessages() {
+    const sendDialog = useRef<HTMLDialogElement>(null);
+	const [account, setAccount] = useState<IUser>();
+
+	useEffect(() => {
+		req("/SystemAccount", "GET").then(v => {
+			setAccount(v.data);
+		});
+	}, [])
+
+	return (
+		<div className="page-content">
+			<h2>System Messages</h2>
+			{ account !== undefined ? (<UserCard user={account} />) : null }
+			<h3>All Messages</h3>
+			<button
+                onClick={(e) => {
+                    e.preventDefault();
+                    sendDialog.current?.showModal();
+                }}
+                style={{
+                    width: 100,
+                }}
+            >
+                Create
+            </button>
+
+			<Dialog
+                title="Send a System Message"
+                elements={[
+                    {
+                        label: "Message Content",
+                        type: "text",
+						jsonName: "msgContent",
+                        placeholder: "Hello, {USER}!",
+                    },
+                ]}
+                innerRef={sendDialog}
+            />
+		</div>
+	);
+}

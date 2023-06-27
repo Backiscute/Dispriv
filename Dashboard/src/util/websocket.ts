@@ -1,3 +1,5 @@
+import { IUser as IPackagedUser } from "@/components/UserCard";
+
 export interface User {
     ID: string;
     Username: string;
@@ -37,6 +39,7 @@ export interface GatewayConnection {
     UseZlib: boolean;
     Encoding: "etf" | "json";
     Account?: User;
+	PackagedAccount?: IPackagedUser;
     Intents: number;
 }
 
