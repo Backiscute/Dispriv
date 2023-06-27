@@ -96,13 +96,13 @@ export async function GetUserByID(ID: string, relations?: object) {
     return TUser!;
 }
 
-export async function GetUserByToken(token: string, relations?: object) {
+export async function GetUserByToken(token: string, relations?: object, select?: object) {
     const ValidToken = await VerifyToken(token);
     if (!ValidToken) return undefined;
 
     const UserID = GetTokenUserId(token);
 
-    const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
+    const TUser = await User.findOne({ where: { ID: UserID }, relations: relations, select });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return TUser!;
 }

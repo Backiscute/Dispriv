@@ -103,7 +103,7 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
         relations: {
             Author: false,
             Channel: {
-                OwnerGuild: true,
+                OwnerGuild: true
             },
         },
     });
@@ -132,6 +132,10 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
         guild_id: RequestedMessage.Channel.IsDM ? undefined : RequestedMessage.Channel.OwnerGuild!.ID,
     });
 
+    if (RequestedMessage.Channel.FirstMessageID === RequestedMessage.ID) {
+        RequestedMessage.Channel.FirstMessageID = undefined;
+        await RequestedMessage.Channel.save();
+    }
     await Message.remove(RequestedMessage);
     res.sendStatus(204);
 });
@@ -236,10 +240,16 @@ App.get("/:ChannelID", VerifyAuth, async (req, res) => {
         return res.json(RequestedChannel.SmallDMPackage(MyUser));
     }
 
-    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.VIEW_CHANNEL))
+    const Mmbr = MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!;
+    if (!Mmbr) return res.status(403).json({
+        code: JsonErrorCodes.UNKNOWN_MEMBER,
+        message: "You are not participating in this guild."
+    });
+
+    if (!HasPermission(Mmbr, Permissions.VIEW_CHANNEL))
         return res.status(400).json({ code: 0, message: "No access" });
 
-    res.json(RequestedChannel.GuildPackage());
+    res.json(RequestedChannel.GuildPackage(undefined, MyUser.ID));
 });
 
 App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
@@ -621,6 +631,10 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     }
 
     await CreatedMessage.save();
+    if (!RequestedChannel.FirstMessageID) {
+        RequestedChannel.FirstMessageID = CreatedMessage.ID;
+        await RequestedChannel.save();
+    }
     await SendMessage(CreatedMessage);
 
     const PMessage = CreatedMessage.Package(MyUser);

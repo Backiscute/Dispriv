@@ -88,11 +88,28 @@ export class Channel extends BaseEntity {
     @JoinColumn()
         Invites: Invite[];
 
+    @Column({ type: "simple-json", nullable: true })
+        MessageAcknowledgments: { [Key: string]: string } = {};
+
+    @Column({ nullable: true })
+        FirstMessageID?: string;
+
     @BeforeRemove()
     private DeleteAttachments() {
         const FilePaths = glob.sync(path.join(__dirname, "..", "Assets", "Attachments", `${this.ID}-*-*.*`).replace(/\\/g, "/"));
 
         for (const FilePath of FilePaths) rmSync(FilePath);
+    }
+    @BeforeRemove()
+    private async DeleteInvites() {
+        const Channels = await Invite.find({
+            where: {
+                LinkedChannel: {
+                    ID: this.ID
+                }
+            }
+        });
+        await Invite.remove(Channels);
     }
 
     SmallDMPackage(UserContext: User) {
@@ -102,7 +119,7 @@ export class Channel extends BaseEntity {
             is_spam: false,
             name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
             owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
-            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
+            last_message_id: UserContext.ID ? this.MessageAcknowledgments[UserContext.ID] ?? this.FirstMessageID : this.FirstMessageID,
             recipients: this.DMRecipients
                 ? this.DMRecipients.map((R) => R.PackagePublic()).filter((R) => R.id !== UserContext.ID)
                 : undefined,
@@ -117,7 +134,7 @@ export class Channel extends BaseEntity {
             is_spam: false,
             name: this.Type !== ChannelType.DM ? this.DisplayName : undefined,
             owner_id: this.Type === ChannelType.GROUP_DM ? this.Owner?.ID : undefined,
-            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
+            last_message_id: UserContext.ID ? this.MessageAcknowledgments[UserContext.ID] ?? this.FirstMessageID : this.FirstMessageID,
             recipient_ids: this.DMRecipients
                 ? this.DMRecipients.map((R) => R.ID).filter((R) => R !== UserContext.ID)
                 : undefined,
@@ -125,7 +142,7 @@ export class Channel extends BaseEntity {
         };
     }
 
-    GuildPackage(OverrideOwnerGuildID?: string) {
+    GuildPackage(OverrideOwnerGuildID?: string, UserId?: string) {
         return {
             bitrate: this.Type === ChannelType.GUILD_VOICE ? 64000 : undefined,
             user_limit: this.Type === ChannelType.GUILD_VOICE ? this.VCUserLimit : undefined,
@@ -140,10 +157,10 @@ export class Channel extends BaseEntity {
             permission_overwrites: [],
             name: this.DisplayName,
             nsfw: this.IsNSFW,
-            last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
+            last_message_id: UserId ? this.MessageAcknowledgments[UserId] ?? this.FirstMessageID : this.FirstMessageID,
             flags: 0,
             topic: this.Topic ?? null,
-            rate_limit_per_user: 0, // slowmode??
+            rate_limit_per_user: 0
         };
     }
 
