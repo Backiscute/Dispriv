@@ -11,17 +11,21 @@ export const JSONToList = ({
 }) => {
     const [isEditing, setIsEditing] = useState(parentIsEditing);
     const [editedData, setEditedData] = useState(data);
-    const [nestedIsCollapsed, setNestedIsCollapsed] = useState(true);
+    const [nestedIsCollapsed, setNestedIsCollapsed] = useState(
+        new Array(Object.keys(data).length).fill(true)
+    );
 
     const generateListItems = (obj: any) => {
-        return Object.keys(obj).map((key) => {
+        return Object.keys(obj).map((key, index) => {
             const value = obj[key];
             if (String(value) === "null") return;
             const isNestedObject = typeof value === "object" && value !== null;
 
             if (isNestedObject) {
                 const toggleNestedCollapse = () => {
-                    setNestedIsCollapsed(!nestedIsCollapsed);
+                    const updatedNestedIsCollapsed = [...nestedIsCollapsed];
+                    updatedNestedIsCollapsed[index] = !updatedNestedIsCollapsed[index];
+                    setNestedIsCollapsed(updatedNestedIsCollapsed);
                 };
 
                 return (
@@ -33,12 +37,16 @@ export const JSONToList = ({
                         key={key}
                     >
                         <button onClick={toggleNestedCollapse} className="collapse-button">
-                            {nestedIsCollapsed ? "+" : "-"}
+                            {nestedIsCollapsed[index] ? "+" : "-"}
                         </button>
                         {key}
-                        {!nestedIsCollapsed && (
+                        {!nestedIsCollapsed[index] && (
                             <ul>
-                                <JSONToList data={value} isEditing={isEditing} handleSave={handleSave} />
+                                <JSONToList
+                                    data={value}
+                                    isEditing={isEditing}
+                                    handleSave={handleSave}
+                                />
                             </ul>
                         )}
                     </li>
