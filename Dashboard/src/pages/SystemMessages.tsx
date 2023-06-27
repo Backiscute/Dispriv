@@ -16,7 +16,7 @@ export default function SystemMessages() {
 	return (
 		<div className="page-content">
 			<h2>System Messages</h2>
-			{ account !== undefined ? (<UserCard user={account} />) : null }
+			{ account !== undefined ? (<UserCard displayMode="DETAILS" user={account} />) : null }
 			<h3>All Messages</h3>
 			<button
                 onClick={(e) => {

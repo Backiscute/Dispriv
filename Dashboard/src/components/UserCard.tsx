@@ -85,7 +85,9 @@ export interface IUser {
 	theme_colors: number[]
 }
 
-export default function UserCard(props: { user: IUser }) {
+type UserCardDisplayType = "GENERAL_INFO" | "DETAILS";
+
+export default function UserCard(props: { user: IUser, displayMode: UserCardDisplayType }) {
 	const [userPfp, setUserPfp] = useState<string>();
 
 	useEffect(() => {
@@ -101,13 +103,26 @@ export default function UserCard(props: { user: IUser }) {
 		setUserPfp(`https://cdn.discordapp.com/embed/avatars/${(BigInt(props.user.id) >> 22n) % 6n}.png`);
 	}, []);
 
-	return (<div className="data-box">
-		<img src={userPfp} style={{ verticalAlign: "middle" }} className="profile-picture"></img>
-		<h2 style={{ padding: "0px 0px 0px 10px", margin: "0px 5px 12px 0px", display: "inline", verticalAlign: "middle" }}>
-			{props.user.username}#{props.user.discriminator}
-		</h2>
-		<span style={{ color: "var(--discord-text-muted)", fontSize: 16, verticalAlign: "middle" }}>
-			({props.user.id})
-		</span>
-	</div>);
+	return (
+	<div style={{ border: "none", borderRadius: "10px", overflow: "hidden", maxWidth: "700px" }}>
+		<div className="data-box" style={{ borderRadius: "0" }}>
+			<img src={userPfp} style={{ verticalAlign: "middle" }} className="profile-picture"></img>
+			<h2 style={{ padding: "0px 0px 0px 10px", margin: "0px 5px 12px 0px", display: "inline", verticalAlign: "middle" }}>
+				{props.user.username}#{props.user.discriminator}
+			</h2>
+			<span style={{ color: "var(--discord-text-muted)", fontSize: 16, verticalAlign: "middle" }}>
+				({props.user.id})
+			</span>
+			{
+				props.displayMode !== "GENERAL_INFO" ? (
+					<div style={{ borderRadius: "10px", margin: "10px 0px 0px 0px", padding: "10px", backgroundColor: "var(--discord-background-secondary)" }}>
+						<span>
+							TEST
+						</span>
+					</div>
+				) : null
+			}
+		</div>
+	</div>
+	);
 }

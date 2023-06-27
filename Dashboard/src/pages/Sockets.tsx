@@ -228,7 +228,7 @@ export default function Sockets() {
             {sockets?.map((socket) => {
                 return (
                     <div key={socket.ID}>
-						{ socket.PackagedAccount ? (<UserCard user={socket.PackagedAccount} />) : null }
+						{ socket.PackagedAccount ? (<UserCard displayMode="GENERAL_INFO" user={socket.PackagedAccount} />) : null }
                         <JSONToCard
                             data={socket}
                             title={socket.Account ? `${socket.Account.Username} (${socket.ID})` : socket.ID}
