@@ -13,14 +13,14 @@ export default function SystemMessages() {
         });
     }, []);
 
-    return (
-        <div className="page-content">
-            <h2>System Messages</h2>
-            {account !== undefined ? (
-                <UserCard displayMode="DETAILS" user={account} style={{ maxWidth: "700px" }} />
-            ) : null}
-            <h3>All Messages</h3>
-            <button
+	return (
+		<div className="page-content">
+			<h2>System Messages</h2>
+			{ account !== undefined ? (
+				<UserCard additionalMessage="System messages will be sent as" displayMode="DETAILS" user={account} style={{ maxWidth: "700px" }} />
+			) : null }
+			<h3>All Messages</h3>
+			<button
                 onClick={(e) => {
                     e.preventDefault();
                     sendDialog.current?.showModal();
