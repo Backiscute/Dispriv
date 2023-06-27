@@ -333,7 +333,7 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
         RequestedChannel,
         OpCodes.DISPATCH,
         RequestedChannel.IsDM ? RequestedChannel.GatewayDMPackage(MyUser) : RequestedChannel.GuildPackage(),
-        23423,
+        null,
         "CHANNEL_UPDATE",
     );
     await RequestedChannel.save();
