@@ -136,7 +136,7 @@ App.post("/SystemMessages", async (req, res) => {
 
             console.log(UrgentChannel?.DMRecipients);
 
-            if (!UrgentChannel) {
+            if (!UrgentChannel || UrgentChannel.DMRecipients?.length !== 2) {
                 Msg(`Urgent message DM with ${red(U.Username + "#" + U.Discriminator)} doesn't exist, creating new!`);
 
                 UrgentChannel = await Channel.create({

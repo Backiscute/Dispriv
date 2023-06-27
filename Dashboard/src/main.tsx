@@ -12,8 +12,11 @@ import "./App.scss";
 import { loader } from "@monaco-editor/react";
 import path from "path";
 import SystemMessages from "./pages/SystemMessages";
+import dotenv from "dotenv";
 
-export const ws = new WebSocket("ws://localhost:6970/api/tests/ws");
+dotenv.config();
+
+export const ws = new WebSocket(process.env.WS!);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <div
@@ -130,15 +133,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             />
             <Routes>
                 <Route path="/" element={<></>} />
-
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
                 <Route path="/dispriv/sockets" element={<Sockets />} />
-
-				<Route path="/gs/sysmessages" element={<SystemMessages />} />
-				
+                <Route path="/gs/sysmessages" element={<SystemMessages />} />
                 <Route path="/mc/guilds" element={<Guild />} />,
-
                 <Route path="/mg/gifts" element={<Gifts />} />
             </Routes>
         </BrowserRouter>
