@@ -129,6 +129,9 @@ export class Message extends BaseEntity {
     @Column()
         CreationDate: Date;
 
+    @Column({ nullable: true })
+        EditedTimestamp?: Date;
+
     @Column({ type: "simple-json", nullable: true })
         Embeds: Embed[] = [];
 
@@ -196,7 +199,7 @@ export class Message extends BaseEntity {
             mention_everyone: this.Content.includes("@everyone"),
             id: this.ID,
             pinned: this.Pinned,
-            edited_timestamp: null,
+            edited_timestamp: this.EditedTimestamp ? CreateTimestamp(this.EditedTimestamp) : null,
             author: this.Author.PackagePublic(),
             mention_roles: [],
             content: this.Content,

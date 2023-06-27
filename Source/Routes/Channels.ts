@@ -33,8 +33,64 @@ import { FindOptionsWhere, LessThan, MoreThan } from "typeorm";
 
 const App = Router();
 
-App.patch("/*/messages/:MessageID", async (req, res) => {
-    res.status(403).send();
+App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+
+    const RequestedMessage = await Message.findOne({
+        where: {
+            ID: req.params.MessageID,
+        },
+        relations: {
+            Author: true,
+            Channel: {
+                OwnerGuild: true,
+            },
+        },
+    });
+
+    if (!RequestedMessage)
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
+    if (RequestedMessage.Channel.ID !== req.params.ChannelID)
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
+    if (RequestedMessage.Author.ID !== MyUser.ID)
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (RequestedMessage.Type !== MessageType.DEFAULT && RequestedMessage.Type !== MessageType.REPLY)
+        return res.status(400).json({ code: JsonErrorCodes.INVALID_MESSAGE_TYPE, message: "Invalid Message Type" });
+    if (typeof req.body.content !== "string" || req.body.content.length > 2000)
+        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Message too long" });
+
+    const RequestedChannel = RequestedMessage.Channel;
+
+    const Embeds: Embed[] = [];
+
+    try {
+        if (req.body.content)
+            for await (const link of (req.body.content.match(
+                /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+            )) ?? []) {
+                if (
+                    !RequestedChannel.IsDM &&
+                        !HasPermission(
+                            MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                            Permissions.EMBED_LINKS,
+                        )
+                )
+                    break;
+                const Embed = await EmbedParser(link);
+                if (Embed) Embeds.push(Embed);
+            }
+    } catch (e) {
+        Error("Error while parsing embeds");
+    }
+    
+    RequestedMessage.Embeds = Embeds;
+    RequestedMessage.Content = req.body.content;
+    RequestedMessage.EditedTimestamp = new Date();
+
+    await RequestedMessage.save();
+    await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, RequestedMessage.Package(new User()), null, "MESSAGE_UPDATE"); // update the message
+
+    res.json(RequestedMessage.Package(MyUser));
 });
 
 App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
@@ -53,6 +109,9 @@ App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
     });
 
     if (!RequestedMessage)
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
+
+    if (RequestedMessage.Channel.ID !== req.params.ChannelID)
         return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
 
     if (
