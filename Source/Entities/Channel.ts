@@ -26,6 +26,18 @@ export const enum ChannelType {
     GUILD_FORUM = 15,
 }
 
+export const enum ChannelPermissionType {
+    ROLE = 0,
+    USER = 1,
+}
+
+export interface ChannelPermission {
+    id: string; // Role ID or User ID
+    type: ChannelPermissionType;
+    allow: number;
+    deny: number;
+}
+
 @Entity()
 export class Channel extends BaseEntity {
     @PrimaryColumn()
@@ -63,6 +75,9 @@ export class Channel extends BaseEntity {
 
     @Column({ type: "simple-json", nullable: true })
         Owner?: User;
+
+    @Column({ type: "simple-array", nullable: true })
+        PermissionOverwrites?: ChannelPermission[];
 
     @ManyToOne(() => Channel, (Category) => Category.CategoryChannels, {
         nullable: true,
@@ -137,7 +152,7 @@ export class Channel extends BaseEntity {
             guild_id: OverrideOwnerGuildID ? OverrideOwnerGuildID : this.OwnerGuild!.ID,
             parent_id: this.OwnerCategory?.ID ?? null,
             position: this.GuildPosition,
-            permission_overwrites: [],
+            permission_overwrites: this.PermissionOverwrites ?? [],
             name: this.DisplayName,
             nsfw: this.IsNSFW,
             last_message_id: this.Messages ? (this.Messages.length >= 1 ? this.Messages[0].ID : null) : null,
