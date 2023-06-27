@@ -28,7 +28,7 @@ App.use((req, res, next) => {
 App.get("/SystemAccount", async (req, res) => {
     let Account = await User.findOneBy({
         Flags: UserFlags.SYSTEM,
-        Bot: true
+        Bot: true,
     });
 
     if (!Account)
@@ -44,63 +44,65 @@ App.get("/SystemAccount", async (req, res) => {
             Flags: UserFlags.SYSTEM,
             Bot: true,
             TutorialReadIndicators: [],
-            AuthorizedApps: []
+            AuthorizedApps: [],
         }).save();
 
     return res.json({
-        data: Account.Package()
+        data: Account.Package(),
     });
 });
 
 App.post("/SystemMessages", async (req, res) => {
-    if (typeof req.body.Content !== "string") return res.status(400).json({ success: false, errorMessage: "'Content' must be a string" });
+    if (typeof req.body.Content !== "string")
+        return res.status(400).json({ success: false, errorMessage: "'Content' must be a string" });
 
     const SystemUser = await User.findOne({
         where: {
             Flags: UserFlags.SYSTEM,
-            Bot: true
+            Bot: true,
         },
     });
 
     if (!SystemUser)
-        return res.status(400).json({ success: false, errorMessage: "Please create a System User before sending System Messages!" });
+        return res
+            .status(400)
+            .json({ success: false, errorMessage: "Please create a System User before sending System Messages!" });
 
-    const AllUsers = await User.find();
-
-    for await (const U of AllUsers) {
+    if (req.body.Recipient) {
+        const U = await User.findOne({
+            where: {
+                ID: req.body.Recipient,
+            },
+        });
+        if (!U) return res.status(400).json({ success: false, errorMessage: "Invalid Recipient" });
         let UrgentChannel = await Channel.findOne({
             where: {
-                DMRecipients: [
-                    { ID: U.ID },
-                    { ID: SystemUser.ID }
-                ]
+                DMRecipients: [{ ID: U.ID }, { ID: SystemUser.ID }],
             },
             relations: {
-                DMRecipients: true
-            }
+                DMRecipients: true,
+            },
         });
 
-        if (U.ID === SystemUser.ID) continue;
+        if (U.ID === SystemUser.ID) return;
 
         console.log(`${U.ID} -> ${U.Username}#${U.Discriminator}`);
         console.log(`${SystemUser.ID} -> ${SystemUser.Username}#${SystemUser.Discriminator}`);
 
         console.log(UrgentChannel?.DMRecipients);
 
-        if (!UrgentChannel) {
+        if (!UrgentChannel || UrgentChannel.DMRecipients?.length !== 2) {
             Msg(`Urgent message DM with ${red(U.Username + "#" + U.Discriminator)} doesn't exist, creating new!`);
 
             UrgentChannel = await Channel.create({
                 ID: GenerateSnowflake(),
                 Type: ChannelType.DM,
                 Owner: SystemUser,
-                DMRecipients: [ SystemUser, U ]
+                DMRecipients: [SystemUser, U],
             }).save();
 
             SendToUser(U, OpCodes.DISPATCH, UrgentChannel.SmallDMPackage(U), null, "CHANNEL_CREATE");
-        }
-        else
-            Msg(`Urgent message DM with ${green(U.Username + "#" + U.Discriminator)} exists!`);
+        } else Msg(`Urgent message DM with ${green(U.Username + "#" + U.Discriminator)} exists!`);
 
         const UrgentMessage = await Message.create({
             ID: GenerateSnowflake(),
@@ -111,14 +113,60 @@ App.post("/SystemMessages", async (req, res) => {
             CreationDate: new Date(),
             Channel: UrgentChannel,
         }).save();
-        
+
         Msg(`Sent urgent DM to ${green(U.Username + "#" + U.Discriminator)}!`);
 
         await SendMessage(UrgentMessage);
+    } else {
+        const AllUsers = await User.find();
+        for await (const U of AllUsers) {
+            let UrgentChannel = await Channel.findOne({
+                where: {
+                    DMRecipients: [{ ID: U.ID }, { ID: SystemUser.ID }],
+                },
+                relations: {
+                    DMRecipients: true,
+                },
+            });
+
+            if (U.ID === SystemUser.ID) continue;
+
+            console.log(`${U.ID} -> ${U.Username}#${U.Discriminator}`);
+            console.log(`${SystemUser.ID} -> ${SystemUser.Username}#${SystemUser.Discriminator}`);
+
+            console.log(UrgentChannel?.DMRecipients);
+
+            if (!UrgentChannel) {
+                Msg(`Urgent message DM with ${red(U.Username + "#" + U.Discriminator)} doesn't exist, creating new!`);
+
+                UrgentChannel = await Channel.create({
+                    ID: GenerateSnowflake(),
+                    Type: ChannelType.DM,
+                    Owner: SystemUser,
+                    DMRecipients: [SystemUser, U],
+                }).save();
+
+                SendToUser(U, OpCodes.DISPATCH, UrgentChannel.SmallDMPackage(U), null, "CHANNEL_CREATE");
+            } else Msg(`Urgent message DM with ${green(U.Username + "#" + U.Discriminator)} exists!`);
+
+            const UrgentMessage = await Message.create({
+                ID: GenerateSnowflake(),
+                Author: SystemUser,
+                Type: MessageType.DEFAULT,
+                Flags: MessageFlags.URGENT,
+                Content: req.body.Content,
+                CreationDate: new Date(),
+                Channel: UrgentChannel,
+            }).save();
+
+            Msg(`Sent urgent DM to ${green(U.Username + "#" + U.Discriminator)}!`);
+
+            await SendMessage(UrgentMessage);
+        }
     }
 
     res.json({
-        success: true
+        success: true,
     });
 });
 
