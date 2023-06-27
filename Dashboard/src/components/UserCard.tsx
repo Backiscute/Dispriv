@@ -115,7 +115,7 @@ export default function UserCard(props: { user: IUser, displayMode: UserCardDisp
 			</span>
 			{
 				props.displayMode !== "GENERAL_INFO" ? (
-					<div style={{ borderRadius: "10px", margin: "10px 0px 0px 0px", padding: "10px", backgroundColor: "var(--discord-background-secondary)" }}>
+					<div style={{ borderRadius: "8px", margin: "10px 0px 0px 0px", padding: "10px", backgroundColor: "var(--discord-background-secondary)" }}>
 						<span>
 							TEST
 						</span>
