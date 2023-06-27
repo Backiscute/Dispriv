@@ -100,14 +100,16 @@ export default function UserCard(props: { user: IUser, displayMode: UserCardDisp
 	useEffect(() => {
 		setUserCreationDate(SnToDate(props.user.id).toLocaleString("en-GB", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" }));
 		
-		let Flags = "";
+		// TODO: someone do this part thanks
+		/*let Flags = "";
 		for (const Flag in UserFlags) {
 			if (isNaN(Number(Flag)))
 				if (hasFlag(props.user, UserFlags[Flag]))
 					Flags += `${Flag}, `;
 		}
 
-		setUserFlags(Flags.trimEnd());
+		setUserFlags(Flags.trimEnd());*/
+		setUserFlags(props.user.flags.toString());
 	}, []); // i dont think its very efficient to do it every frame
 
 	useEffect(() => {
