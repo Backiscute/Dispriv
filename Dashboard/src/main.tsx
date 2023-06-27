@@ -11,6 +11,7 @@ import "react-dropdown/style.css";
 import "./App.scss";
 import { loader } from "@monaco-editor/react";
 import path from "path";
+import SystemMessages from "./pages/SystemMessages";
 
 export const ws = new WebSocket("ws://localhost:6970/api/tests/ws");
 
@@ -129,10 +130,15 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             />
             <Routes>
                 <Route path="/" element={<></>} />
-                <Route path="/mc/guilds" element={<Guild />} />,
+
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
                 <Route path="/dispriv/sockets" element={<Sockets />} />
+
+				<Route path="/gs/sysmessages" element={<SystemMessages />} />
+				
+                <Route path="/mc/guilds" element={<Guild />} />,
+
                 <Route path="/mg/gifts" element={<Gifts />} />
             </Routes>
         </BrowserRouter>

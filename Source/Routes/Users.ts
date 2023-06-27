@@ -13,6 +13,7 @@ import { GenerateRandomString, SendGuildMemberUpdate, SendToUser } from "../Modu
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
+import { FindConnection } from "../Modules/GatewayUtils";
 
 const App = Router();
 
@@ -78,6 +79,9 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     await U.save();
 
     res.json(U.Package());
+
+    const Conn = FindConnection(U.ID);
+    if (Conn) Conn.PackagedAccount = U.Package();
 
     SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc

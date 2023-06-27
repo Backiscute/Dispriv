@@ -10,6 +10,7 @@ export class GatewayConnection {
     UseZlib: boolean;
     Encoding: "etf" | "json";
     Account?: User;
+    PackagedAccount?: ReturnType<typeof User.prototype.Package>;
     Deflater: Deflate;
     Inflater: Inflate;
     Intents: number;

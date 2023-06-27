@@ -23,4 +23,4 @@ export enum OAuth2Scope {
     RPC_VOICE_READ = "rpc.voice.read",
     RPC_VOICE_WRITE = "rpc.voice.write",
     WEBHOOK_INCOMING = "webhook.incoming"
-  }
+}

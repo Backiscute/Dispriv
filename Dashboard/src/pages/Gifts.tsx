@@ -29,6 +29,7 @@ export default function Gifts() {
                 elements={[
                     {
                         label: "Gift ID",
+						jsonName: "giftId",
                         type: "text",
                         placeholder: "1234567890123456789",
                     },

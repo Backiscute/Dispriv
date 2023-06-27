@@ -5,6 +5,7 @@ import { GatewayConnection } from "@/util/websocket";
 import { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import MonacoEditorComponent from "@/components/MonacoEditor";
+import UserCard from "@/components/UserCard";
 
 export enum OpCodes {
     DISPATCH = 0,
@@ -227,6 +228,7 @@ export default function Sockets() {
             {sockets?.map((socket) => {
                 return (
                     <div key={socket.ID}>
+						{ socket.PackagedAccount ? (<UserCard displayMode="GENERAL_INFO" user={socket.PackagedAccount} />) : null }
                         <JSONToCard
                             data={socket}
                             title={socket.Account ? `${socket.Account.Username} (${socket.ID})` : socket.ID}
