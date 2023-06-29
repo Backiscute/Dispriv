@@ -454,6 +454,8 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             Type: RelationType.NOT_YET_ACCEPTED,
         }).save();
 
+        console.log(CreatedRelation);
+
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);
 
@@ -472,6 +474,9 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             null,
             "RELATIONSHIP_ADD",
         );
+
+        await RelationTarget.save();
+        await MyUser.save();
 
         return res.sendStatus(204);
     } catch (err) {

@@ -3,7 +3,7 @@ import { User } from "../Entities/User";
 import { DISCORD_EPOCH } from "./DiscordUtils";
 import { NextFunction, Request, Response } from "express";
 import { OAuth2App } from "../Entities/OAuth2";
-import { FindOneOptions } from "typeorm";
+import { FindOneOptions, FindOptionsRelations } from "typeorm";
 
 export function GenerateToken(Snowflake: string, Timestamp: number, HashedPassword: string): string {
     const EncodedId = Buffer.from(Snowflake).toString("base64url");
@@ -96,7 +96,7 @@ export async function GetUserByID(ID: string, relations?: object) {
     return TUser!;
 }
 
-export async function GetUserByToken(token: string, relations?: object, select?: object) {
+export async function GetUserByToken(token: string, relations?: FindOptionsRelations<User>, select?: object) {
     const ValidToken = await VerifyToken(token);
     if (!ValidToken) return undefined;
 

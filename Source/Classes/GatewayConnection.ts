@@ -26,7 +26,7 @@ export class GatewayConnection {
     Intents: number;
 
     LastPacketSession: number = -1;
-    MissedPackets: BasePacket[];
+    MissedPackets: BasePacket[] = [];
 
     constructor(Socket: WebSocket, Overrides?: { zlib: boolean; encoding: "etf" | "json" }) {
         this.ID = v4();

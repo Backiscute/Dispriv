@@ -23,7 +23,7 @@ export const DisprivDataSource = new DataSource({
     type: "sqlite",
     database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",
     synchronize: true,
-    logging: false,
+    logging: true,
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
     migrations: [],

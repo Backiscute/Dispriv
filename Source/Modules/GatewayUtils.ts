@@ -95,7 +95,16 @@ export function CloseConnection(SocketClient: GatewayConnection, Code: number, R
 }
 
 export function FindConnection(UserID: string) {
-    return Connections.find((x) => x.Account?.ID === UserID);
+    const Conns = Connections.filter(x => x.Account?.ID === UserID);
+    if (Conns.length < 1)
+        return null;
+
+    let ReturnedConn = Conns[0];
+    if (Conns.length > 1)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        ReturnedConn = Conns.find(x => !x.ScheduledForRemoval)!;
+
+    return ReturnedConn;
 }
 
 export function ConnectionHasIntent(SocketClient: GatewayConnection, Intent: GatewayIntents) {
@@ -132,12 +141,12 @@ export function SendOp<T>(
     const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
 
     if (SocketClient.ScheduledForRemoval) {
-        Msg(`Scheduling packet ${D.s} as missed for client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
+        Msg(`Scheduling packet ${red(D.s)} as missed for client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
         SocketClient.MissedPackets.push(D);
         return;
     }
 
-    Msg(`${ReplayingPacket ? "Re-s" : "S"}ending packet ${D.s} to client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
+    Msg(`${ReplayingPacket ? "Re-s" : "S"}ending packet ${red(D.s)} to client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
     SocketClient.SocketClient.send(Bf);
 }
 

@@ -508,6 +508,18 @@ Socket.on("connection", async (Client, req) => {
                     return;
                 }
 
+                const ExistingSession = Connections.find(x => x.Account?.ID === GetTokenUserId(Token));
+                if (ExistingSession) {
+                    if (ExistingSession.ScheduledForRemoval)
+                        RemoveConnection(ExistingSession);
+                    else
+                    {
+                        SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
+                        CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Someone is already logged into that account.");
+                        return;
+                    }
+                }
+
                 console.log("--- GETTING ACCOUNT");
                 GatewayClient.Account = (await GetUserByToken(Token, {
                     Memberships: {
@@ -524,8 +536,14 @@ Socket.on("connection", async (Client, req) => {
                     AvailableDMs: {
                         DMRecipients: true,
                     },
-                    RelationsFrom: true,
-                    RelationsRegarding: true,
+                    RelationsFrom: {
+                        From: true,
+                        Regarding: true
+                    },
+                    RelationsRegarding: {
+                        From: true,
+                        Regarding: true
+                    },
                 }))!;
                 GatewayClient.UserToken = Token;
                 GatewayClient.PackagedAccount = GatewayClient.Account.Package();
