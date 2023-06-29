@@ -23,6 +23,7 @@
     "@types/react-json-editor-ajrm": "^2.5.3",
     "dotenv": "^16.3.1",
     "electron-updater": "^5.3.0",
+    "fast-zlib": "^2.0.1",
     "i": "^0.3.7",
     "monaco-editor": "^0.39.0",
     "npm": "^9.7.2",

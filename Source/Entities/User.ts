@@ -87,11 +87,11 @@ export class User extends BaseEntity {
     @JoinTable()
         MessagesByUser: Message[];
 
-    @OneToMany(() => Relation, (Rel) => Rel.From, { orphanedRowAction: "delete" })
+    @OneToMany(() => Relation, (Rel) => Rel.From, { onDelete: "CASCADE" })
     @JoinTable()
         RelationsFrom: Relation[];
 
-    @OneToMany(() => Relation, (Rel) => Rel.Regarding, { orphanedRowAction: "delete" })
+    @OneToMany(() => Relation, (Rel) => Rel.Regarding, { onDelete: "CASCADE" })
     @JoinTable()
         RelationsRegarding: Relation[];
 
