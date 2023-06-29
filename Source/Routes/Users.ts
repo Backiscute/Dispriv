@@ -86,6 +86,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
+App.post("/@me/devices", (req, res) => res.sendStatus(204));
 
 //TODO: check if all update or only key
 App.use("/@me/settings-proto/:index", (req, res, next) => {
