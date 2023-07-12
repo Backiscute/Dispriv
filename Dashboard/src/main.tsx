@@ -13,6 +13,8 @@ import { loader } from "@monaco-editor/react";
 import path from "path";
 import SystemMessages from "./pages/SystemMessages";
 import dotenv from "dotenv";
+import Experiments from "./pages/Experiments";
+import Debug from "./pages/Debug";
 
 dotenv.config();
 
@@ -129,6 +131,15 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                             },
                         ],
                     },
+                    {
+                        title: "Developer",
+                        content: [
+                            {
+                                route: "/debug",
+                                title: "Debug Toolset"
+                            }
+                        ]
+                    }
                 ]}
             />
             <Routes>
@@ -136,9 +147,12 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 <Route path="/dispriv/setup" element={<ServerSetup />} />
                 <Route path="/dispriv/logs" element={<Logs />} />
                 <Route path="/dispriv/sockets" element={<Sockets />} />
+                <Route path="/qs/experiments" element={<Experiments />} />
                 <Route path="/gs/sysmessages" element={<SystemMessages />} />
                 <Route path="/mc/guilds" element={<Guild />} />,
                 <Route path="/mg/gifts" element={<Gifts />} />
+
+                <Route path="/debug" element={<Debug />} />
             </Routes>
         </BrowserRouter>
     </div>,

@@ -579,7 +579,9 @@ Socket.on("connection", async (Client, req) => {
                         connected_accounts: [], // TODO
                         consents: { personalization: { consented: true } },
                         country_code: "US",
-                        experiments: [], // TODO (if u want lol)
+                        experiments: [
+                            [3471124138, 0, 1, -1, 0, 0, 0]
+                        ], // TODO (if u want lol)
                         friend_suggestion_count: 0,
                         geo_ordered_rtc_regions: ["dispriv"],
                         guild_experiments: [], // TODO (also if you want)

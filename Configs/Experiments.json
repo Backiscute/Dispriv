@@ -1,0 +1,3619 @@
+{
+    "2023-01_global_display_names": {
+        "type": "user",
+        "title": "Global Display Name",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_split_permissions": {
+        "type": "guild",
+        "title": "Split Permissions",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Split permissions into Add/Modify + Delete"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-09_favorites_server": {
+        "type": "user",
+        "title": "Enable fancy super-alpha favorites server.",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: It is on.",
+            "Treatment 2: It is forced off"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-04_creator_monetization_country_allowlist": {
+        "type": "user",
+        "title": "Creator Monetization Available in Country",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables users to view Creator Monetization entrypoints"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_creator_monetization_raven": {
+        "type": "guild",
+        "title": "Creator Monetization Onboarding v2",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to create Guild Role Subscriptions quickly"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_creator_monetization_raven_users": {
+        "type": "user",
+        "title": "Creator Monetization Onboarding v2 Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables users to create Guild Role Subscriptions quickly"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_creator_monetization_onboarding_waitlist": {
+        "type": "guild",
+        "title": "Creator Monetization Onboarding Waitlist",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Guilds to (possibly) see the waitlist"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_creator_monetization_nag_activate_users": {
+        "type": "user",
+        "title": "Creator Monetization Nag Activate Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables users to see nag bar to activate server subscriptions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_cr_accept_new_terms": {
+        "type": "guild",
+        "title": "Server Subscriptions Accept New Terms",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Server Subscriptions Accept New Terms"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-06_guild_role_subscriptions": {
+        "type": "guild",
+        "title": "Guild Role Subscriptions",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to create Guild Role Subscriptions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-08_guild_role_subscription_users": {
+        "type": "user",
+        "title": "Guild Role Subscription Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables users to create Guild Role Subscriptions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-01_guild_role_subscription_multigroup": {
+        "type": "guild",
+        "title": "Guild Role Subscription Multigroup",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to create multiple Guild Role Subscription groups"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-01_guild_role_subscription_trials": {
+        "type": "guild",
+        "title": "Guild Role Subscription Trials",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to create Guild Role Subscription Trials"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-03_role_subscription_analytics_portal": {
+        "type": "guild",
+        "title": "Guild Role Subscription Analytics",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to view analytics for role subscriptions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-04_guild_role_subscription_purchase_feedback_loop": {
+        "type": "guild",
+        "title": "Guild Role Subscription Purchase Feedback Loop",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guilds to send purchsae feedback loop system messages"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-05_mobile_web_role_subscription_purchase_page": {
+        "type": "guild",
+        "title": "Guild Role Subscription Mobile Web",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables role subscription mobile web purchase page"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-06_native_mobile_role_subscription_management": {
+        "type": "user",
+        "title": "Mobile Guild Role Subscription Management",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable native role subscription management for mobile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_guild_role_subscriptions_variable_max_tiers": {
+        "type": "guild",
+        "title": "Guild Role Subscription Max Tiers",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 4: Enables {n} maximum published tiers",
+            "Treatment 5: Enables {n} maximum published tiers",
+            "Treatment 6: Enables {n} maximum published tiers"
+        ],
+        "buckets": [
+            -1,
+            0,
+            4,
+            5,
+            6
+        ]
+    },
+    "2022-08_mobile_web_role_subscription_upsell": {
+        "type": "user",
+        "title": "Mobile Web Guild Role Subscription Upsell",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable mobile web role subscription upsell"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-10_creator_store_pages": {
+        "type": "guild",
+        "title": "Creator Store Pages ",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to have store page"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_mobile_guild_role_subscription_team_setup": {
+        "type": "guild",
+        "title": "Mobile Guild Role Subscription Team Setup",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to allow payout team setup on mobile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_server_subscriptions_iap": {
+        "type": "guild",
+        "title": "Server Subscriptions IAP",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Server Subscriptions IAP"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_server_subs_iap_geo_rollout": {
+        "type": "user",
+        "title": "Server Subscriptions IAP User",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Server Subscriptions IAP For User"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_server_subscriptions_tier_templates": {
+        "type": "guild",
+        "title": "Server Subscriptions Tier Templates",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: 299 basic tier + no link",
+            "Treatment 2: 399 basic tier + no link",
+            "Treatment 3: 399 basic tier + link"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2023-04_server_subscriptions_tier_templates_user": {
+        "type": "user",
+        "title": "Server Subscriptions Tier Templates",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable tier templates for user"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_self_demonetization": {
+        "type": "guild",
+        "title": "Self Demonetization",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Self Demonetization"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_broadcasting": {
+        "type": "user",
+        "title": "Go Live Broadcasting",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow user to Broadcast to friends & guilds",
+            "Treatment 2: Cannot broadcast, cannot view broadcasts"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-02_onboarding_home_admin": {
+        "type": "guild",
+        "title": "[ADMIN] Home as a community onboarding surface",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show the Onboarding Version of Home in Admin Settings"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_optional_onboarding_home_admin": {
+        "type": "guild",
+        "title": "[ADMIN] Make server guide optional",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Optional"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_onboarding_home": {
+        "type": "user",
+        "title": "Home as a community onboarding surface",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show the Onboarding Version of Home",
+            "Treatment 2: Onboarding Home DEV",
+            "Treatment 3: Show the Onboarding Version of Home"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2023-07_day_0_nux": {
+        "type": "user",
+        "title": "Mobile Redesign Day 0 NUX",
+        "description": [
+            "Not Eligible",
+            "Treatment 0: Control",
+            "Treatment 1: Day 0 Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_mobile_redesign_curry_existing_users": {
+        "type": "user",
+        "title": "Tabs V2 - Curry Existing Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 2: App Navbar Always Visible",
+            "Treatment 3: App Navbar Always Visible + Keep Channel",
+            "Treatment 4: Recent channels",
+            "Treatment 5: Launch into last channel",
+            "Treatment 6: Plain Redesign"
+        ],
+        "buckets": [
+            -1,
+            0,
+            2,
+            3,
+            4,
+            5,
+            6
+        ]
+    },
+    "2023-06_mobile_redesign_curry_new_users": {
+        "type": "user",
+        "title": "Tabs V2 - Curry New Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 2: App Navbar Always Visible",
+            "Treatment 3: App Navbar Always Visible + Keep Channel",
+            "Treatment 4: Recent channels",
+            "Treatment 5: Launch into last channel",
+            "Treatment 6: Plain Redesign"
+        ],
+        "buckets": [
+            -1,
+            0,
+            2,
+            3,
+            4,
+            5,
+            6
+        ]
+    },
+    "2023-02_tabs_v2": {
+        "type": "user",
+        "title": "Tabs V2 - GDM Bucketing",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Tabs V2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_mobile_re_design_existing_users": {
+        "type": "user",
+        "title": "Tabs V2 - Existing Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Tabs V2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_mobile_redesign_new_users": {
+        "type": "user",
+        "title": "Tabs V2 - New Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Tabs V2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_mobile_redesign_0c_new_users": {
+        "type": "user",
+        "title": "Tabs V2 - New Users Phase 0c",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Tabs V2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_mobile_redesign_0d_new_users": {
+        "type": "user",
+        "title": "Tabs V2 - New Users Phase 0d",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Tabs V2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_rtc_minimum_jitter_buffer_level": {
+        "type": "user",
+        "title": "Minimum Jitter Buffer Level",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Minimum Jitter Buffer Level = 80ms",
+            "Treatment 2: Minimum Jitter Buffer Level = 120ms",
+            "Treatment 3: Minimum Jitter Buffer Level = 160ms",
+            "Treatment 4: Minimum Jitter Buffer Level = 200ms"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "2023-07_domain_connection": {
+        "type": "user",
+        "title": "Domain Connection",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-10_price_determination": {
+        "type": "user",
+        "title": "Price determination experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_trial_redemption_default_to_monthly_plan": {
+        "type": "user",
+        "title": "Trial Redemption Default To Monthly Plan",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Set default plan to monthly plan"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_overlay_hook_crash_detection": {
+        "type": "user",
+        "title": "Detect and report crashes in the overlay hook",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: EnableCrashReporting",
+            "Treatment 2: EnableCrashTrigger"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-11_rtx40xx_gpu_screenshare_with_av1": {
+        "type": "user",
+        "title": "Test how AV1 works on windows with RTX40xx GPUs for screenshare",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Screenshare with AV1"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_h265_android": {
+        "type": "user",
+        "title": "Test how h265 works on android for DM calls",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Calling with H.265"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_h265_macos": {
+        "type": "user",
+        "title": "Test how h265 works on macos",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Calling with H.265"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-10_h265_dm_call": {
+        "type": "user",
+        "title": "Test how h265 works on ios/macos for DM calls",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Calling with H.265"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-06_hdr_screen_capture": {
+        "type": "user",
+        "title": "HDR Screen Capture",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Always",
+            "Treatment 2: Permitted Devices Only"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2021-08_max_sync_delay": {
+        "type": "user",
+        "title": "Overrides the default max sync delay for AV streams in WebRTC",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Use 3 seconds as max sync delay"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-02_quartz_video_source": {
+        "type": "user",
+        "title": "Quartz Video Source",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: gotta go fast",
+            "Treatment 2: 2fast 2furious"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2021-03_videotoolbox_rate_optimization": {
+        "type": "user",
+        "title": "VideoToolbox Rate Control Optimizations",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_auto_disable_video_mobile_v1": {
+        "type": "user",
+        "title": "Mobile performance: VideoHealthManager",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: 5 second window, 100% allowed poor fps ratio, 5 fps threshold, 15 second backoff",
+            "Treatment 2: 5 second window, 100% allowed poor fps ratio, 5 fps threshold, 10 second backoff",
+            "Treatment 3: 10 second window, 70% allowed poor fps ratio, 5 fps threshold, 15 second backoff",
+            "Treatment 4: 10 second window, 90% allowed poor fps ratio, 5 fps threshold, 15 second backoff"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "2022-09_remote_audio_settings": {
+        "type": "user",
+        "title": "Remote Audio Settings",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Read/write remote audio settings"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-1_read_state_staff": {
+        "type": "user",
+        "title": "Read State Staff",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Refresh after enabling"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_client_themes_16thru21": {
+        "type": "user",
+        "title": "Client Themes New Themes",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: New themes enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_file_upload_limit": {
+        "type": "user",
+        "title": "File Upload Limit Increase",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_free_file_upload_limit": {
+        "type": "user",
+        "title": "Free File Upload Limit Increase",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_burst_reaction_guild_experiment": {
+        "type": "guild",
+        "title": "Burst Reactions",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled",
+            "Treatment 2: Tab UI",
+            "Treatment 4: Free Bursts"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            4
+        ]
+    },
+    "2022-09_burst_reactions": {
+        "type": "user",
+        "title": "Burst Reactions User Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: User two entry points",
+            "Treatment 2: User Tab UI",
+            "Treatment 4: User Free Bursts",
+            "Treatment 5: User Free Bursts",
+            "Treatment 6: Combined entry point and tabs",
+            "Treatment 7: Combined entry point and tabs + double weekly refills",
+            "Treatment 8: All additional polish",
+            "Treatment 9: All additional polish except notifications",
+            "Treatment 10: The exact same as bucket six, just with a different label"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ]
+    },
+    "2023-06_burst_reaction_entry_point_ordering": {
+        "type": "user",
+        "title": "Burst Reaction Entry Point Ordering",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Regular Reaction Prioritized"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_mobile_burst_reactions": {
+        "type": "user",
+        "title": "Mobile Burst Reactions User Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled",
+            "Treatment 2: Enabled v2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-04_activity_launcher_embed": {
+        "type": "user",
+        "title": "Activity Launcher Embed",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable the Activity Launcher Embed in chat"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-10_context_menu_and_new_media_picker": {
+        "type": "user",
+        "title": "Context Menu and New Media Picker",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: New media picker is enabled. Gift button is visible alongside Create Chread",
+            "Treatment 2: New media picker is enabled. Gift button is NOT visible alongside Create Chread"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_store_latest_message_data": {
+        "type": "user",
+        "title": "Store latest message data",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Use latest data from api/gateway"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_media_mosaic_experiment": {
+        "type": "user",
+        "title": "Media Mosaic",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Media mosaic is enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_inline_sending_preview_mobile": {
+        "type": "user",
+        "title": "Inline Sending Preview Mobile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Inline sending preview is enabled on mobile (both iOS and Android)"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_guild_unreads": {
+        "type": "user",
+        "title": "Guild Unreads",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow \"Highlights\" as an Unreads Option"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_notification_redesign": {
+        "type": "user",
+        "title": "NotificationRedesign",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Notification Redesign Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_notification_redesign_v2": {
+        "type": "user",
+        "title": "NotificationRedesignV2",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Notification Redesign V2 Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_desktop_notification_center": {
+        "type": "user",
+        "title": "Desktop notification center",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Notification center desktop enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_channel_highlights": {
+        "type": "user",
+        "title": "Channel Highlights",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Channel Highlights"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-04_network_action_logging": {
+        "type": "user",
+        "title": "Standard Analytics: Log Network Actions",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Log network actions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_emoji_ecosystem_holdout": {
+        "type": "user",
+        "title": "Emoji Ecosystem Holdout Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: In the Emoji Ecosystem Holdout"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_emoji_picker_discovery": {
+        "type": "user",
+        "title": "Emoji Picker Improved Discovery",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Bigger Picker",
+            "Treatment 2: Bigger Picker + Popular Server Emojis",
+            "Treatment 3: Bigger Picker + Newly Added Emojis"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2023-02_stage_boosting": {
+        "type": "guild",
+        "title": "Stage Boosting",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-09_ios_screenshare_resolution_profiles": {
+        "type": "user",
+        "title": "iOS: Screenshare resolution profiles",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Permanent old resolution",
+            "Treatment 2: Old resolution for 10s",
+            "Treatment 3: Wait 3s after 1st frame capture",
+            "Treatment 4: Wait 3s to capture 1st frame"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "2022-10_communities_multi": {
+        "type": "guild",
+        "title": "A multi-arm guild experiment that segments all eligible guilds to test different combinations of the Communities 2.0 experience",
+        "description": [
+            "Not Eligible",
+            "Treatment 0: Holdout",
+            "Treatment 1: NMX Core",
+            "Treatment 2: NMX Core + Home",
+            "Treatment 3: NMX Core + Highlights",
+            "Treatment 4: Home"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "2022-01_home_tab_guild": {
+        "type": "guild",
+        "title": "Home Tab Guild",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Check User as well",
+            "Treatment 2: Force on"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-01_home_tab_user": {
+        "type": "user",
+        "title": "Home Tab User",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Home Tab",
+            "Treatment 2: Force on",
+            "Treatment 3: Overflow"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2022-01_home_feed_toggle": {
+        "type": "user",
+        "title": "Show Guild Feed Sorting Selector",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Yes Selector"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-06_home_refresh_button": {
+        "type": "user",
+        "title": "Show refresh button",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Yes button"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_home_badge": {
+        "type": "user",
+        "title": "Show badge on home channel",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: show badge"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_home_drawer_autoclose": {
+        "type": "user",
+        "title": "Auto close home drawer",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: normal animation",
+            "Treatment 2: no animate",
+            "Treatment 3: 150 delayed animation",
+            "Treatment 4: 250 delayed animation",
+            "Treatment 5: 500 delayed animation"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+        ]
+    },
+    "2022-09_welcome_header": {
+        "type": "user",
+        "title": "Show welcome header for home",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: show welcome header"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_home_feedback_ux": {
+        "type": "user",
+        "title": "Show post feedback for home",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 100: show feedback"
+        ],
+        "buckets": [
+            -1,
+            0,
+            100
+        ]
+    },
+    "2023-03_home_deprecation": {
+        "type": "guild",
+        "title": "Home Deprecation",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show notice"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_free_discord_stickers": {
+        "type": "user",
+        "title": "Free Default Stickers",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_land_on_server_guide": {
+        "type": "user",
+        "title": "Land users on server guide",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Users land on server guide when joining a guild via invite",
+            "Treatment 42: [untracked] Users land on server guide when joining a guild via invite"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            42
+        ]
+    },
+    "2023-03_pomelo_compatible_ux": {
+        "type": "user",
+        "title": "Pomelo Compatibility",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-11_member_verification_manual_approval": {
+        "type": "guild",
+        "title": "Member Verification Manual Approval",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable manual approval for membership verification"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_guild_member_safety_experiment": {
+        "type": "guild",
+        "title": "Guild Member Safety Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Guild Member Safety Experiment"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-04_impression_logging": {
+        "type": "user",
+        "title": "Standard Analytics: Log Impressions",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Log impressions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_silent_messages": {
+        "type": "user",
+        "title": "Silent Messages",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow sending @silent messages"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_forum_activity": {
+        "type": "user",
+        "title": "Increased activity view for Forums, per user",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_forums_activity_2_guild": {
+        "type": "guild",
+        "title": "Increased activity view for Forums, per guild",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_premium_unify_trial_upsell": {
+        "type": "user",
+        "title": "Premium Unify Trial Upsell",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Unified trial upsell experience"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_emoji_discovery_backfill": {
+        "type": "user",
+        "title": "Emoji Hotrail Backfill",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Backfills Hotrail With Emojis"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_nitro_most_popular_tag": {
+        "type": "user",
+        "title": "Most popular tag in nitro plan selection",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: show most popular tag on nitro plan"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_premium_marketing_page_trial_tier_card": {
+        "type": "user",
+        "title": "Premium marketing page trial tier card",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Free trial pill on top of the card",
+            "Treatment 2: Free trial pill inline with the card"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-04_tier_0_trial_cta_copy": {
+        "type": "user",
+        "title": "Tier 0 Trial CTA Copy",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Users with a tier 0 trial offer will see \"Get Free Trial\"",
+            "Treatment 2: Users with a tier 0 trial offer will see \"Try 1 Month Free\"",
+            "Treatment 3: Users with a tier 0 trial offer will see \"Start Free Trial\""
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2022-03_block_russian_purchases": {
+        "type": "user",
+        "title": "Block purchases based on country",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Payments Blocked"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-03_block_russian_purchases_desktop": {
+        "type": "user",
+        "title": "Block purchases based on country (desktop specific flags)",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Check Payment Source"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_bogo_announcement_modal": {
+        "type": "user",
+        "title": "BOGO Announcement Modal",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Users will see the BOGO announcement modal"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_bogo_promotion_gate": {
+        "type": "user",
+        "title": "BOGO Promotion Manager",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable BOGO Promotion Manager"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-06_preview_promotions": {
+        "type": "user",
+        "title": "Promotions Preview",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Preview Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_amoled_mode_web": {
+        "type": "user",
+        "title": "Enabled AMOLED Mode on Web",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled AMOLED Theme Option"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_clips_experiment": {
+        "type": "user",
+        "title": "Clips Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Clips without upsells",
+            "Treatment 2: Clips with upsells"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-01_activities_in_gdm": {
+        "type": "user",
+        "title": "Activities in GDM",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable Activities in GDMs"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_clyde_ai": {
+        "type": "guild",
+        "title": "ClydeAI",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled (Default Off)",
+            "Treatment 3: Enabled (Default On)",
+            "Treatment 4: Coming Soon"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            3,
+            4
+        ]
+    },
+    "2023-06_clyde_ai_gdm": {
+        "type": "user",
+        "title": "Clyde in DMs/GDMs",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable clyde in gdms"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_nitroduction_experience": {
+        "type": "user",
+        "title": "Nitroduction Experience",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: One month trial users recieve the Nitroduction experience"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_nitro_drop_announcement_modal": {
+        "type": "user",
+        "title": "2023 Nitro April Drop Announcement Modal",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled Nitro April Drop announcement modal"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_nitro_drop_experience": {
+        "type": "user",
+        "title": "2023 Nitro April Drop Experience",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled Nitro April Drop Experience (apart from the announcement modal)"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_april_fools": {
+        "type": "user",
+        "title": "April Fools 2023",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: April Fools 2023"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_collectibles": {
+        "type": "user",
+        "title": "Collectibles",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Nitro with collecting",
+            "Treatment 2: Non-nitro with collecting upsells",
+            "Treatment 3: Non-nitro with temporary avatar decorations upsells",
+            "Treatment 100: collecting with uploading"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            100
+        ]
+    },
+    "2023-05_clyde_ai_dm": {
+        "type": "user",
+        "title": "DMs to Clyde",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable dms to clyde"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_inventory_guild_packs": {
+        "type": "user",
+        "title": "Inventory Guild Packs Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_inventory_reaction_tooltip": {
+        "type": "user",
+        "title": "Inventory Reaction Tooltip Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_inventory_guild_setting": {
+        "type": "guild",
+        "title": "Inventory Guild Settings Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show setting toggle without respecting it",
+            "Treatment 2: Show setting toggle and respect it"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-02_p13n_summarization": {
+        "type": "guild",
+        "title": "Channel Summaries Guild Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable channel summaries",
+            "Treatment 2: Enable channel summaries GA"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_p13n_summarization_user": {
+        "type": "user",
+        "title": "Channel Summaries User Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable channel summaries"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_p13n_summarization_mobile_ux": {
+        "type": "user",
+        "title": "Channel Summaries UX on Mobile Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable mobile UX for channel summaries"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-07_p13n_guild_dock_summaries": {
+        "type": "user",
+        "title": "Guild Dock Summaries on Mobile Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable guild dock summaries mobile UX"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_apps_in_gdms": {
+        "type": "user",
+        "title": "Apps in GDMs",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show apps in gdm"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_voice_in_threads": {
+        "type": "guild",
+        "title": "Voice in Threads",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_command_query_pagination": {
+        "type": "user",
+        "title": "Command Query Pagination",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_lock_icon": {
+        "type": "user",
+        "title": "Checkout Lock Icon",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_report_raids": {
+        "type": "guild",
+        "title": "Report Raids",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Reporting Of Raids"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-10_guild_raid_messaging": {
+        "type": "guild",
+        "title": "Raid Alerts",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Reporting Of Raids"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_guild_safety_settings": {
+        "type": "guild",
+        "title": "Safety check in guild settings",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show safety check in settings"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_premium_targeted_upsells": {
+        "type": "user",
+        "title": "Premium Targeted Upsells",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Use highest expected value to determine Nitro upsells",
+            "Treatment 2: Use highest likelihood to determine Nitro upsells"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-09_premium_tier_0_global": {
+        "type": "user",
+        "title": "Premium tier 0 (Global)",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Variant 1",
+            "Treatment 2: Variant 2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-09_mobile_account_switcher": {
+        "type": "user",
+        "title": "Mobile Account Switcher",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Account Switcher on Mobile",
+            "Treatment 2: Unenroll Account Switcher on Mobile and Clear Local Flag"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-11_mobile_account_switcher_notifications": {
+        "type": "user",
+        "title": "Mobile Account Switcher: Notifications",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable notifications for multiple accounts"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_fast_new_channels": {
+        "type": "guild",
+        "title": "Fast New Channels",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-07_server_guide_post_onboarding_new_member_action": {
+        "type": "user",
+        "title": "Add onboarding new member action to server guide",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show the Onboarding Version of Home"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_get_my_guilds_application_ids_endpoint": {
+        "type": "user",
+        "title": "Get My Guilds' Application IDs Endpoint Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_app_directory_for_all_modal": {
+        "type": "user",
+        "title": "App Directory Upsell For All Modal",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-08_back_to_school": {
+        "type": "user",
+        "title": "Back to School Event",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Back to School experience enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_custom_call_sounds": {
+        "type": "user",
+        "title": "Custom Call Sounds",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_referral_trials": {
+        "type": "user",
+        "title": "Referral Trials",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Nitro users can send a Nitro trial offer to another user."
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-02_staff_qc_debugging": {
+        "type": "user",
+        "title": "Display QS scores in results. Not a real experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show scores in QS results"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-07_role_popout": {
+        "type": "user",
+        "title": "Role Popout",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Popout"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_new_activity_one_time_purchase_modal": {
+        "type": "user",
+        "title": "New Activity One Time Purchase Modal",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_mfa_remove_phone": {
+        "type": "user",
+        "title": "Safety Experience MFA Remove Phone",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_activities_joinleave_sounds": {
+        "type": "user",
+        "title": "Activities Sounds Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Activities Join/Leave Sounds"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_null_experiment": {
+        "type": "user",
+        "title": "Null Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-09_inboxes_v2_frontend": {
+        "type": "user",
+        "title": "Safety Integrity Platform Inboxes V2",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-07_popout_autocomplete": {
+        "type": "user",
+        "title": "Popout Autocomplete experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: New autocomplete style"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_fullyemojiautocomplete": {
+        "type": "user",
+        "title": "Only show emoji in autocomplete",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Hide Stickers, only show 10 Emojis",
+            "Treatment 2: Hide Stickers, show more Emojis without scrollbar",
+            "Treatment 3: Hide Stickers, show more Emojis with scrollbar",
+            "Treatment 4: Show Autocomplete Stickers Toggle on mobile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "2023-05_ugc_notifications": {
+        "type": "guild",
+        "title": "Notifications for UGC changes",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Notifications"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-03_nitro_emoji_autocomplete_upsell": {
+        "type": "user",
+        "title": "Emoji Autocomplete Upsell",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show emoji autocomplete upsell"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-04_nitro_emoji_autocomplete_upsell_ios": {
+        "type": "user",
+        "title": "Emoji Autocomplete Upsell iOS",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show emoji autocomplete upsell"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_server_badging": {
+        "type": "guild",
+        "title": "Server Badging",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Server Badging"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_guild_alert_mode": {
+        "type": "guild",
+        "title": "Guild Alert Mode",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show alert mode experimence"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_invites_disabled": {
+        "type": "guild",
+        "title": "Report Raids",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Reporting Of Raids"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_timestamp_tooltip": {
+        "type": "user",
+        "title": "Timestamp Tooltip",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_mj_chat_bar_user": {
+        "type": "user",
+        "title": "MJ Chat Bar user experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_mj_chat_bar_guild": {
+        "type": "guild",
+        "title": "MJ Chat Bar enabled guilds",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_seasonal_gifting": {
+        "type": "user",
+        "title": "Seasonal Gifting",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_referral_trials_birthday_moment": {
+        "type": "user",
+        "title": "Referral Trials Birthday Moment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Users will see the birthday moment referral trial UX"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_non_nitro_user_remix_upsell": {
+        "type": "user",
+        "title": "Non Nitro User Remix Upsell Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: treatment 1",
+            "Treatment 2: treatment 2"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_mobile_remix": {
+        "type": "user",
+        "title": "Remixing User Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables media remixing",
+            "Treatment 2: Enables media remixing for desktop"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2021-12_inferno_spam_redaction": {
+        "type": "user",
+        "title": "Inferno Spam Redaction",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow guild channel messages from spammers to be collapsed"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_app_recommendations_server_checklist": {
+        "type": "guild",
+        "title": "Application Recommendation Server Checklist Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show recommendation to add apps in new server checklist"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_improved_message_markdown": {
+        "type": "user",
+        "title": "Improved Message Markdown ",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show improved message markdown",
+            "Treatment 2: Show improved message markdown WITHOUT masked links"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_improved_message_markdown_guild": {
+        "type": "guild",
+        "title": "Improved Message Markdown Guild Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show improved message markdown",
+            "Treatment 2: Show improved message markdown WITHOUT masked links"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-05_popular_slash_commands_mobile": {
+        "type": "user",
+        "title": "Popular Slash Commands Mobile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Popular Commands section"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_guild_media_channel": {
+        "type": "guild",
+        "title": "Media Channel",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables guild to create a media channel"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_guild_media_channel_post_preview_embed_users": {
+        "type": "user",
+        "title": "Guild Role Subscription Users",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables for users Guild Media Post Preview Embeds"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2020-01_in_app_reporting": {
+        "type": "user",
+        "title": "2020-29 Exp: Report TOS violating messages in-app via new modal",
+        "description": [
+            "An experiment that tests if in-app reporting is useful for Trust & Safety",
+            "Control: No changes",
+            "Treatment 1: Add menu options to report message"
+        ],
+        "buckets": [
+            0,
+            1
+        ]
+    },
+    "2022-08_message_todos_staff_only": {
+        "type": "user",
+        "title": "Message TODO list",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show message TODOs CTA"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_automod_non_community_guilds_release": {
+        "type": "guild",
+        "title": "Automod Non-Community Guilds Release",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod Non-Community Guilds Release"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_mention_raid_limit": {
+        "type": "guild",
+        "title": "Automod Mention Raid Limit",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod Mention Raid Limit"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_mention_raid_notice": {
+        "type": "guild",
+        "title": "Automod Mention Raid Notice",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod Mention Raid Notice"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_automod_custom_message": {
+        "type": "guild",
+        "title": "Automod Custom Message",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod Custom Message"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_free_form": {
+        "type": "guild",
+        "title": "Automod Server Policy",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod Server Policy",
+            "Treatment 10: Automod Server Policy Rules Summarization"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            10
+        ]
+    },
+    "2023-05_automod_user_profile_ab": {
+        "type": "guild",
+        "title": "Automod on User Profile A/B",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Automod on User Profile enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_remove_reactions_by_type": {
+        "type": "guild",
+        "title": "Remove Reactions by Type",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-07_system_dm_safety_onboarding": {
+        "type": "user",
+        "title": "System DM Safety Onboarding",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled, v1 copy",
+            "Treatment 2: Enabled, v2 copy"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-01_forums_non_community": {
+        "type": "guild",
+        "title": "Forum non-community",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_go_live_quest_fortnite": {
+        "type": "user",
+        "title": "Fortnite: Go Live Quest",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: 15 min stream req + auto enrollment",
+            "Treatment 99: 2 minute stream req + auto enrollment"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            99
+        ]
+    },
+    "2023-03_onboarding_upsell_lifecycle": {
+        "type": "guild",
+        "title": "Onboarding Upsell Lifecycle",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show new lifecycle upsells"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_pomelo": {
+        "type": "user",
+        "title": "Pomelo",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_safety_user_sentiment": {
+        "type": "user",
+        "title": "Safety User Sentiment Feedback Eligible",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Eligible"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_home_header_redesign": {
+        "type": "guild",
+        "title": "Home New Header",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: New Header"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_channel_name_emojis": {
+        "type": "user",
+        "title": "Channel Emojis",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable channel name emojis",
+            "Treatment 2: Emojis to left of channel icon"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-05_fast_onboarding_landing": {
+        "type": "user",
+        "title": "Fast Onboarding Landing",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: 2x Speed",
+            "Treatment 2: Instant",
+            "Treatment 42: Instant Untracked"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            42
+        ]
+    },
+    "2023-02_onboardingdropdowns": {
+        "type": "guild",
+        "title": "Enables dropdown selections from onboarding prompts",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_guild_onboarding_includes_rules": {
+        "type": "user",
+        "title": "Guild Onboarding includes rules experience",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Last page of onboarding is rules"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_activities_game_night_coach_mark": {
+        "type": "user",
+        "title": "Activities Game Night Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Activities Game Night"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_activity_gartic_phone_coach_mark": {
+        "type": "user",
+        "title": "Activity Coach Mark Gartic Phone",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Activity Coach Mark Gartic Phone"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_activitiesbashoutcoachmark": {
+        "type": "user",
+        "title": "Bash Out Coach Mark",
+        "description": [
+            "Not Eligible",
+            "Treatment 0: Control",
+            "Treatment 1: Enable Bash Out Coach Mark"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-10_study_group": {
+        "type": "guild",
+        "title": "Student hub study group",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables study group sidebar"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-12_discovery_requirements_m2": {
+        "type": "guild",
+        "title": "Lower Server Discovery member count requirements",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow a server to become discoverable with lower member count requirements"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_default_disable_mass_mention": {
+        "type": "guild",
+        "title": "Disable mass mentions for communities by default",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-11_hub_events": {
+        "type": "guild",
+        "title": "Hub Events",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Hub Events List"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_voice_channel_statuses": {
+        "type": "guild",
+        "title": "Voice Channel Status Guild Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable viewing and setting voice channel statuses for guild",
+            "Treatment 2: A/A test, identical to treatment 1"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-12_channel_notice_redesign": {
+        "type": "user",
+        "title": "Channel Notice Redesign",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Redesigned Channel Notices",
+            "Treatment 2: Show Redesigned Stage/Event Notices",
+            "Treatment 3: Show Redesigned Channel Notices & Stage/Event Notices"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2022-01_server_recommendations_rollout": {
+        "type": "user",
+        "title": "Rollout experiment for server recommendations.",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show server recommendations"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_clear_all_message_requests": {
+        "type": "user",
+        "title": "Safety Experience Reject All Message Requests",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_parent_tools_launch": {
+        "type": "user",
+        "title": "Safety - Family Center Launch",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-04_longer_group_dm_invites": {
+        "type": "user",
+        "title": "Longer Group DM Invites",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Makes group DM invites expire after 1 week."
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_clear_pending_incoming_friend_requests": {
+        "type": "user",
+        "title": "Enable ability to clear incoming friend requests",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_shared_canvas": {
+        "type": "guild",
+        "title": "Shared Canvas",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Shared Canvas"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_activities_auto_suggest": {
+        "type": "user",
+        "title": "Activities Auto Suggest",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable VC Activities Mini Shelf"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_activitieswatchtogetherpromo": {
+        "type": "user",
+        "title": "Activities Watch Together Promo",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable Watch Together promo"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_activities_watch_together_promo_sparkles_week_1": {
+        "type": "user",
+        "title": "Activities Watch Together Promo Week 1 Sparkles",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable Watch Together promo week 1 sparkles"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_activities_watch_together_promo_sparkles_week_2": {
+        "type": "user",
+        "title": "Activities Watch Together Promo Week 2 Sparkles",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable Watch Together promo week 2 sparkles"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-03_birthday_activities": {
+        "type": "user",
+        "title": "Birthday Activities",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Birthday Activities",
+            "Treatment 2: Geo test Enable Birthday Activities but no share"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-06_activity_shelf_banner_color_together": {
+        "type": "user",
+        "title": "Activity Shelf Banner Color Together",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Activity Shelf Banner Color Together"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_birthday_goodbye": {
+        "type": "user",
+        "title": "Activities Free Forever",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Activities Free Forever"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-06_activity_shelf_to_detail_page": {
+        "type": "user",
+        "title": "Activity Shelf to Detail Page",
+        "description": [
+            "Not Eligible",
+            "Treatment 0: Control",
+            "Treatment 1: Enable Big Shelf",
+            "Treatment 2: Enable Activity Shelf to Detail Page",
+            "Treatment 3: Enable social-proof shelf details",
+            "Treatment 4: Enable minimal shelf details",
+            "Treatment 5: Enable minimal shelf details and route to detail page"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+        ]
+    },
+    "2023-03_pax_vc_tile_activities": {
+        "type": "user",
+        "title": "PAX VC Tile Activities",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable PAX VC Tile Activities"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_vc_tile_activities_entry_point": {
+        "type": "user",
+        "title": "VC Tile Activities Entry Point",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable one or two users VC Tile Activities Entry Point",
+            "Treatment 2: Enable any number of users VC Tile Activities Entry Point"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-06_hide_thread_count": {
+        "type": "user",
+        "title": "Hide thread count",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Hide thread count"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-06_guild_subscriptions_payment_flow_test_page": {
+        "type": "user",
+        "title": "Test page for guild subscription payment flows",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Test page for guild subscription payment flows"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-11_premium_bogo_month_promotion": {
+        "type": "user",
+        "title": "Nitro Promo for Black Friday",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled without promo materials (basic + classic)",
+            "Treatment 2: Enabled with promo materials (Rest of world)"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-04_birthday_activities_whats_new_gdm_tile": {
+        "type": "user",
+        "title": "Birthday Activities Whats New GDM Tile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable GDM tile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_birthday_activities_jamspace_tile": {
+        "type": "user",
+        "title": "Birthday Activities Whats New Jamspace Tile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Jamspace tile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_birthday_activities_poker": {
+        "type": "user",
+        "title": "Birthday Activities Poker Tile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Poker tile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_birthday_activities_putt_party_tile": {
+        "type": "user",
+        "title": "Birthday Activities Whats New Putt Party Tile",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Putt Party tile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-11_discovery_tags": {
+        "type": "user",
+        "title": "Discovery Tags",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show keyword tags on home and search result pages",
+            "Treatment 2: Show keyword tags on home and search result pages and under the search bar"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2022-01_discovery_iar": {
+        "type": "user",
+        "title": "Ability to report servers in Server Discovery",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show IAR buttons in Server Discovery"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-01_consumer_education_launch": {
+        "type": "user",
+        "title": "Safety Consumer Education Launch - Block/Mute",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Mute",
+            "Treatment 2: Block"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-04_dm_spam_filter_coachmark": {
+        "type": "user",
+        "title": "Safety DM Spam Filter Coachmark rollout",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-04_account_profile_popout": {
+        "type": "user",
+        "title": "Account Profile Popout",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Account Profile Popout",
+            "Treatment 2: Enable Account Profile Popout w/ DiscordTag button"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_mute_block_aa": {
+        "type": "user",
+        "title": "Safety Consumer Education Block/Mute - A/A",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Mute",
+            "Treatment 2: Block"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-04_consumer_education_launch__reporting": {
+        "type": "user",
+        "title": "Consumer Education Launch - Reporting",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Reporting"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-09_watch_together_rollout": {
+        "type": "guild",
+        "title": "Exposure tracking for Watch Together (do not override)",
+        "description": [
+            "Not Eligible",
+            "Control Bucket"
+        ],
+        "buckets": [
+            -1,
+            0
+        ]
+    },
+    "2022-02_guild_audit_log_user": {
+        "type": "user",
+        "title": "Guild Audit Log - User Feature Flag",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Guild Audit Log 2.0 for user"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-02_guild_audit_log_guild": {
+        "type": "guild",
+        "title": "Guild Audit Log - Guild Feature Flag",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show Guild Audit Log 2.0 for guild"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-05_safety_coms_update": {
+        "type": "user",
+        "title": "Safety Integrity Platform Coms Update",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_server_products": {
+        "type": "guild",
+        "title": "Server Products",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enables Server Products (AKA one time purchases for creator guilds)"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-03_guild_access_rate_insight_experiment": {
+        "type": "guild",
+        "title": "Guild Access Rate Insight Experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show guild access rate in insights"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2020-12_guild_delete_feedback": {
+        "type": "user",
+        "title": "Guild Delete Feedback experiment",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show guild delete feedback"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_onboarding_advanced_mode": {
+        "type": "guild",
+        "title": "Enables setting up onboarding with advanced mode",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: On"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-05_clyde_ai_guild_personality": {
+        "type": "guild",
+        "title": "Modify Clyde's Personality",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable personality setting"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-06_community_admin_server": {
+        "type": "guild",
+        "title": "Show the button to join the admin server in community overview server settings page",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show button if requirements met",
+            "Treatment 2: Bypass requirements"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2
+        ]
+    },
+    "2023-03_onboarding_soft_requirement_for_partnership": {
+        "type": "guild",
+        "title": "Hide onboarding soft requirement for partnership",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show onboarding soft requirement for partnership"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-10_pause_partner_applications_experiment": {
+        "type": "user",
+        "title": "Pause Partner Applications Experiment",
+        "description": [
+            "Not Eligible",
+            "Treatment 0: Off",
+            "Treatment 1: On no override"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-06_free_sticker_slots_design_updates": {
+        "type": "guild",
+        "title": "Free Sticker Slots Design Updates",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-04_pomelo_announcement": {
+        "type": "user",
+        "title": "Pomelo Announcement",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-12_localized_pricing_promo_manager": {
+        "type": "user",
+        "title": "Localized Pricing Promo Manager",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable Localized Pricing Promo Manager"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-02_guest_voice_invites": {
+        "type": "guild",
+        "title": "Guest Voice Invites",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Allow creation of guest voice invites"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    }
+}

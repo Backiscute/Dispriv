@@ -25,6 +25,12 @@ export const enum InviteType {
     FRIEND = 2,
 }
 
+export const enum GuildHubType {
+    NONE = 0,
+    HIGH_SCHOOL = 1,
+    COLLEGE = 2
+}
+
 export const enum GuildFeatures {
     ACTIVITIES_ALPHA = "ACTIVITIES_ALPHA",
     ACTIVITIES_EMPLOYEE = "ACTIVITIES_EMPLOYEE",

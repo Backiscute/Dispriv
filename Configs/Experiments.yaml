@@ -1,0 +1,3389 @@
+2023-01_global_display_names:
+  Type: user
+  ReadableName: Global Display Name
+  HashableName: 2023-01_global_display_names
+  CalculatedHash: 785391472
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_split_permissions:
+  Type: guild
+  ReadableName: Split Permissions
+  HashableName: 2023-03_split_permissions
+  CalculatedHash: 2355118827
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Split permissions into Add/Modify + Delete"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-09_favorites_server:
+  Type: user
+  ReadableName: Enable fancy super-alpha favorites server.
+  HashableName: 2021-09_favorites_server
+  CalculatedHash: 1134868932
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: It is on."
+    - "Treatment 2: It is forced off"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-04_creator_monetization_country_allowlist:
+  Type: user
+  ReadableName: Creator Monetization Available in Country
+  HashableName: 2022-04_creator_monetization_country_allowlist
+  CalculatedHash: 2532700533
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables users to view Creator Monetization entrypoints"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_creator_monetization_raven:
+  Type: guild
+  ReadableName: Creator Monetization Onboarding v2
+  HashableName: 2022-09_creator_monetization_raven
+  CalculatedHash: 3723449866
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to create Guild Role Subscriptions quickly"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_creator_monetization_raven_users:
+  Type: user
+  ReadableName: Creator Monetization Onboarding v2 Users
+  HashableName: 2022-09_creator_monetization_raven_users
+  CalculatedHash: 2539540256
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables users to create Guild Role Subscriptions quickly"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_creator_monetization_onboarding_waitlist:
+  Type: guild
+  ReadableName: Creator Monetization Onboarding Waitlist
+  HashableName: 2022-11_creator_monetization_onboarding_waitlist
+  CalculatedHash: 987884927
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Guilds to (possibly) see the waitlist"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_creator_monetization_nag_activate_users:
+  Type: user
+  ReadableName: Creator Monetization Nag Activate Users
+  HashableName: 2023-01_creator_monetization_nag_activate_users
+  CalculatedHash: 3029387945
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables users to see nag bar to activate server
+      subscriptions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_cr_accept_new_terms:
+  Type: guild
+  ReadableName: Server Subscriptions Accept New Terms
+  HashableName: 2023-03_cr_accept_new_terms
+  CalculatedHash: 747043176
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Server Subscriptions Accept New Terms"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-06_guild_role_subscriptions:
+  Type: guild
+  ReadableName: Guild Role Subscriptions
+  HashableName: 2021-06_guild_role_subscriptions
+  CalculatedHash: 1405831955
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to create Guild Role Subscriptions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-08_guild_role_subscription_users:
+  Type: user
+  ReadableName: Guild Role Subscription Users
+  HashableName: 2021-08_guild_role_subscription_users
+  CalculatedHash: 1567199723
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables users to create Guild Role Subscriptions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-01_guild_role_subscription_multigroup:
+  Type: guild
+  ReadableName: Guild Role Subscription Multigroup
+  HashableName: 2022-01_guild_role_subscription_multigroup
+  CalculatedHash: 2201448248
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to create multiple Guild Role Subscription
+      groups"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-01_guild_role_subscription_trials:
+  Type: guild
+  ReadableName: Guild Role Subscription Trials
+  HashableName: 2022-01_guild_role_subscription_trials
+  CalculatedHash: 4200595067
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to create Guild Role Subscription Trials"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-03_role_subscription_analytics_portal:
+  Type: guild
+  ReadableName: Guild Role Subscription Analytics
+  HashableName: 2022-03_role_subscription_analytics_portal
+  CalculatedHash: 3510816342
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to view analytics for role subscriptions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-04_guild_role_subscription_purchase_feedback_loop:
+  Type: guild
+  ReadableName: Guild Role Subscription Purchase Feedback Loop
+  HashableName: 2022-04_guild_role_subscription_purchase_feedback_loop
+  CalculatedHash: 1990672009
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guilds to send purchsae feedback loop system
+      messages"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-05_mobile_web_role_subscription_purchase_page:
+  Type: guild
+  ReadableName: Guild Role Subscription Mobile Web
+  HashableName: 2022-05_mobile_web_role_subscription_purchase_page
+  CalculatedHash: 4190408036
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables role subscription mobile web purchase page"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-06_native_mobile_role_subscription_management:
+  Type: user
+  ReadableName: Mobile Guild Role Subscription Management
+  HashableName: 2022-06_native_mobile_role_subscription_management
+  CalculatedHash: 1034661306
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable native role subscription management for mobile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_guild_role_subscriptions_variable_max_tiers:
+  Type: guild
+  ReadableName: Guild Role Subscription Max Tiers
+  HashableName: 2022-07_guild_role_subscriptions_variable_max_tiers
+  CalculatedHash: 179711638
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 4: Enables {n} maximum published tiers"
+    - "Treatment 5: Enables {n} maximum published tiers"
+    - "Treatment 6: Enables {n} maximum published tiers"
+  Buckets:
+    - -1
+    - 0
+    - 4
+    - 5
+    - 6
+2022-08_mobile_web_role_subscription_upsell:
+  Type: user
+  ReadableName: Mobile Web Guild Role Subscription Upsell
+  HashableName: 2022-08_mobile_web_role_subscription_upsell
+  CalculatedHash: 2514746297
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable mobile web role subscription upsell"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-10_creator_store_pages:
+  Type: guild
+  ReadableName: "Creator Store Pages "
+  HashableName: 2022-10_creator_store_pages
+  CalculatedHash: 24149521
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to have store page"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_mobile_guild_role_subscription_team_setup:
+  Type: guild
+  ReadableName: Mobile Guild Role Subscription Team Setup
+  HashableName: 2022-12_mobile_guild_role_subscription_team_setup
+  CalculatedHash: 3313601281
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to allow payout team setup on mobile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_server_subscriptions_iap:
+  Type: guild
+  ReadableName: Server Subscriptions IAP
+  HashableName: 2023-02_server_subscriptions_iap
+  CalculatedHash: 295820329
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Server Subscriptions IAP"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_server_subs_iap_geo_rollout:
+  Type: user
+  ReadableName: Server Subscriptions IAP User
+  HashableName: 2023-03_server_subs_iap_geo_rollout
+  CalculatedHash: 6046655
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Server Subscriptions IAP For User"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_server_subscriptions_tier_templates:
+  Type: guild
+  ReadableName: Server Subscriptions Tier Templates
+  HashableName: 2023-03_server_subscriptions_tier_templates
+  CalculatedHash: 808859253
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: 299 basic tier + no link"
+    - "Treatment 2: 399 basic tier + no link"
+    - "Treatment 3: 399 basic tier + link"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2023-04_server_subscriptions_tier_templates_user:
+  Type: user
+  ReadableName: Server Subscriptions Tier Templates
+  HashableName: 2023-04_server_subscriptions_tier_templates_user
+  CalculatedHash: 4265918989
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable tier templates for user"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_self_demonetization:
+  Type: guild
+  ReadableName: Self Demonetization
+  HashableName: 2023-03_self_demonetization
+  CalculatedHash: 3194028601
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Self Demonetization"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_broadcasting:
+  Type: user
+  ReadableName: Go Live Broadcasting
+  HashableName: 2023-04_broadcasting
+  CalculatedHash: 139947315
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Allow user to Broadcast to friends & guilds"
+    - "Treatment 2: Cannot broadcast, cannot view broadcasts"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-02_onboarding_home_admin:
+  Type: guild
+  ReadableName: "[ADMIN] Home as a community onboarding surface"
+  HashableName: 2023-02_onboarding_home_admin
+  CalculatedHash: 748249793
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show the Onboarding Version of Home in Admin Settings"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_optional_onboarding_home_admin:
+  Type: guild
+  ReadableName: "[ADMIN] Make server guide optional"
+  HashableName: 2023-05_optional_onboarding_home_admin
+  CalculatedHash: 695300504
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Optional"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_onboarding_home:
+  Type: user
+  ReadableName: Home as a community onboarding surface
+  HashableName: 2023-02_onboarding_home
+  CalculatedHash: 454680912
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show the Onboarding Version of Home"
+    - "Treatment 2: Onboarding Home DEV"
+    - "Treatment 3: Show the Onboarding Version of Home"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2023-07_day_0_nux:
+  Type: user
+  ReadableName: Mobile Redesign Day 0 NUX
+  HashableName: 2023-07_day_0_nux
+  CalculatedHash: 1174587839
+  Treatments:
+    - Not Eligible
+    - "Treatment 0: Control"
+    - "Treatment 1: Day 0 Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_mobile_redesign_curry_existing_users:
+  Type: user
+  ReadableName: Tabs V2 - Curry Existing Users
+  HashableName: 2023-06_mobile_redesign_curry_existing_users
+  CalculatedHash: 4015496517
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 2: App Navbar Always Visible"
+    - "Treatment 3: App Navbar Always Visible + Keep Channel"
+    - "Treatment 4: Recent channels"
+    - "Treatment 5: Launch into last channel"
+    - "Treatment 6: Plain Redesign"
+  Buckets:
+    - -1
+    - 0
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+2023-06_mobile_redesign_curry_new_users:
+  Type: user
+  ReadableName: Tabs V2 - Curry New Users
+  HashableName: 2023-06_mobile_redesign_curry_new_users
+  CalculatedHash: 2373630185
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 2: App Navbar Always Visible"
+    - "Treatment 3: App Navbar Always Visible + Keep Channel"
+    - "Treatment 4: Recent channels"
+    - "Treatment 5: Launch into last channel"
+    - "Treatment 6: Plain Redesign"
+  Buckets:
+    - -1
+    - 0
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+2023-02_tabs_v2:
+  Type: user
+  ReadableName: Tabs V2 - GDM Bucketing
+  HashableName: 2023-02_tabs_v2
+  CalculatedHash: 1499660140
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Tabs V2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_mobile_re_design_existing_users:
+  Type: user
+  ReadableName: Tabs V2 - Existing Users
+  HashableName: 2023-03_mobile_re_design_existing_users
+  CalculatedHash: 1929843098
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Tabs V2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_mobile_redesign_new_users:
+  Type: user
+  ReadableName: Tabs V2 - New Users
+  HashableName: 2023-02_mobile_redesign_new_users
+  CalculatedHash: 1084726125
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Tabs V2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_mobile_redesign_0c_new_users:
+  Type: user
+  ReadableName: Tabs V2 - New Users Phase 0c
+  HashableName: 2023-04_mobile_redesign_0c_new_users
+  CalculatedHash: 1767248084
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Tabs V2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_mobile_redesign_0d_new_users:
+  Type: user
+  ReadableName: Tabs V2 - New Users Phase 0d
+  HashableName: 2023-04_mobile_redesign_0d_new_users
+  CalculatedHash: 4264103376
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Tabs V2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_rtc_minimum_jitter_buffer_level:
+  Type: user
+  ReadableName: Minimum Jitter Buffer Level
+  HashableName: 2022-08_rtc_minimum_jitter_buffer_level
+  CalculatedHash: 1077571921
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Minimum Jitter Buffer Level = 80ms"
+    - "Treatment 2: Minimum Jitter Buffer Level = 120ms"
+    - "Treatment 3: Minimum Jitter Buffer Level = 160ms"
+    - "Treatment 4: Minimum Jitter Buffer Level = 200ms"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+2023-07_domain_connection:
+  Type: user
+  ReadableName: Domain Connection
+  HashableName: 2023-07_domain_connection
+  CalculatedHash: 3495789820
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-10_price_determination:
+  Type: user
+  ReadableName: Price determination experiment
+  HashableName: 2021-10_price_determination
+  CalculatedHash: 3997593347
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_trial_redemption_default_to_monthly_plan:
+  Type: user
+  ReadableName: Trial Redemption Default To Monthly Plan
+  HashableName: 2023-03_trial_redemption_default_to_monthly_plan
+  CalculatedHash: 1656308555
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Set default plan to monthly plan"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_overlay_hook_crash_detection:
+  Type: user
+  ReadableName: Detect and report crashes in the overlay hook
+  HashableName: 2023-05_overlay_hook_crash_detection
+  CalculatedHash: 933369006
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: EnableCrashReporting"
+    - "Treatment 2: EnableCrashTrigger"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-11_rtx40xx_gpu_screenshare_with_av1:
+  Type: user
+  ReadableName: Test how AV1 works on windows with RTX40xx GPUs for screenshare
+  HashableName: 2022-11_rtx40xx_gpu_screenshare_with_av1
+  CalculatedHash: 535388300
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Screenshare with AV1"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_h265_android:
+  Type: user
+  ReadableName: Test how h265 works on android for DM calls
+  HashableName: 2023-02_h265_android
+  CalculatedHash: 2838233237
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Calling with H.265"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_h265_macos:
+  Type: user
+  ReadableName: Test how h265 works on macos
+  HashableName: 2023-06_h265_macos
+  CalculatedHash: 4148889709
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Calling with H.265"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-10_h265_dm_call:
+  Type: user
+  ReadableName: Test how h265 works on ios/macos for DM calls
+  HashableName: 2022-10_h265_dm_call
+  CalculatedHash: 3916079111
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Calling with H.265"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-06_hdr_screen_capture:
+  Type: user
+  ReadableName: HDR Screen Capture
+  HashableName: 2021-06_hdr_screen_capture
+  CalculatedHash: 2912909916
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Always"
+    - "Treatment 2: Permitted Devices Only"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2021-08_max_sync_delay:
+  Type: user
+  ReadableName: Overrides the default max sync delay for AV streams in WebRTC
+  HashableName: 2021-08_max_sync_delay
+  CalculatedHash: 578035700
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Use 3 seconds as max sync delay"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-02_quartz_video_source:
+  Type: user
+  ReadableName: Quartz Video Source
+  HashableName: 2021-02_quartz_video_source
+  CalculatedHash: 3316720711
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: gotta go fast"
+    - "Treatment 2: 2fast 2furious"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2021-03_videotoolbox_rate_optimization:
+  Type: user
+  ReadableName: VideoToolbox Rate Control Optimizations
+  HashableName: 2021-03_videotoolbox_rate_optimization
+  CalculatedHash: 2775082884
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_auto_disable_video_mobile_v1:
+  Type: user
+  ReadableName: "Mobile performance: VideoHealthManager"
+  HashableName: 2022-12_auto_disable_video_mobile_v1
+  CalculatedHash: 3888328973
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: 5 second window, 100% allowed poor fps ratio, 5 fps
+      threshold, 15 second backoff"
+    - "Treatment 2: 5 second window, 100% allowed poor fps ratio, 5 fps
+      threshold, 10 second backoff"
+    - "Treatment 3: 10 second window, 70% allowed poor fps ratio, 5 fps
+      threshold, 15 second backoff"
+    - "Treatment 4: 10 second window, 90% allowed poor fps ratio, 5 fps
+      threshold, 15 second backoff"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+2022-09_remote_audio_settings:
+  Type: user
+  ReadableName: Remote Audio Settings
+  HashableName: 2022-09_remote_audio_settings
+  CalculatedHash: 1503364285
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Read/write remote audio settings"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-1_read_state_staff:
+  Type: user
+  ReadableName: Read State Staff
+  HashableName: 2022-1_read_state_staff
+  CalculatedHash: 2864217513
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Refresh after enabling"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_client_themes_16thru21:
+  Type: user
+  ReadableName: Client Themes New Themes
+  HashableName: 2023-03_client_themes_16thru21
+  CalculatedHash: 1212874525
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: New themes enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_file_upload_limit:
+  Type: user
+  ReadableName: File Upload Limit Increase
+  HashableName: 2022-07_file_upload_limit
+  CalculatedHash: 828251710
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_free_file_upload_limit:
+  Type: user
+  ReadableName: Free File Upload Limit Increase
+  HashableName: 2022-09_free_file_upload_limit
+  CalculatedHash: 3991298449
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_burst_reaction_guild_experiment:
+  Type: guild
+  ReadableName: Burst Reactions
+  HashableName: 2023-02_burst_reaction_guild_experiment
+  CalculatedHash: 2014775304
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+    - "Treatment 2: Tab UI"
+    - "Treatment 4: Free Bursts"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 4
+2022-09_burst_reactions:
+  Type: user
+  ReadableName: Burst Reactions User Experiment
+  HashableName: 2022-09_burst_reactions
+  CalculatedHash: 1443856828
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: User two entry points"
+    - "Treatment 2: User Tab UI"
+    - "Treatment 4: User Free Bursts"
+    - "Treatment 5: User Free Bursts"
+    - "Treatment 6: Combined entry point and tabs"
+    - "Treatment 7: Combined entry point and tabs + double weekly refills"
+    - "Treatment 8: All additional polish"
+    - "Treatment 9: All additional polish except notifications"
+    - "Treatment 10: The exact same as bucket six, just with a different label"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+2023-06_burst_reaction_entry_point_ordering:
+  Type: user
+  ReadableName: Burst Reaction Entry Point Ordering
+  HashableName: 2023-06_burst_reaction_entry_point_ordering
+  CalculatedHash: 2413236121
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Regular Reaction Prioritized"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_mobile_burst_reactions:
+  Type: user
+  ReadableName: Mobile Burst Reactions User Experiment
+  HashableName: 2023-03_mobile_burst_reactions
+  CalculatedHash: 412458642
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+    - "Treatment 2: Enabled v2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-04_activity_launcher_embed:
+  Type: user
+  ReadableName: Activity Launcher Embed
+  HashableName: 2023-04_activity_launcher_embed
+  CalculatedHash: 3699020455
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable the Activity Launcher Embed in chat"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-10_context_menu_and_new_media_picker:
+  Type: user
+  ReadableName: Context Menu and New Media Picker
+  HashableName: 2022-10_context_menu_and_new_media_picker
+  CalculatedHash: 478936943
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: New media picker is enabled. Gift button is visible
+      alongside Create Chread"
+    - "Treatment 2: New media picker is enabled. Gift button is NOT visible
+      alongside Create Chread"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_store_latest_message_data:
+  Type: user
+  ReadableName: Store latest message data
+  HashableName: 2023-03_store_latest_message_data
+  CalculatedHash: 1617749743
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Use latest data from api/gateway"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_media_mosaic_experiment:
+  Type: user
+  ReadableName: Media Mosaic
+  HashableName: 2022-12_media_mosaic_experiment
+  CalculatedHash: 1133868976
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Media mosaic is enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_inline_sending_preview_mobile:
+  Type: user
+  ReadableName: Inline Sending Preview Mobile
+  HashableName: 2023-02_inline_sending_preview_mobile
+  CalculatedHash: 1582099574
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Inline sending preview is enabled on mobile (both iOS and
+      Android)"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_guild_unreads:
+  Type: user
+  ReadableName: Guild Unreads
+  HashableName: 2022-08_guild_unreads
+  CalculatedHash: 4073302433
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - 'Treatment 1: Allow "Highlights" as an Unreads Option'
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_notification_redesign:
+  Type: user
+  ReadableName: NotificationRedesign
+  HashableName: 2022-11_notification_redesign
+  CalculatedHash: 1792467213
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Notification Redesign Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_notification_redesign_v2:
+  Type: user
+  ReadableName: NotificationRedesignV2
+  HashableName: 2023-04_notification_redesign_v2
+  CalculatedHash: 1347697298
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Notification Redesign V2 Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_desktop_notification_center:
+  Type: user
+  ReadableName: Desktop notification center
+  HashableName: 2022-11_desktop_notification_center
+  CalculatedHash: 1323079101
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Notification center desktop enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_channel_highlights:
+  Type: user
+  ReadableName: Channel Highlights
+  HashableName: 2022-07_channel_highlights
+  CalculatedHash: 4169687140
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Channel Highlights"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-04_network_action_logging:
+  Type: user
+  ReadableName: "Standard Analytics: Log Network Actions"
+  HashableName: 2021-04_network_action_logging
+  CalculatedHash: 3643362751
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Log network actions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_emoji_ecosystem_holdout:
+  Type: user
+  ReadableName: Emoji Ecosystem Holdout Experiment
+  HashableName: 2022-09_emoji_ecosystem_holdout
+  CalculatedHash: 667096268
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: In the Emoji Ecosystem Holdout"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_emoji_picker_discovery:
+  Type: user
+  ReadableName: Emoji Picker Improved Discovery
+  HashableName: 2022-09_emoji_picker_discovery
+  CalculatedHash: 346890398
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Bigger Picker"
+    - "Treatment 2: Bigger Picker + Popular Server Emojis"
+    - "Treatment 3: Bigger Picker + Newly Added Emojis"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2023-02_stage_boosting:
+  Type: guild
+  ReadableName: Stage Boosting
+  HashableName: 2023-02_stage_boosting
+  CalculatedHash: 1816004721
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-09_ios_screenshare_resolution_profiles:
+  Type: user
+  ReadableName: "iOS: Screenshare resolution profiles"
+  HashableName: 2021-09_ios_screenshare_resolution_profiles
+  CalculatedHash: 3656427814
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Permanent old resolution"
+    - "Treatment 2: Old resolution for 10s"
+    - "Treatment 3: Wait 3s after 1st frame capture"
+    - "Treatment 4: Wait 3s to capture 1st frame"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+2022-10_communities_multi:
+  Type: guild
+  ReadableName: A multi-arm guild experiment that segments all eligible guilds to
+    test different combinations of the Communities 2.0 experience
+  HashableName: 2022-10_communities_multi
+  CalculatedHash: 2457903107
+  Treatments:
+    - Not Eligible
+    - "Treatment 0: Holdout"
+    - "Treatment 1: NMX Core"
+    - "Treatment 2: NMX Core + Home"
+    - "Treatment 3: NMX Core + Highlights"
+    - "Treatment 4: Home"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+2022-01_home_tab_guild:
+  Type: guild
+  ReadableName: Home Tab Guild
+  HashableName: 2022-01_home_tab_guild
+  CalculatedHash: 3832113202
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Check User as well"
+    - "Treatment 2: Force on"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-01_home_tab_user:
+  Type: user
+  ReadableName: Home Tab User
+  HashableName: 2022-01_home_tab_user
+  CalculatedHash: 3656796460
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Home Tab"
+    - "Treatment 2: Force on"
+    - "Treatment 3: Overflow"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2022-01_home_feed_toggle:
+  Type: user
+  ReadableName: Show Guild Feed Sorting Selector
+  HashableName: 2022-01_home_feed_toggle
+  CalculatedHash: 1124154177
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Yes Selector"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-06_home_refresh_button:
+  Type: user
+  ReadableName: Show refresh button
+  HashableName: 2022-06_home_refresh_button
+  CalculatedHash: 853790804
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Yes button"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_home_badge:
+  Type: user
+  ReadableName: Show badge on home channel
+  HashableName: 2022-08_home_badge
+  CalculatedHash: 2294464289
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: show badge"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_home_drawer_autoclose:
+  Type: user
+  ReadableName: Auto close home drawer
+  HashableName: 2022-08_home_drawer_autoclose
+  CalculatedHash: 75117039
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: normal animation"
+    - "Treatment 2: no animate"
+    - "Treatment 3: 150 delayed animation"
+    - "Treatment 4: 250 delayed animation"
+    - "Treatment 5: 500 delayed animation"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+2022-09_welcome_header:
+  Type: user
+  ReadableName: Show welcome header for home
+  HashableName: 2022-09_welcome_header
+  CalculatedHash: 683339869
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: show welcome header"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_home_feedback_ux:
+  Type: user
+  ReadableName: Show post feedback for home
+  HashableName: 2022-12_home_feedback_ux
+  CalculatedHash: 655899426
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 100: show feedback"
+  Buckets:
+    - -1
+    - 0
+    - 100
+2023-03_home_deprecation:
+  Type: guild
+  ReadableName: Home Deprecation
+  HashableName: 2023-03_home_deprecation
+  CalculatedHash: 280214844
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show notice"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_free_discord_stickers:
+  Type: user
+  ReadableName: Free Default Stickers
+  HashableName: 2023-03_free_discord_stickers
+  CalculatedHash: 887694445
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_land_on_server_guide:
+  Type: user
+  ReadableName: Land users on server guide
+  HashableName: 2023-05_land_on_server_guide
+  CalculatedHash: 3172321247
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Users land on server guide when joining a guild via invite"
+    - "Treatment 42: [untracked] Users land on server guide when joining a guild
+      via invite"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 42
+2023-03_pomelo_compatible_ux:
+  Type: user
+  ReadableName: Pomelo Compatibility
+  HashableName: 2023-03_pomelo_compatible_ux
+  CalculatedHash: 671665651
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-11_member_verification_manual_approval:
+  Type: guild
+  ReadableName: Member Verification Manual Approval
+  HashableName: 2021-11_member_verification_manual_approval
+  CalculatedHash: 4089758233
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable manual approval for membership verification"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_guild_member_safety_experiment:
+  Type: guild
+  ReadableName: Guild Member Safety Experiment
+  HashableName: 2023-05_guild_member_safety_experiment
+  CalculatedHash: 603648674
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Guild Member Safety Experiment"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-04_impression_logging:
+  Type: user
+  ReadableName: "Standard Analytics: Log Impressions"
+  HashableName: 2021-04_impression_logging
+  CalculatedHash: 3354177721
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Log impressions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_silent_messages:
+  Type: user
+  ReadableName: Silent Messages
+  HashableName: 2023-01_silent_messages
+  CalculatedHash: 183688925
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Allow sending @silent messages"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_forum_activity:
+  Type: user
+  ReadableName: Increased activity view for Forums, per user
+  HashableName: 2022-12_forum_activity
+  CalculatedHash: 828081447
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_forums_activity_2_guild:
+  Type: guild
+  ReadableName: Increased activity view for Forums, per guild
+  HashableName: 2023-01_forums_activity_2_guild
+  CalculatedHash: 4081692393
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_premium_unify_trial_upsell:
+  Type: user
+  ReadableName: Premium Unify Trial Upsell
+  HashableName: 2023-06_premium_unify_trial_upsell
+  CalculatedHash: 1495876933
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Unified trial upsell experience"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_emoji_discovery_backfill:
+  Type: user
+  ReadableName: Emoji Hotrail Backfill
+  HashableName: 2023-01_emoji_discovery_backfill
+  CalculatedHash: 2013557659
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Backfills Hotrail With Emojis"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_nitro_most_popular_tag:
+  Type: user
+  ReadableName: Most popular tag in nitro plan selection
+  HashableName: 2023-02_nitro_most_popular_tag
+  CalculatedHash: 2459440542
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: show most popular tag on nitro plan"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_premium_marketing_page_trial_tier_card:
+  Type: user
+  ReadableName: Premium marketing page trial tier card
+  HashableName: 2023-05_premium_marketing_page_trial_tier_card
+  CalculatedHash: 2553858368
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Free trial pill on top of the card"
+    - "Treatment 2: Free trial pill inline with the card"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-04_tier_0_trial_cta_copy:
+  Type: user
+  ReadableName: Tier 0 Trial CTA Copy
+  HashableName: 2023-04_tier_0_trial_cta_copy
+  CalculatedHash: 3084409284
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - 'Treatment 1: Users with a tier 0 trial offer will see "Get Free Trial"'
+    - 'Treatment 2: Users with a tier 0 trial offer will see "Try 1 Month Free"'
+    - 'Treatment 3: Users with a tier 0 trial offer will see "Start Free Trial"'
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2022-03_block_russian_purchases:
+  Type: user
+  ReadableName: Block purchases based on country
+  HashableName: 2022-03_block_russian_purchases
+  CalculatedHash: 3011681066
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Payments Blocked"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-03_block_russian_purchases_desktop:
+  Type: user
+  ReadableName: Block purchases based on country (desktop specific flags)
+  HashableName: 2022-03_block_russian_purchases_desktop
+  CalculatedHash: 1814483290
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Check Payment Source"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_bogo_announcement_modal:
+  Type: user
+  ReadableName: BOGO Announcement Modal
+  HashableName: 2023-06_bogo_announcement_modal
+  CalculatedHash: 2338915282
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Users will see the BOGO announcement modal"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_bogo_promotion_gate:
+  Type: user
+  ReadableName: BOGO Promotion Manager
+  HashableName: 2023-06_bogo_promotion_gate
+  CalculatedHash: 680908968
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable BOGO Promotion Manager"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-06_preview_promotions:
+  Type: user
+  ReadableName: Promotions Preview
+  HashableName: 2021-06_preview_promotions
+  CalculatedHash: 3704699110
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Preview Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_amoled_mode_web:
+  Type: user
+  ReadableName: Enabled AMOLED Mode on Web
+  HashableName: 2022-08_amoled_mode_web
+  CalculatedHash: 4202366309
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled AMOLED Theme Option"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_clips_experiment:
+  Type: user
+  ReadableName: Clips Experiment
+  HashableName: 2022-11_clips_experiment
+  CalculatedHash: 1651184307
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Clips without upsells"
+    - "Treatment 2: Clips with upsells"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-01_activities_in_gdm:
+  Type: user
+  ReadableName: Activities in GDM
+  HashableName: 2023-01_activities_in_gdm
+  CalculatedHash: 1834860859
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable Activities in GDMs"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_clyde_ai:
+  Type: guild
+  ReadableName: ClydeAI
+  HashableName: 2023-03_clyde_ai
+  CalculatedHash: 4083096281
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled (Default Off)"
+    - "Treatment 3: Enabled (Default On)"
+    - "Treatment 4: Coming Soon"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 3
+    - 4
+2023-06_clyde_ai_gdm:
+  Type: user
+  ReadableName: Clyde in DMs/GDMs
+  HashableName: 2023-06_clyde_ai_gdm
+  CalculatedHash: 1195502096
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable clyde in gdms"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_nitroduction_experience:
+  Type: user
+  ReadableName: Nitroduction Experience
+  HashableName: 2023-02_nitroduction_experience
+  CalculatedHash: 2956169075
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: One month trial users recieve the Nitroduction experience"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_nitro_drop_announcement_modal:
+  Type: user
+  ReadableName: 2023 Nitro April Drop Announcement Modal
+  HashableName: 2023-04_nitro_drop_announcement_modal
+  CalculatedHash: 4190502511
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled Nitro April Drop announcement modal"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_nitro_drop_experience:
+  Type: user
+  ReadableName: 2023 Nitro April Drop Experience
+  HashableName: 2023-04_nitro_drop_experience
+  CalculatedHash: 2753834830
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled Nitro April Drop Experience (apart from the
+      announcement modal)"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_april_fools:
+  Type: user
+  ReadableName: April Fools 2023
+  HashableName: 2023-03_april_fools
+  CalculatedHash: 3971730794
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: April Fools 2023"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_collectibles:
+  Type: user
+  ReadableName: Collectibles
+  HashableName: 2023-05_collectibles
+  CalculatedHash: 2455278797
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Nitro with collecting"
+    - "Treatment 2: Non-nitro with collecting upsells"
+    - "Treatment 3: Non-nitro with temporary avatar decorations upsells"
+    - "Treatment 100: collecting with uploading"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 100
+2023-05_clyde_ai_dm:
+  Type: user
+  ReadableName: DMs to Clyde
+  HashableName: 2023-05_clyde_ai_dm
+  CalculatedHash: 1906632964
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable dms to clyde"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_inventory_guild_packs:
+  Type: user
+  ReadableName: Inventory Guild Packs Experiment
+  HashableName: 2023-05_inventory_guild_packs
+  CalculatedHash: 1473329304
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_inventory_reaction_tooltip:
+  Type: user
+  ReadableName: Inventory Reaction Tooltip Experiment
+  HashableName: 2023-06_inventory_reaction_tooltip
+  CalculatedHash: 3470792155
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_inventory_guild_setting:
+  Type: guild
+  ReadableName: Inventory Guild Settings Experiment
+  HashableName: 2023-06_inventory_guild_setting
+  CalculatedHash: 3883768363
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show setting toggle without respecting it"
+    - "Treatment 2: Show setting toggle and respect it"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-02_p13n_summarization:
+  Type: guild
+  ReadableName: Channel Summaries Guild Experiment
+  HashableName: 2023-02_p13n_summarization
+  CalculatedHash: 1504498621
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable channel summaries"
+    - "Treatment 2: Enable channel summaries GA"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_p13n_summarization_user:
+  Type: user
+  ReadableName: Channel Summaries User Experiment
+  HashableName: 2023-03_p13n_summarization_user
+  CalculatedHash: 3283745071
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable channel summaries"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_p13n_summarization_mobile_ux:
+  Type: user
+  ReadableName: Channel Summaries UX on Mobile Experiment
+  HashableName: 2023-06_p13n_summarization_mobile_ux
+  CalculatedHash: 3780014786
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable mobile UX for channel summaries"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-07_p13n_guild_dock_summaries:
+  Type: user
+  ReadableName: Guild Dock Summaries on Mobile Experiment
+  HashableName: 2023-07_p13n_guild_dock_summaries
+  CalculatedHash: 727554173
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable guild dock summaries mobile UX"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_apps_in_gdms:
+  Type: user
+  ReadableName: Apps in GDMs
+  HashableName: 2023-03_apps_in_gdms
+  CalculatedHash: 3375543773
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show apps in gdm"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_voice_in_threads:
+  Type: guild
+  ReadableName: Voice in Threads
+  HashableName: 2022-07_voice_in_threads
+  CalculatedHash: 944104242
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_command_query_pagination:
+  Type: user
+  ReadableName: Command Query Pagination
+  HashableName: 2022-11_command_query_pagination
+  CalculatedHash: 2206139940
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_lock_icon:
+  Type: user
+  ReadableName: Checkout Lock Icon
+  HashableName: 2023-05_lock_icon
+  CalculatedHash: 853908483
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_report_raids:
+  Type: guild
+  ReadableName: Report Raids
+  HashableName: 2022-07_report_raids
+  CalculatedHash: 1055563741
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Reporting Of Raids"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-10_guild_raid_messaging:
+  Type: guild
+  ReadableName: Raid Alerts
+  HashableName: 2022-10_guild_raid_messaging
+  CalculatedHash: 3636231100
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Reporting Of Raids"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_guild_safety_settings:
+  Type: guild
+  ReadableName: Safety check in guild settings
+  HashableName: 2023-03_guild_safety_settings
+  CalculatedHash: 1640064366
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show safety check in settings"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_premium_targeted_upsells:
+  Type: user
+  ReadableName: Premium Targeted Upsells
+  HashableName: 2022-12_premium_targeted_upsells
+  CalculatedHash: 2067676101
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Use highest expected value to determine Nitro upsells"
+    - "Treatment 2: Use highest likelihood to determine Nitro upsells"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-09_premium_tier_0_global:
+  Type: user
+  ReadableName: Premium tier 0 (Global)
+  HashableName: 2022-09_premium_tier_0_global
+  CalculatedHash: 102690720
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Variant 1"
+    - "Treatment 2: Variant 2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-09_mobile_account_switcher:
+  Type: user
+  ReadableName: Mobile Account Switcher
+  HashableName: 2022-09_mobile_account_switcher
+  CalculatedHash: 2001067746
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Account Switcher on Mobile"
+    - "Treatment 2: Unenroll Account Switcher on Mobile and Clear Local Flag"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-11_mobile_account_switcher_notifications:
+  Type: user
+  ReadableName: "Mobile Account Switcher: Notifications"
+  HashableName: 2022-11_mobile_account_switcher_notifications
+  CalculatedHash: 1333727
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable notifications for multiple accounts"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_fast_new_channels:
+  Type: guild
+  ReadableName: Fast New Channels
+  HashableName: 2023-04_fast_new_channels
+  CalculatedHash: 4063488887
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-07_server_guide_post_onboarding_new_member_action:
+  Type: user
+  ReadableName: Add onboarding new member action to server guide
+  HashableName: 2023-07_server_guide_post_onboarding_new_member_action
+  CalculatedHash: 4076788897
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show the Onboarding Version of Home"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_get_my_guilds_application_ids_endpoint:
+  Type: user
+  ReadableName: Get My Guilds' Application IDs Endpoint Experiment
+  HashableName: 2022-12_get_my_guilds_application_ids_endpoint
+  CalculatedHash: 3772658100
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_app_directory_for_all_modal:
+  Type: user
+  ReadableName: App Directory Upsell For All Modal
+  HashableName: 2023-02_app_directory_for_all_modal
+  CalculatedHash: 968202795
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-08_back_to_school:
+  Type: user
+  ReadableName: Back to School Event
+  HashableName: 2022-08_back_to_school
+  CalculatedHash: 2676348506
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Back to School experience enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_custom_call_sounds:
+  Type: user
+  ReadableName: Custom Call Sounds
+  HashableName: 2023-06_custom_call_sounds
+  CalculatedHash: 3039064495
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_referral_trials:
+  Type: user
+  ReadableName: Referral Trials
+  HashableName: 2023-02_referral_trials
+  CalculatedHash: 4247951256
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Nitro users can send a Nitro trial offer to another user."
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-02_staff_qc_debugging:
+  Type: user
+  ReadableName: Display QS scores in results. Not a real experiment
+  HashableName: 2021-02_staff_qc_debugging
+  CalculatedHash: 2847059306
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show scores in QS results"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-07_role_popout:
+  Type: user
+  ReadableName: Role Popout
+  HashableName: 2021-07_role_popout
+  CalculatedHash: 1428438599
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Popout"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_new_activity_one_time_purchase_modal:
+  Type: user
+  ReadableName: New Activity One Time Purchase Modal
+  HashableName: 2023-06_new_activity_one_time_purchase_modal
+  CalculatedHash: 261136978
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_mfa_remove_phone:
+  Type: user
+  ReadableName: Safety Experience MFA Remove Phone
+  HashableName: 2023-02_mfa_remove_phone
+  CalculatedHash: 3346916614
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_activities_joinleave_sounds:
+  Type: user
+  ReadableName: Activities Sounds Experiment
+  HashableName: 2023-05_activities_joinleave_sounds
+  CalculatedHash: 3190368920
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Activities Join/Leave Sounds"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_null_experiment:
+  Type: user
+  ReadableName: Null Experiment
+  HashableName: 2023-04_null_experiment
+  CalculatedHash: 1045730203
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-09_inboxes_v2_frontend:
+  Type: user
+  ReadableName: Safety Integrity Platform Inboxes V2
+  HashableName: 2022-09_inboxes_v2_frontend
+  CalculatedHash: 472975400
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-07_popout_autocomplete:
+  Type: user
+  ReadableName: Popout Autocomplete experiment
+  HashableName: 2021-07_popout_autocomplete
+  CalculatedHash: 1900424093
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: New autocomplete style"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_fullyemojiautocomplete:
+  Type: user
+  ReadableName: Only show emoji in autocomplete
+  HashableName: 2023-05_fullyemojiautocomplete
+  CalculatedHash: 3138896883
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Hide Stickers, only show 10 Emojis"
+    - "Treatment 2: Hide Stickers, show more Emojis without scrollbar"
+    - "Treatment 3: Hide Stickers, show more Emojis with scrollbar"
+    - "Treatment 4: Show Autocomplete Stickers Toggle on mobile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+2023-05_ugc_notifications:
+  Type: guild
+  ReadableName: Notifications for UGC changes
+  HashableName: 2023-05_ugc_notifications
+  CalculatedHash: 631733804
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Notifications"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-03_nitro_emoji_autocomplete_upsell:
+  Type: user
+  ReadableName: Emoji Autocomplete Upsell
+  HashableName: 2021-03_nitro_emoji_autocomplete_upsell
+  CalculatedHash: 259025033
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show emoji autocomplete upsell"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-04_nitro_emoji_autocomplete_upsell_ios:
+  Type: user
+  ReadableName: Emoji Autocomplete Upsell iOS
+  HashableName: 2021-04_nitro_emoji_autocomplete_upsell_ios
+  CalculatedHash: 371152535
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show emoji autocomplete upsell"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_server_badging:
+  Type: guild
+  ReadableName: Server Badging
+  HashableName: 2023-04_server_badging
+  CalculatedHash: 41612842
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Server Badging"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_guild_alert_mode:
+  Type: guild
+  ReadableName: Guild Alert Mode
+  HashableName: 2023-04_guild_alert_mode
+  CalculatedHash: 2710924848
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show alert mode experimence"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_invites_disabled:
+  Type: guild
+  ReadableName: Report Raids
+  HashableName: 2022-07_invites_disabled
+  CalculatedHash: 3683063649
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Reporting Of Raids"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_timestamp_tooltip:
+  Type: user
+  ReadableName: Timestamp Tooltip
+  HashableName: 2022-12_timestamp_tooltip
+  CalculatedHash: 1978665225
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_mj_chat_bar_user:
+  Type: user
+  ReadableName: MJ Chat Bar user experiment
+  HashableName: 2023-03_mj_chat_bar_user
+  CalculatedHash: 1396216677
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_mj_chat_bar_guild:
+  Type: guild
+  ReadableName: MJ Chat Bar enabled guilds
+  HashableName: 2023-03_mj_chat_bar_guild
+  CalculatedHash: 2182959876
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_seasonal_gifting:
+  Type: user
+  ReadableName: Seasonal Gifting
+  HashableName: 2022-12_seasonal_gifting
+  CalculatedHash: 184775741
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_referral_trials_birthday_moment:
+  Type: user
+  ReadableName: Referral Trials Birthday Moment
+  HashableName: 2023-05_referral_trials_birthday_moment
+  CalculatedHash: 3364594544
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Users will see the birthday moment referral trial UX"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_non_nitro_user_remix_upsell:
+  Type: user
+  ReadableName: Non Nitro User Remix Upsell Experiment
+  HashableName: 2023-06_non_nitro_user_remix_upsell
+  CalculatedHash: 3195474227
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: treatment 1"
+    - "Treatment 2: treatment 2"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_mobile_remix:
+  Type: user
+  ReadableName: Remixing User Experiment
+  HashableName: 2023-03_mobile_remix
+  CalculatedHash: 961769771
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables media remixing"
+    - "Treatment 2: Enables media remixing for desktop"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2021-12_inferno_spam_redaction:
+  Type: user
+  ReadableName: Inferno Spam Redaction
+  HashableName: 2021-12_inferno_spam_redaction
+  CalculatedHash: 4179344527
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Allow guild channel messages from spammers to be collapsed"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_app_recommendations_server_checklist:
+  Type: guild
+  ReadableName: Application Recommendation Server Checklist Experiment
+  HashableName: 2023-02_app_recommendations_server_checklist
+  CalculatedHash: 3320756132
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show recommendation to add apps in new server checklist"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_improved_message_markdown:
+  Type: user
+  ReadableName: "Improved Message Markdown "
+  HashableName: 2023-03_improved_message_markdown
+  CalculatedHash: 1859132618
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show improved message markdown"
+    - "Treatment 2: Show improved message markdown WITHOUT masked links"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_improved_message_markdown_guild:
+  Type: guild
+  ReadableName: Improved Message Markdown Guild Experiment
+  HashableName: 2023-03_improved_message_markdown_guild
+  CalculatedHash: 1489979462
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show improved message markdown"
+    - "Treatment 2: Show improved message markdown WITHOUT masked links"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-05_popular_slash_commands_mobile:
+  Type: user
+  ReadableName: Popular Slash Commands Mobile
+  HashableName: 2023-05_popular_slash_commands_mobile
+  CalculatedHash: 1146223059
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Popular Commands section"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_guild_media_channel:
+  Type: guild
+  ReadableName: Media Channel
+  HashableName: 2023-03_guild_media_channel
+  CalculatedHash: 3890564237
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables guild to create a media channel"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_guild_media_channel_post_preview_embed_users:
+  Type: user
+  ReadableName: Guild Role Subscription Users
+  HashableName: 2023-04_guild_media_channel_post_preview_embed_users
+  CalculatedHash: 288968706
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables for users Guild Media Post Preview Embeds"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2020-01_in_app_reporting:
+  Type: user
+  ReadableName: "2020-29 Exp: Report TOS violating messages in-app via new modal"
+  HashableName: 2020-01_in_app_reporting
+  CalculatedHash: 4181417939
+  Treatments:
+    - An experiment that tests if in-app reporting is useful for Trust & Safety
+    - "Control: No changes"
+    - "Treatment 1: Add menu options to report message"
+  Buckets:
+    - 0
+    - 1
+2022-08_message_todos_staff_only:
+  Type: user
+  ReadableName: Message TODO list
+  HashableName: 2022-08_message_todos_staff_only
+  CalculatedHash: 4170652702
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show message TODOs CTA"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_automod_non_community_guilds_release:
+  Type: guild
+  ReadableName: Automod Non-Community Guilds Release
+  HashableName: 2022-11_automod_non_community_guilds_release
+  CalculatedHash: 2608013421
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod Non-Community Guilds Release"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_mention_raid_limit:
+  Type: guild
+  ReadableName: Automod Mention Raid Limit
+  HashableName: 2022-12_mention_raid_limit
+  CalculatedHash: 1318029053
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod Mention Raid Limit"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_mention_raid_notice:
+  Type: guild
+  ReadableName: Automod Mention Raid Notice
+  HashableName: 2023-01_mention_raid_notice
+  CalculatedHash: 805661295
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod Mention Raid Notice"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_automod_custom_message:
+  Type: guild
+  ReadableName: Automod Custom Message
+  HashableName: 2023-02_automod_custom_message
+  CalculatedHash: 511273769
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod Custom Message"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_free_form:
+  Type: guild
+  ReadableName: Automod Server Policy
+  HashableName: 2023-02_free_form
+  CalculatedHash: 2001176293
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod Server Policy"
+    - "Treatment 10: Automod Server Policy Rules Summarization"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 10
+2023-05_automod_user_profile_ab:
+  Type: guild
+  ReadableName: Automod on User Profile A/B
+  HashableName: 2023-05_automod_user_profile_ab
+  CalculatedHash: 4261225962
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Automod on User Profile enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_remove_reactions_by_type:
+  Type: guild
+  ReadableName: Remove Reactions by Type
+  HashableName: 2023-06_remove_reactions_by_type
+  CalculatedHash: 4195647747
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-07_system_dm_safety_onboarding:
+  Type: user
+  ReadableName: System DM Safety Onboarding
+  HashableName: 2022-07_system_dm_safety_onboarding
+  CalculatedHash: 488500683
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled, v1 copy"
+    - "Treatment 2: Enabled, v2 copy"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-01_forums_non_community:
+  Type: guild
+  ReadableName: Forum non-community
+  HashableName: 2023-01_forums_non_community
+  CalculatedHash: 1446479414
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_go_live_quest_fortnite:
+  Type: user
+  ReadableName: "Fortnite: Go Live Quest"
+  HashableName: 2023-05_go_live_quest_fortnite
+  CalculatedHash: 2709361021
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: 15 min stream req + auto enrollment"
+    - "Treatment 99: 2 minute stream req + auto enrollment"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 99
+2023-03_onboarding_upsell_lifecycle:
+  Type: guild
+  ReadableName: Onboarding Upsell Lifecycle
+  HashableName: 2023-03_onboarding_upsell_lifecycle
+  CalculatedHash: 485475819
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show new lifecycle upsells"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_pomelo:
+  Type: user
+  ReadableName: Pomelo
+  HashableName: 2023-03_pomelo
+  CalculatedHash: 268309827
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_safety_user_sentiment:
+  Type: user
+  ReadableName: Safety User Sentiment Feedback Eligible
+  HashableName: 2023-05_safety_user_sentiment
+  CalculatedHash: 1344378364
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Eligible"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_home_header_redesign:
+  Type: guild
+  ReadableName: Home New Header
+  HashableName: 2022-12_home_header_redesign
+  CalculatedHash: 3405402067
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: New Header"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_channel_name_emojis:
+  Type: user
+  ReadableName: Channel Emojis
+  HashableName: 2023-03_channel_name_emojis
+  CalculatedHash: 3524854832
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable channel name emojis"
+    - "Treatment 2: Emojis to left of channel icon"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-05_fast_onboarding_landing:
+  Type: user
+  ReadableName: Fast Onboarding Landing
+  HashableName: 2023-05_fast_onboarding_landing
+  CalculatedHash: 1461620747
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: 2x Speed"
+    - "Treatment 2: Instant"
+    - "Treatment 42: Instant Untracked"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 42
+2023-02_onboardingdropdowns:
+  Type: guild
+  ReadableName: Enables dropdown selections from onboarding prompts
+  HashableName: 2023-02_onboardingdropdowns
+  CalculatedHash: 3884904940
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_guild_onboarding_includes_rules:
+  Type: user
+  ReadableName: Guild Onboarding includes rules experience
+  HashableName: 2023-01_guild_onboarding_includes_rules
+  CalculatedHash: 987713133
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Last page of onboarding is rules"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_activities_game_night_coach_mark:
+  Type: user
+  ReadableName: Activities Game Night Experiment
+  HashableName: 2023-03_activities_game_night_coach_mark
+  CalculatedHash: 2171590360
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Activities Game Night"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_activity_gartic_phone_coach_mark:
+  Type: user
+  ReadableName: Activity Coach Mark Gartic Phone
+  HashableName: 2023-03_activity_gartic_phone_coach_mark
+  CalculatedHash: 1886305766
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Activity Coach Mark Gartic Phone"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_activitiesbashoutcoachmark:
+  Type: user
+  ReadableName: Bash Out Coach Mark
+  HashableName: 2022-11_activitiesbashoutcoachmark
+  CalculatedHash: 1696233097
+  Treatments:
+    - Not Eligible
+    - "Treatment 0: Control"
+    - "Treatment 1: Enable Bash Out Coach Mark"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-10_study_group:
+  Type: guild
+  ReadableName: Student hub study group
+  HashableName: 2021-10_study_group
+  CalculatedHash: 4030301365
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables study group sidebar"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-12_discovery_requirements_m2:
+  Type: guild
+  ReadableName: Lower Server Discovery member count requirements
+  HashableName: 2021-12_discovery_requirements_m2
+  CalculatedHash: 1065075299
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Allow a server to become discoverable with lower member
+      count requirements"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_default_disable_mass_mention:
+  Type: guild
+  ReadableName: Disable mass mentions for communities by default
+  HashableName: 2022-11_default_disable_mass_mention
+  CalculatedHash: 2462216785
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-11_hub_events:
+  Type: guild
+  ReadableName: Hub Events
+  HashableName: 2021-11_hub_events
+  CalculatedHash: 1107510295
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Hub Events List"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_voice_channel_statuses:
+  Type: guild
+  ReadableName: Voice Channel Status Guild Experiment
+  HashableName: 2023-02_voice_channel_statuses
+  CalculatedHash: 2809294122
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable viewing and setting voice channel statuses for guild"
+    - "Treatment 2: A/A test, identical to treatment 1"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-12_channel_notice_redesign:
+  Type: user
+  ReadableName: Channel Notice Redesign
+  HashableName: 2022-12_channel_notice_redesign
+  CalculatedHash: 3502788249
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Redesigned Channel Notices"
+    - "Treatment 2: Show Redesigned Stage/Event Notices"
+    - "Treatment 3: Show Redesigned Channel Notices & Stage/Event Notices"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2022-01_server_recommendations_rollout:
+  Type: user
+  ReadableName: Rollout experiment for server recommendations.
+  HashableName: 2022-01_server_recommendations_rollout
+  CalculatedHash: 2353632184
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show server recommendations"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_clear_all_message_requests:
+  Type: user
+  ReadableName: Safety Experience Reject All Message Requests
+  HashableName: 2023-01_clear_all_message_requests
+  CalculatedHash: 400679165
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_parent_tools_launch:
+  Type: user
+  ReadableName: Safety - Family Center Launch
+  HashableName: 2023-02_parent_tools_launch
+  CalculatedHash: 1869634267
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-04_longer_group_dm_invites:
+  Type: user
+  ReadableName: Longer Group DM Invites
+  HashableName: 2021-04_longer_group_dm_invites
+  CalculatedHash: 1693164202
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Makes group DM invites expire after 1 week."
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_clear_pending_incoming_friend_requests:
+  Type: user
+  ReadableName: Enable ability to clear incoming friend requests
+  HashableName: 2023-05_clear_pending_incoming_friend_requests
+  CalculatedHash: 3060384904
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_shared_canvas:
+  Type: guild
+  ReadableName: Shared Canvas
+  HashableName: 2023-01_shared_canvas
+  CalculatedHash: 280866660
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Shared Canvas"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_activities_auto_suggest:
+  Type: user
+  ReadableName: Activities Auto Suggest
+  HashableName: 2022-12_activities_auto_suggest
+  CalculatedHash: 2732395257
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable VC Activities Mini Shelf"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_activitieswatchtogetherpromo:
+  Type: user
+  ReadableName: Activities Watch Together Promo
+  HashableName: 2023-03_activitieswatchtogetherpromo
+  CalculatedHash: 3238880497
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable Watch Together promo"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_activities_watch_together_promo_sparkles_week_1:
+  Type: user
+  ReadableName: Activities Watch Together Promo Week 1 Sparkles
+  HashableName: 2023-03_activities_watch_together_promo_sparkles_week_1
+  CalculatedHash: 1312040082
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable Watch Together promo week 1 sparkles"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_activities_watch_together_promo_sparkles_week_2:
+  Type: user
+  ReadableName: Activities Watch Together Promo Week 2 Sparkles
+  HashableName: 2023-03_activities_watch_together_promo_sparkles_week_2
+  CalculatedHash: 1736363471
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable Watch Together promo week 2 sparkles"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-03_birthday_activities:
+  Type: user
+  ReadableName: Birthday Activities
+  HashableName: 2023-03_birthday_activities
+  CalculatedHash: 1389690772
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Birthday Activities"
+    - "Treatment 2: Geo test Enable Birthday Activities but no share"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-06_activity_shelf_banner_color_together:
+  Type: user
+  ReadableName: Activity Shelf Banner Color Together
+  HashableName: 2023-06_activity_shelf_banner_color_together
+  CalculatedHash: 1426851414
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Activity Shelf Banner Color Together"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_birthday_goodbye:
+  Type: user
+  ReadableName: Activities Free Forever
+  HashableName: 2023-06_birthday_goodbye
+  CalculatedHash: 2205929113
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Activities Free Forever"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-06_activity_shelf_to_detail_page:
+  Type: user
+  ReadableName: Activity Shelf to Detail Page
+  HashableName: 2023-06_activity_shelf_to_detail_page
+  CalculatedHash: 2451628514
+  Treatments:
+    - Not Eligible
+    - "Treatment 0: Control"
+    - "Treatment 1: Enable Big Shelf"
+    - "Treatment 2: Enable Activity Shelf to Detail Page"
+    - "Treatment 3: Enable social-proof shelf details"
+    - "Treatment 4: Enable minimal shelf details"
+    - "Treatment 5: Enable minimal shelf details and route to detail page"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+2023-03_pax_vc_tile_activities:
+  Type: user
+  ReadableName: PAX VC Tile Activities
+  HashableName: 2023-03_pax_vc_tile_activities
+  CalculatedHash: 3149823763
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable PAX VC Tile Activities"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_vc_tile_activities_entry_point:
+  Type: user
+  ReadableName: VC Tile Activities Entry Point
+  HashableName: 2023-01_vc_tile_activities_entry_point
+  CalculatedHash: 1289034223
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable one or two users VC Tile Activities Entry Point"
+    - "Treatment 2: Enable any number of users VC Tile Activities Entry Point"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-06_hide_thread_count:
+  Type: user
+  ReadableName: Hide thread count
+  HashableName: 2023-06_hide_thread_count
+  CalculatedHash: 1130195016
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Hide thread count"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-06_guild_subscriptions_payment_flow_test_page:
+  Type: user
+  ReadableName: Test page for guild subscription payment flows
+  HashableName: 2021-06_guild_subscriptions_payment_flow_test_page
+  CalculatedHash: 1573645622
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Test page for guild subscription payment flows"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-11_premium_bogo_month_promotion:
+  Type: user
+  ReadableName: Nitro Promo for Black Friday
+  HashableName: 2022-11_premium_bogo_month_promotion
+  CalculatedHash: 28781292
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled without promo materials (basic + classic)"
+    - "Treatment 2: Enabled with promo materials (Rest of world)"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-04_birthday_activities_whats_new_gdm_tile:
+  Type: user
+  ReadableName: Birthday Activities Whats New GDM Tile
+  HashableName: 2023-04_birthday_activities_whats_new_gdm_tile
+  CalculatedHash: 3839121633
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable GDM tile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_birthday_activities_jamspace_tile:
+  Type: user
+  ReadableName: Birthday Activities Whats New Jamspace Tile
+  HashableName: 2023-04_birthday_activities_jamspace_tile
+  CalculatedHash: 3742269191
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Jamspace tile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_birthday_activities_poker:
+  Type: user
+  ReadableName: Birthday Activities Poker Tile
+  HashableName: 2023-05_birthday_activities_poker
+  CalculatedHash: 3212616249
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Poker tile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_birthday_activities_putt_party_tile:
+  Type: user
+  ReadableName: Birthday Activities Whats New Putt Party Tile
+  HashableName: 2023-04_birthday_activities_putt_party_tile
+  CalculatedHash: 2616904300
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Putt Party tile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-11_discovery_tags:
+  Type: user
+  ReadableName: Discovery Tags
+  HashableName: 2021-11_discovery_tags
+  CalculatedHash: 1025804489
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show keyword tags on home and search result pages"
+    - "Treatment 2: Show keyword tags on home and search result pages and under
+      the search bar"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2022-01_discovery_iar:
+  Type: user
+  ReadableName: Ability to report servers in Server Discovery
+  HashableName: 2022-01_discovery_iar
+  CalculatedHash: 1877212037
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show IAR buttons in Server Discovery"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-01_consumer_education_launch:
+  Type: user
+  ReadableName: Safety Consumer Education Launch - Block/Mute
+  HashableName: 2023-01_consumer_education_launch
+  CalculatedHash: 1318110575
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Mute"
+    - "Treatment 2: Block"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-04_dm_spam_filter_coachmark:
+  Type: user
+  ReadableName: Safety DM Spam Filter Coachmark rollout
+  HashableName: 2023-04_dm_spam_filter_coachmark
+  CalculatedHash: 64742860
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-04_account_profile_popout:
+  Type: user
+  ReadableName: Account Profile Popout
+  HashableName: 2022-04_account_profile_popout
+  CalculatedHash: 4156073260
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Account Profile Popout"
+    - "Treatment 2: Enable Account Profile Popout w/ DiscordTag button"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_mute_block_aa:
+  Type: user
+  ReadableName: Safety Consumer Education Block/Mute - A/A
+  HashableName: 2023-03_mute_block_aa
+  CalculatedHash: 3135454939
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Mute"
+    - "Treatment 2: Block"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-04_consumer_education_launch__reporting:
+  Type: user
+  ReadableName: Consumer Education Launch - Reporting
+  HashableName: 2023-04_consumer_education_launch__reporting
+  CalculatedHash: 3966944317
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Reporting"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-09_watch_together_rollout:
+  Type: guild
+  ReadableName: Exposure tracking for Watch Together (do not override)
+  HashableName: 2021-09_watch_together_rollout
+  CalculatedHash: 3607703918
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+  Buckets:
+    - -1
+    - 0
+2022-02_guild_audit_log_user:
+  Type: user
+  ReadableName: Guild Audit Log - User Feature Flag
+  HashableName: 2022-02_guild_audit_log_user
+  CalculatedHash: 2802647294
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Guild Audit Log 2.0 for user"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-02_guild_audit_log_guild:
+  Type: guild
+  ReadableName: Guild Audit Log - Guild Feature Flag
+  HashableName: 2022-02_guild_audit_log_guild
+  CalculatedHash: 1412337990
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show Guild Audit Log 2.0 for guild"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-05_safety_coms_update:
+  Type: user
+  ReadableName: Safety Integrity Platform Coms Update
+  HashableName: 2022-05_safety_coms_update
+  CalculatedHash: 542042630
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_server_products:
+  Type: guild
+  ReadableName: Server Products
+  HashableName: 2023-04_server_products
+  CalculatedHash: 2236798974
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enables Server Products (AKA one time purchases for creator
+      guilds)"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-03_guild_access_rate_insight_experiment:
+  Type: guild
+  ReadableName: Guild Access Rate Insight Experiment
+  HashableName: 2022-03_guild_access_rate_insight_experiment
+  CalculatedHash: 1899119674
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show guild access rate in insights"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2020-12_guild_delete_feedback:
+  Type: user
+  ReadableName: Guild Delete Feedback experiment
+  HashableName: 2020-12_guild_delete_feedback
+  CalculatedHash: 2003494159
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show guild delete feedback"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_onboarding_advanced_mode:
+  Type: guild
+  ReadableName: Enables setting up onboarding with advanced mode
+  HashableName: 2023-02_onboarding_advanced_mode
+  CalculatedHash: 2544556038
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: On"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-05_clyde_ai_guild_personality:
+  Type: guild
+  ReadableName: Modify Clyde's Personality
+  HashableName: 2023-05_clyde_ai_guild_personality
+  CalculatedHash: 2701598838
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable personality setting"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-06_community_admin_server:
+  Type: guild
+  ReadableName: Show the button to join the admin server in community overview
+    server settings page
+  HashableName: 2022-06_community_admin_server
+  CalculatedHash: 3282315774
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show button if requirements met"
+    - "Treatment 2: Bypass requirements"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+2023-03_onboarding_soft_requirement_for_partnership:
+  Type: guild
+  ReadableName: Hide onboarding soft requirement for partnership
+  HashableName: 2023-03_onboarding_soft_requirement_for_partnership
+  CalculatedHash: 3738976194
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show onboarding soft requirement for partnership"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-10_pause_partner_applications_experiment:
+  Type: user
+  ReadableName: Pause Partner Applications Experiment
+  HashableName: 2021-10_pause_partner_applications_experiment
+  CalculatedHash: 4049227286
+  Treatments:
+    - Not Eligible
+    - "Treatment 0: Off"
+    - "Treatment 1: On no override"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-06_free_sticker_slots_design_updates:
+  Type: guild
+  ReadableName: Free Sticker Slots Design Updates
+  HashableName: 2022-06_free_sticker_slots_design_updates
+  CalculatedHash: 258580919
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-04_pomelo_announcement:
+  Type: user
+  ReadableName: Pomelo Announcement
+  HashableName: 2023-04_pomelo_announcement
+  CalculatedHash: 2804111708
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-12_localized_pricing_promo_manager:
+  Type: user
+  ReadableName: Localized Pricing Promo Manager
+  HashableName: 2022-12_localized_pricing_promo_manager
+  CalculatedHash: 4215507151
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable Localized Pricing Promo Manager"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-02_guest_voice_invites:
+  Type: guild
+  ReadableName: Guest Voice Invites
+  HashableName: 2023-02_guest_voice_invites
+  CalculatedHash: 1727857487
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Allow creation of guest voice invites"
+  Buckets:
+    - -1
+    - 0
+    - 1
