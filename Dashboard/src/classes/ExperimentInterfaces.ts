@@ -14,7 +14,7 @@ export interface IConvertedExperiment {
     Buckets: number[]
 }
 
-export const  = 1604612045;
+export const HasFeature = 1604612045;
 export const IDRange = 2404720969;
 export const MemberCount = 2918402255;
 export const GuildIDs = 3013771838;
