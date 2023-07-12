@@ -5,7 +5,7 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
-import { Error, Msg } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
@@ -138,7 +138,7 @@ App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
         await MyUser.save();
         res.json({ settings: MyUser.SettingsProto[Index - 1] });
     } catch (e) {
-        Error("Error in settings proto patch: " + e);
+        Err("Error in settings proto patch: " + e);
         res.status(500).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Internal Server Error" });
     }
 });

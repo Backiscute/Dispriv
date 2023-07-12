@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { VerifyAuth } from "../Modules/AuthUtils";
 import axios from "axios";
-import { Error } from "../Modules/Logger";
+import { Err } from "../Modules/Logger";
 
 const App = Router();
 
@@ -13,7 +13,7 @@ App.get("/search", VerifyAuth, async (req, res) => {
         });
 
     const Response = await axios.get(`https://tenor.googleapis.com/v2/search?q=${req.query.q}&media_format=${req.query.media_format ?? ""}&limit=100&locale=${req.query.locale ?? ""}&key=${process.env.TenorAPIKey}`).then(res => res.data.results).catch((err) => {
-        Error(`An error occured while requesting gifs from tenor. Error: ${JSON.stringify(err.response.data)}`);
+        Err(`An error occured while requesting gifs from tenor. Error: ${JSON.stringify(err.response.data)}`);
         return [];
     });
 
@@ -48,7 +48,7 @@ App.get("/trending", VerifyAuth, async (req, res) => {
     const Locale = req.query.locale?.toString() ?? "en-US";
 
     const Response = await axios.get(`https://tenor.googleapis.com/v2/categories?locale=${Locale}&key=${process.env.TenorAPIKey}`).then(res => res.data.tags).catch((err) => {
-        Error(`An error occured while requesting trending categories from tenor. Error: ${JSON.stringify(err.response.data)}`);
+        Err(`An error occured while requesting trending categories from tenor. Error: ${JSON.stringify(err.response.data)}`);
         return [];
     });
 

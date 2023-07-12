@@ -22,7 +22,7 @@ import EmbedParser from "../Modules/EmbedParser";
 import { Presence } from "../Classes/Presence";
 import { FindConnection, HasIntent, SendOp } from "../Modules/GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
-import { Error, Msg } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
@@ -80,7 +80,7 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
                 if (Embed) Embeds.push(Embed);
             }
     } catch (e) {
-        Error("Error while parsing embeds");
+        Err("Error while parsing embeds");
     }
     
     RequestedMessage.Embeds = Embeds;
@@ -567,7 +567,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
                 if (Embed) Embeds.push(Embed);
             }
     } catch (e) {
-        Error("Error while parsing embeds");
+        Err("Error while parsing embeds");
     }
 
     const CreatedMessage = Message.create({

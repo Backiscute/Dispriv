@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { Error, Msg } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
 import { RTCConnection } from "../Classes/RTCConnection";
 import { SendOp } from "../Modules/WebRTCUtils";
 import { RTCCloseCodes, RTCOpCodes } from "../Classes/RTCOpCodes";
@@ -127,7 +127,7 @@ Socket.on("connection", (Client) => {
                 break;
             }
             default:
-                Error("unknown op: " + Payload.op); // TODO: FOR VOICE CHANNELS
+                Err("unknown op: " + Payload.op); // TODO: FOR VOICE CHANNELS
         }
     });
 });

@@ -3,11 +3,14 @@ import yaml from "yaml";
 import murmurhash3 from "murmurhash3js";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Dialog from "@/components/Dialog";
+import ExperimentTable from "@/components/ExperimentTable";
+
+export type ExperimentsFile = {[RawName: string]: IConvertedExperiment};
 
 export function Convert(Input: {[RawName: string]: IRawExperiment}) {
-    const Temp: {[RawName: string]: IConvertedExperiment} = {};
+    const Temp: ExperimentsFile = {};
 
     for (const ExperimentHashableName of Object.keys(Input)) {
         const RawExp = Input[ExperimentHashableName];
@@ -24,12 +27,14 @@ export function Convert(Input: {[RawName: string]: IRawExperiment}) {
     return Temp;
 }
 
-export function Save(Path: string, ConvertedData: {[RawName: string]: IConvertedExperiment}, CurrentConfig: IExperimentFilter[] = []) {
+export function Save(Path: string, ConvertedData: ExperimentsFile, CurrentConfig: IExperimentFilter[] = []) {
     writeFileSync(join(dirname(Path), "Experiments.yaml"), yaml.stringify(ConvertedData));
     writeFileSync(join(dirname(Path), "ExperimentConfig.yaml"), yaml.stringify(CurrentConfig));
 }
 
 export default function Experiments() {
+    const [filters, setFilters] = useState<IExperimentFilter[]>([]);
+    const [experiments, setExperiments] = useState<IConvertedExperiment[]>([])
     const convertDialog = useRef<HTMLDialogElement>(null);
     
     return (
@@ -44,7 +49,7 @@ export default function Experiments() {
                 }} onClick={() => {
                     convertDialog.current?.showModal();
                 }}>
-                    Convert JSON to YAML
+                    {"Discord -> Dispriv"}
                 </button>
                 <Dialog
                     title="Convert JSON to YAML"
@@ -53,7 +58,7 @@ export default function Experiments() {
                             label: "Path to JSON",
                             jsonName: "pathToOriginal",
                             type: "text",
-                            placeholder: `Working directory is ${process.cwd()}`,
+                            placeholder: join(process.cwd(), "..", "Configs", "Experiments.json"),
                         },
                     ]}
                     onClose={d => {
@@ -83,9 +88,20 @@ export default function Experiments() {
                 />
                 <button style={{
                     width: 200
+                }} onClick={() => {
+                    console.log(filters, experiments);
+                    if (!existsSync(join("..", "Configs", "Experiments.yaml")) || !existsSync(join("..", "Configs", "ExperimentConfig.yaml")))
+                        return console.log("autoload failed");
+
+                    setFilters(yaml.parse(readFileSync(join("..", "Configs", "ExperimentConfig.yaml")).toString()));
+                    const E = yaml.parse(readFileSync(join("..", "Configs", "Experiments.yaml")).toString());
+                    setExperiments(Object.keys(E).map(x => E[x]));
                 }}>
                     Load existing config
                 </button>
+                <ExperimentTable experiments={experiments} config={filters} style={{
+                    marginTop: 10
+                }} />
             </div>
         </div>
     );

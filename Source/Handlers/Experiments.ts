@@ -1,6 +1,8 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { GuildFeatures, GuildHubType } from "../Entities/Guild";
 import { User } from "../Entities/User";
+import yaml from "yaml";
+import { Err } from "../Modules/Logger";
 
 export interface IConvertedExperiment {
     Type: "user" | "guild",
@@ -11,12 +13,25 @@ export interface IConvertedExperiment {
     Buckets: number[]
 }
 
+/* eslint-disable no-unused-vars */
+export enum GuildFilterType {
+    HAS_FEATURE,
+    ID_RANGE,
+    MEMBER_COUNT,
+    GUILD_IDS,
+    HUB_TYPES,
+    HAS_VANITY_URL,
+    IN_RANGE_BY_HASH
+}
+/* eslint-enable no-unused-vars */
+
 export interface IExperimentFilter {
     ExperimentHash: number,
     AffectsEveryone: boolean,
     TargettedUsers: string[],
     TargettedGuilds: string[],
-    Bucket: number
+    Bucket: number,
+    Type: GuildFilterType
 }
 
 export const HasFeature = 1604612045;
@@ -94,17 +109,17 @@ export type GuildExperiment = [
 ];
 
 export const ExperimentsPath = "./Configs/Experiments.yaml";
-export const FiltersPath = "./Configs/ExperimentsConfig.yaml";
+export const FiltersPath = "./Configs/ExperimentConfig.yaml";
 
 export let Experiments: IConvertedExperiment[] = [];
 export let Filters: IExperimentFilter[] = [];
 
-export function PackageExperiment(Exp: IConvertedExperiment, InContext?: User): UserExperiment | GuildExperiment {
+export function PackageExperiment(Exp: IConvertedExperiment, U?: User | null): UserExperiment | GuildExperiment | null {
+    const RelatedFilters = Filters.filter(x => x.ExperimentHash === Exp.CalculatedHash);
     if (Exp.Type === "guild") {
-        const RelatedFilters = Filters.filter(x => x.ExperimentHash === Exp.CalculatedHash);
         return [
             Exp.CalculatedHash,
-            Exp.ReadableName,
+            Exp.HashableName,
             1,
             [ // Populations
                 [ // ->
@@ -135,16 +150,51 @@ export function PackageExperiment(Exp: IConvertedExperiment, InContext?: User): 
     }
 
     // TODO: user experimento
+    const HighestFilterRelatedToUser = RelatedFilters.filter(x => x.AffectsEveryone || (U && x.TargettedUsers.includes(U.ID)));
+    if (HighestFilterRelatedToUser.length === 0)
+        return null;
+
+    const F = HighestFilterRelatedToUser[0];
+
+    const UExperiment: UserExperiment =
+    [
+        Exp.CalculatedHash, // murmurhash3 of the name
+        1, // revision
+        F.Bucket, // global bucket
+        F.Bucket, // override
+        0, // internal position (doesnt matter)
+        0 // A/A testing (boolean converted to number)
+    ];
+
+    return UExperiment;
 }
 
 export function ReloadConfigs() {
-    Experiments = JSON.parse(readFileSync(ExperimentsPath).toString());
-    Filters = JSON.parse(readFileSync(FiltersPath).toString());
+    if (!existsSync(ExperimentsPath) || !existsSync(FiltersPath))
+        return Err("Experiment configs were not found! Please generate them using the database.");
+
+    const TempE = yaml.parse(readFileSync(ExperimentsPath).toString());
+
+    Experiments = Object.keys(TempE).map(x => TempE[x]);
+    Filters = yaml.parse(readFileSync(FiltersPath).toString());
 }
 
+export function GetUserExperiments(For: User | null) {
+    const Arr: (GuildExperiment | UserExperiment | null)[] = [];
+    for (const Exp of Experiments.filter(x => x.Type === "user"))
+        Arr.push(PackageExperiment(Exp, For));
 
-export function GetExperiments(ForUser: User) {
+    // TODO: make this not hacky and actually check for UserExperiment
+    return Arr.filter(x => x !== null && x.length === 6);
+}
 
+export function GetGuildExperiments() {
+    const Arr: (GuildExperiment | UserExperiment | null)[] = [];
+    for (const Exp of Experiments.filter(x => x.Type === "guild"))
+        Arr.push(PackageExperiment(Exp));
+
+    // TODO: make this not hacky and actually check for UserExperiment
+    return Arr.filter(x => x !== null && x.length === 9);
 }
 
 ReloadConfigs();

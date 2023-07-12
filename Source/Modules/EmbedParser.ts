@@ -2,7 +2,7 @@ import axios from "axios";
 import { Embed, EmbedType } from "../Entities/Message";
 import { CheerioAPI, load } from "cheerio";
 import probe from "probe-image-size";
-import { Error } from "./Logger";
+import { Err } from "./Logger";
 
 export default async function (url: string): Promise<Embed | undefined> {
     if (/((media\d+\.)?giphy\.com|((c|media)\.)?tenor\.com)/.test(url)) return await HandleGif(url);
@@ -144,7 +144,7 @@ async function Request(url: string, Head = false, BearerToken?: string) {
             maxContentLength: 1024 * 1024 * 5,
         });
     } catch (err) {
-        Error(`An error occured while requesting embed info. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
+        Err(`An error occured while requesting embed info. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
         return undefined;
     }
 }
@@ -264,7 +264,7 @@ async function HandleImage(url: string): Promise<Embed | undefined> {
                 },
             };
         } catch (err) {
-            Error(`An error occured while probing image. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
+            Err(`An error occured while probing image. Error: ${JSON.stringify((err as { response: { data: unknown } }).response.data)}`);
             return undefined;
         }
     } else {

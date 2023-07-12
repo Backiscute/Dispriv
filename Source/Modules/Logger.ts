@@ -8,7 +8,7 @@ export function Msg(Content: string, Prefix = "Discord") {
     TestSendToClients(`${new Date().toISOString()} [${Prefix}] ${Content}`, "log");
 }
 
-export function Error(Content: string) {
+export function Err(Content: string) {
     console.log(`${gray(new Date().toISOString())} [${red("ERROR")}] ${Content}`);
     TestSendToClients(`${new Date().toISOString()} [ERROR] ${Content}`, "log");
 }
