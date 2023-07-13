@@ -196,7 +196,33 @@ export class DiscordApplication extends BaseEntity {
     PackagePublic() {
         let EmbeddedAppConfig = undefined;
         if (this.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT) && this.embedded_activity_config)
-            EmbeddedAppConfig = { embedded_activity_config: this.embedded_activity_config };
+        {
+            const Kys = this.embedded_activity_config;
+            // add new json object to the package
+
+            const Fr = {"client_platform_config": {
+                "web": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                },
+                "ios": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                },
+                "android": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                }
+            }};
+
+            const ForReal = {...Kys, ...Fr};
+
+            EmbeddedAppConfig = { embedded_activity_config: ForReal};
+        }
+
         return {
             id: this.ID,
             name: this.DisplayName,

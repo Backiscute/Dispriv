@@ -85,7 +85,34 @@ App.get("/shelf", async (req, res) => {
         }
     });
 
-    res.json({ activity_bundle_items: BundleItems, activities: EmbeddedApps.map((R) => R.PackagePublic()) });
+    const Activities: object[] = [];
+
+    EmbeddedApps.forEach((R) => {
+        const Fr = {"client_platform_config": {
+            "web": {
+                "label_type": 0,
+                "label_until": null,
+                "release_phase": "global_launch"
+            },
+            "ios": {
+                "label_type": 0,
+                "label_until": null,
+                "release_phase": "global_launch"
+            },
+            "android": {
+                "label_type": 0,
+                "label_until": null,
+                "release_phase": "global_launch"
+            }
+        }};
+        const ForReal = {...R.embedded_activity_config, ...Fr};
+        Activities.push({
+            application_id: R.ID,
+            ...ForReal
+        });
+    });
+
+    res.json({ activity_bundle_items: BundleItems, activities: Activities, applications: EmbeddedApps.map((R) => R.PackagePublic()) });
 });
 
 module.exports = {
