@@ -3,7 +3,7 @@ import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FolderMap, PhotoFileTypes, PhotoMap } from "../Classes/Misc";
 import { UploadAttachment } from "../Modules/AssetUtils";
 import { VerifyAuth } from "../Modules/AuthUtils";
-import { Error } from "../Modules/Logger";
+import { Err } from "../Modules/Logger";
 import { Router, raw } from "express";
 import { existsSync } from "fs";
 import path from "path";
@@ -21,7 +21,7 @@ App.put("/upload/:Filename", raw({
         UploadAttachment(req.body as Buffer, req.headers["content-type"] as string, req.params.Filename);
         res.sendStatus(200);
     } catch (err) {
-        Error(`An error occured while saving a file to CDN. ${(err as Error | string).toString()}`);
+        Err(`An error occured while saving a file to CDN. ${(err as Error | string).toString()}`);
         res.status(500).json({
             code: 0,
             message: "Internal server error while uploading to CDN"

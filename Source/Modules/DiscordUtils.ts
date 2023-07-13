@@ -1,7 +1,7 @@
 import MurmurHash3 from "murmurhash3js";
 import { Message } from "../Entities/Message";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { FindConnection, HasIntent, SendOp } from "./GatewayUtils";
+import { DispatchType, FindConnection, HasIntent, SendOp } from "./GatewayUtils";
 import { GatewayIntents } from "../Classes/GatewayIntents";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Guild, Role } from "../Entities/Guild";
@@ -45,9 +45,9 @@ export function GetHighestRole(Usr: Membership) {
 export async function SendToUser(
     Usr: User,
     Opcode: OpCodes,
-    Data: unknown = null,
-    s: unknown = null,
-    t: unknown = null,
+    Data?: unknown,
+    s?: unknown,
+    t?: DispatchType | undefined
 ) {
     const Conn = FindConnection(Usr.ID);
     if (!Conn) return;
@@ -86,9 +86,9 @@ export async function SendGuildMemberUpdate(Usr: User) {
 export async function SendToConnections(
     Usr: User,
     Opcode: OpCodes,
-    Data: unknown = null,
-    s: unknown = null,
-    t: unknown = null,
+    Data?: unknown,
+    s?: unknown,
+    t?: DispatchType | undefined
 ) {
     const AlreadySentTo: string[] = [];
 
@@ -121,9 +121,9 @@ export async function SendToConnections(
 export async function SendToMembers(
     ServerID: string,
     Opcode: OpCodes,
-    Data: unknown = null,
-    s: unknown = null,
-    t: unknown = null,
+    Data?: unknown,
+    s?: unknown,
+    t?: DispatchType | undefined
 ) {
     const SentGuild = await Guild.findOne({ where: { ID: ServerID }, relations: { Members: true } });
 
@@ -141,9 +141,9 @@ export async function SendToMembers(
 export async function SendToVC(
     Chnl: Channel,
     Opcode: OpCodes,
-    Data: unknown = null,
-    s: unknown = null,
-    t: unknown = null,
+    Data?: unknown,
+    s?: unknown,
+    t?: DispatchType | undefined
 ) {
     if (Chnl.Type !== ChannelType.GUILD_VOICE) return;
 
@@ -161,9 +161,9 @@ export async function SendToVC(
 export async function SendToDMOrServer(
     Chnl: Channel,
     Opcode: OpCodes,
-    Data: unknown = null,
-    s: unknown = null,
-    t: unknown = null,
+    Data?: unknown,
+    s?: unknown,
+    t?: DispatchType | undefined
 ) {
     if (Chnl.IsDM) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -5,7 +5,7 @@ import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Membership, User } from "../Entities/User";
 import { RelationType, Relation } from "../Entities/FriendUser";
-import { Error, Msg } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
@@ -86,6 +86,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
     SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
+App.post("/@me/devices", (req, res) => res.sendStatus(204));
 
 //TODO: check if all update or only key
 App.use("/@me/settings-proto/:index", (req, res, next) => {
@@ -137,7 +138,7 @@ App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
         await MyUser.save();
         res.json({ settings: MyUser.SettingsProto[Index - 1] });
     } catch (e) {
-        Error("Error in settings proto patch: " + e);
+        Err("Error in settings proto patch: " + e);
         res.status(500).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Internal Server Error" });
     }
 });
@@ -454,6 +455,8 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             Type: RelationType.NOT_YET_ACCEPTED,
         }).save();
 
+        console.log(CreatedRelation);
+
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(MyUser).add(CreatedRelation);
         //(await DisprivDataSource).createQueryBuilder().relation(User, "Relations").of(RelationTarget).add(CreatedRelation);
 
@@ -472,6 +475,9 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             null,
             "RELATIONSHIP_ADD",
         );
+
+        await RelationTarget.save();
+        await MyUser.save();
 
         return res.sendStatus(204);
     } catch (err) {

@@ -4,8 +4,8 @@ import { unpack } from "erlpack";
 import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { GatewayCloseCodes, OpCodes } from "../Classes/GatewayOpCodes";
-import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
-import { GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
+import { CloseConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
+import { GetTokenUserId, GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import { SendGuildMemberUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
@@ -23,12 +23,23 @@ import {
     SpeedTestServerUpdatePacket,
     VoiceServerUpdatePacket,
 } from "../Classes/GatewayPackets";
+import { GetGuildExperiments, GetUserExperiments } from "./Experiments";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
 });
 
 export const Connections: GatewayConnection[] = [];
+
+function RemoveConnection(Conn: GatewayConnection) {
+    Conn.Dispose();
+
+    if (Conn.Account!) Conn.Account!.Presence = Presence.OFFLINE;
+
+    const Idx = Connections.findIndex((C) => C.ID === Conn.ID);
+    if (Idx !== -1) Connections.splice(Idx, 1);
+}
+
 Socket.on("connection", async (Client, req) => {
     const QueryParams = new URLSearchParams(req.url?.split("?")[1]);
     /*console.log(QueryParams);
@@ -38,7 +49,7 @@ Socket.on("connection", async (Client, req) => {
             ? (QueryParams.get("encoding") as "etf" | "json")
             : "etf",
     });*/
-    const GatewayClient = new GatewayConnection(Client, {
+    let GatewayClient = new GatewayConnection(Client, {
         zlib: QueryParams.get("compress") === "zlib-stream",
         encoding: ["etf", "json"].includes(QueryParams.get("encoding") as string)
             ? (QueryParams.get("encoding") as "etf" | "json")
@@ -47,12 +58,13 @@ Socket.on("connection", async (Client, req) => {
     Connections.push(GatewayClient);
 
     Client.on("close", () => {
-        GatewayClient.Dispose();
+        GatewayClient.ScheduledForRemoval = true;
+        setTimeout(() => {
+            if (!GatewayClient.ScheduledForRemoval)
+                return; // client resumed the connection in time
 
-        if (GatewayClient.Account!) GatewayClient.Account!.Presence = Presence.OFFLINE;
-
-        const Idx = Connections.findIndex((C) => C.ID === GatewayClient.ID);
-        if (Idx !== -1) Connections.splice(Idx, 1);
+            RemoveConnection(GatewayClient);
+        }, 120 * 1000);
     });
 
     SendOp<HelloPacket>(GatewayClient, OpCodes.HELLO, {
@@ -400,22 +412,58 @@ Socket.on("connection", async (Client, req) => {
             case OpCodes.RESUME: {
                 const Token = UnpackedData.d.token ?? "";
                 try {
-                    const ValidToken = await VerifyToken(Token);
+                    if (!(await VerifyToken(Token)))
+                        throw new Error("Invalid token"); // no doubling up the code when you can just throw an error
 
-                    if (!ValidToken)
-                        return CloseConnection(
-                            GatewayClient,
-                            GatewayCloseCodes.AuthenticationFailed,
-                            "Authentication failed.",
-                        );
-                } catch {
-                    return CloseConnection(
-                        GatewayClient,
-                        GatewayCloseCodes.AuthenticationFailed,
-                        "Authentication failed.",
-                    );
+                    if (typeof UnpackedData.d.session_id !== "string")
+                        throw new Error("Invalid session");
+
+                    if (typeof UnpackedData.d.seq !== "number")
+                        throw new Error("Invalid seq");
+                } catch (e) {
+                    SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
+
+                    const er = (e as Error).message.split(" ")[1].toLowerCase();
+                    const CloseCode = er === "token" || er === "session" ?
+                        GatewayCloseCodes.AuthenticationFailed : er === "seq" ?
+                        GatewayCloseCodes.InvalidSeq :
+                        GatewayCloseCodes.UnknownError;
+
+                    CloseConnection(GatewayClient, CloseCode, "Authentication failed.");
+                    return;
                 }
-                console.log("--- GETTING RESUME ACCOUNT");
+
+                const Session = UnpackedData.d.session_id ?? "";
+                const NewGtCl = Connections.find(x =>
+                    x.ScheduledForRemoval
+                    && x.ID === Session
+                    && x.Account?.ID === GetTokenUserId(Token));
+
+                if (!NewGtCl)
+                {
+                    SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
+                    CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
+                    return;
+                }
+                
+                NewGtCl.UseZlib = GatewayClient.UseZlib;
+                NewGtCl.Encoding = GatewayClient.Encoding;
+                RemoveConnection(GatewayClient);
+                
+                NewGtCl.SocketClient = Client;
+                NewGtCl.ScheduledForRemoval = false;
+                GatewayClient = NewGtCl;
+
+                await ReplayMissedPackets(GatewayClient, Number(UnpackedData.d.seq));
+
+                SendOp(GatewayClient, OpCodes.DISPATCH, {
+                    _trace: [
+                        // eslint-disable-next-line quotes
+                        '["Dispriv-Gateway",{"micros":189890,"calls":["id_created",{"micros":735,"calls":[]},"session_lookup_time",{"micros":480,"calls":[]},"session_lookup_finished",{"micros":14,"calls":[]},"discord-sessions-prd-2-73",{"micros":187060,"calls":["start_session",{"micros":120393,"calls":["discord-api-785656c5b6-hnsw9",{"micros":112351,"calls":["get_user",{"micros":23943},"get_guilds",{"micros":16119},"user_settings_proto",{"micros":129},"relationships",{"micros":19935},"friend_suggestion",{"micros":59},"connections",{"micros":27},"serialized_read_states",{"micros":8},"pending_payments",{"micros":2},"send_scheduled_deletion_message",{"micros":1},"sanitize_premium_perks",{"micros":1},"guild_join_requests",{"micros":1},"user_guild_settings",{"micros":2},"serialized_private_channels",{"micros":5724},"user_segments",{"micros":5},"experiments",{"micros":12410},"affine_user_ids",{"micros":10646},"required_action",{"micros":4},"authorized_ip_coro",{"micros":1}]}]},"starting_guild_connect",{"micros":33,"calls":[]},"presence_started",{"micros":279,"calls":[]},"guilds_started",{"micros":114,"calls":[]},"guilds_connect",{"micros":65877,"calls":[]},"presence_connect",{"micros":1,"calls":[]},"connect_finished",{"micros":65894,"calls":[]},"build_ready",{"micros":312,"calls":[]},"clean_ready",{"micros":1,"calls":[]},"optimize_ready",{"micros":27,"calls":[]},"split_ready",{"micros":4,"calls":[]}]}]}]',
+                    ]
+                }, null, "RESUMED");
+
+                /*console.log("--- GETTING RESUME ACCOUNT");
 
                 GatewayClient.Account = (await GetUserByToken(Token, {
                     Memberships: {
@@ -439,10 +487,10 @@ Socket.on("connection", async (Client, req) => {
                 GatewayClient.PackagedAccount = GatewayClient.Account.Package();
 
                 console.log("--- RESUME ACCOUNT GOTTEN");
-                GatewayClient.Intents = 0; // TODO: add check for privileged intents
+                GatewayClient.Intents = 0;*/
 
                 Msg(
-                    `Client ${red(GatewayClient.ID)} re-identified as ${red(
+                    `Client ${red(GatewayClient.ID)} resumed as ${red(
                         GatewayClient.Account!.Username + "#" + GatewayClient.Account!.Discriminator,
                     )}`,
                     "Gateway",
@@ -453,14 +501,25 @@ Socket.on("connection", async (Client, req) => {
             case OpCodes.IDENTIFY: {
                 time(`identify-${GatewayClient.ID}`);
                 const Token = UnpackedData.d.token ?? "";
-                const ValidToken = await VerifyToken(Token);
 
-                if (!ValidToken)
-                    return CloseConnection(
-                        GatewayClient,
-                        GatewayCloseCodes.AuthenticationFailed,
-                        "Authentication failed.",
-                    );
+                if (!(await VerifyToken(Token)))
+                {
+                    SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
+                    CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
+                    return;
+                }
+
+                const ExistingSession = Connections.find(x => x.Account?.ID === GetTokenUserId(Token));
+                if (ExistingSession) {
+                    if (ExistingSession.ScheduledForRemoval)
+                        RemoveConnection(ExistingSession);
+                    else
+                    {
+                        SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
+                        CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Someone is already logged into that account.");
+                        return;
+                    }
+                }
 
                 console.log("--- GETTING ACCOUNT");
                 GatewayClient.Account = (await GetUserByToken(Token, {
@@ -478,8 +537,14 @@ Socket.on("connection", async (Client, req) => {
                     AvailableDMs: {
                         DMRecipients: true,
                     },
-                    RelationsFrom: true,
-                    RelationsRegarding: true,
+                    RelationsFrom: {
+                        From: true,
+                        Regarding: true
+                    },
+                    RelationsRegarding: {
+                        From: true,
+                        Regarding: true
+                    },
                 }))!;
                 GatewayClient.UserToken = Token;
                 GatewayClient.PackagedAccount = GatewayClient.Account.Package();
@@ -515,10 +580,10 @@ Socket.on("connection", async (Client, req) => {
                         connected_accounts: [], // TODO
                         consents: { personalization: { consented: true } },
                         country_code: "US",
-                        experiments: [], // TODO (if u want lol)
+                        experiments: GetUserExperiments(GatewayClient.Account),
                         friend_suggestion_count: 0,
                         geo_ordered_rtc_regions: ["dispriv"],
-                        guild_experiments: [], // TODO (also if you want)
+                        guild_experiments: GetGuildExperiments(),
                         guild_join_requests: [], // PENDING guilds (those ones when you click on discovery)
                         guilds: GatewayClient.Account!.Memberships.map((M) =>
                             M.ToGuild.GatewayPackage(GatewayClient.Account!),

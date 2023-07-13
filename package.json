@@ -7,7 +7,7 @@
         "build": "rimraf ./bin && tsc",
         "start": "npm run build && node bin/index.js",
         "dev": "ts-node Source/index",
-        "dev:watch": "nodemon -x ts-node Source/index",
+        "dev:watch": "nodemon -x ts-node Source/index --ignore Dashboard/",
         "check": "tsc --noEmit",
         "lint": "prettier --check ./Source && eslint ./Source --ext .ts",
         "format": "prettier --write ./Source && eslint ./Source --ext .ts --fix"
@@ -91,6 +91,7 @@
         "typeorm": "^0.3.16",
         "uuid": "^9.0.0",
         "wrtc": "^0.4.7",
-        "ws": "^8.13.0"
+        "ws": "^8.13.0",
+        "yaml": "^2.3.1"
     }
 }

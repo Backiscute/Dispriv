@@ -134,3 +134,7 @@ Source/Assets
 
 DONT-PUSH/
 Source/Assets/
+
+# We don't want .har or `packets.json` because they're files created by the packet decoder.
+*.har
+packets.json
