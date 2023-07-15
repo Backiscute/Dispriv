@@ -6,10 +6,11 @@ import { dirname, join } from "path";
 import { useRef, useState } from "react";
 import Dialog from "@/components/Dialog";
 import ExperimentTable from "@/components/ExperimentTable";
+import ExperimentEditor from "@/components/ExperimentEditor";
 
-export type ExperimentsFile = {[RawName: string]: IConvertedExperiment};
+export type ExperimentsFile = { [RawName: string]: IConvertedExperiment };
 
-export function Convert(Input: {[RawName: string]: IRawExperiment}) {
+export function Convert(Input: { [RawName: string]: IRawExperiment }) {
     const Temp: ExperimentsFile = {};
 
     for (const ExperimentHashableName of Object.keys(Input)) {
@@ -34,75 +35,88 @@ export function Save(Path: string, ConvertedData: ExperimentsFile, CurrentConfig
 
 export default function Experiments() {
     const [filters, setFilters] = useState<IExperimentFilter[]>([]);
-    const [experiments, setExperiments] = useState<IConvertedExperiment[]>([])
+    const [experiments, setExperiments] = useState<IConvertedExperiment[]>([]);
+    const [editedExperiment, setEditedExperiment] = useState<{ exp: IConvertedExperiment, filt: IExperimentFilter[] }>();
     const convertDialog = useRef<HTMLDialogElement>(null);
-    
+
     return (
         <div className="page-content">
-            <h2>Experiments</h2>
-            <div style={{
-                display: "inline-block"
-            }}>
-                <button style={{
-                    width: 200,
-                    marginRight: 10
-                }} onClick={() => {
-                    convertDialog.current?.showModal();
-                }}>
-                    {"Discord -> Dispriv"}
-                </button>
-                <Dialog
-                    title="Convert JSON to YAML"
-                    elements={[
-                        {
-                            label: "Path to JSON",
-                            jsonName: "pathToOriginal",
-                            type: "text",
-                            placeholder: join(process.cwd(), "..", "Configs", "Experiments.json"),
-                        },
-                    ]}
-                    onClose={d => {
-                        const JSONPath = d.pathToOriginal as string;
-                        console.log(JSONPath);
-                        console.log(dirname(JSONPath));
+            {
+                editedExperiment === undefined ? (
+                    <>
+                        <h2>Experiments</h2>
+                        <div style={{
+                            display: "inline-block"
+                        }}>
+                            <button style={{
+                                width: 200,
+                                marginRight: 10
+                            }} onClick={() => {
+                                convertDialog.current?.showModal();
+                            }}>
+                                {"Discord -> Dispriv"}
+                            </button>
+                            <Dialog
+                                title="Convert JSON to YAML"
+                                elements={[
+                                    {
+                                        label: "Path to JSON",
+                                        jsonName: "pathToOriginal",
+                                        type: "text",
+                                        placeholder: join(process.cwd(), "..", "Configs", "Experiments.json"),
+                                    },
+                                ]}
+                                onClose={d => {
+                                    const JSONPath = d.pathToOriginal as string;
+                                    console.log(JSONPath);
+                                    console.log(dirname(JSONPath));
 
-                        if (!existsSync(JSONPath)) {
-                            console.error(`File ${JSONPath} doesn't exist.`);
-                            return;
-                        }
+                                    if (!existsSync(JSONPath)) {
+                                        console.error(`File ${JSONPath} doesn't exist.`);
+                                        return;
+                                    }
 
-                        let Parsed: {[RawName: string]: IRawExperiment};
-                        try {
-                            Parsed = JSON.parse(readFileSync(JSONPath).toString());
-                        } catch {
-                            console.error(`File ${JSONPath} isn't a parseable JSON.`);
-                            return;
-                        }
+                                    let Parsed: { [RawName: string]: IRawExperiment };
+                                    try {
+                                        Parsed = JSON.parse(readFileSync(JSONPath).toString());
+                                    } catch {
+                                        console.error(`File ${JSONPath} isn't a parseable JSON.`);
+                                        return;
+                                    }
 
-                        const Converted = Convert(Parsed);
-                        console.log(Converted);
+                                    const Converted = Convert(Parsed);
+                                    console.log(Converted);
 
-                        Save(JSONPath, Converted);
-                    }}
-                    innerRef={convertDialog}
-                />
-                <button style={{
-                    width: 200
-                }} onClick={() => {
-                    console.log(filters, experiments);
-                    if (!existsSync(join("..", "Configs", "Experiments.yaml")) || !existsSync(join("..", "Configs", "ExperimentConfig.yaml")))
-                        return console.log("autoload failed");
+                                    Save(JSONPath, Converted);
+                                }}
+                                innerRef={convertDialog}
+                            />
+                            <button style={{
+                                width: 200
+                            }} onClick={() => {
+                                console.log(filters, experiments);
+                                if (!existsSync(join("..", "Configs", "Experiments.yaml")) || !existsSync(join("..", "Configs", "ExperimentConfig.yaml")))
+                                    return console.log("autoload failed");
 
-                    setFilters(yaml.parse(readFileSync(join("..", "Configs", "ExperimentConfig.yaml")).toString()));
-                    const E = yaml.parse(readFileSync(join("..", "Configs", "Experiments.yaml")).toString());
-                    setExperiments(Object.keys(E).map(x => E[x]));
-                }}>
-                    Load existing config
-                </button>
-                <ExperimentTable experiments={experiments} config={filters} style={{
-                    marginTop: 10
-                }} />
-            </div>
+                                setFilters(yaml.parse(readFileSync(join("..", "Configs", "ExperimentConfig.yaml")).toString()));
+                                const E = yaml.parse(readFileSync(join("..", "Configs", "Experiments.yaml")).toString());
+                                setExperiments(Object.keys(E).map(x => E[x]));
+                            }}>
+                                Load existing config
+                            </button>
+                            <h1>User Experiments</h1>
+                            <ExperimentTable experiments={experiments} config={filters} style={{
+                                marginTop: 10
+                            }} selectedType="user" editExperimentHook={setEditedExperiment} />
+
+                            <h1>Guild Experiments</h1>
+                            <ExperimentTable experiments={experiments} config={filters} style={{
+                                marginTop: 10
+                            }} selectedType="guild" editExperimentHook={setEditedExperiment} />
+                        </div>
+                    </>
+                ) : <ExperimentEditor exp={editedExperiment.exp} filters={editedExperiment.filt} editExperimentHook={setEditedExperiment} />
+            }
         </div>
     );
 }
