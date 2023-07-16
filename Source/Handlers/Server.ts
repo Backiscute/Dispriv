@@ -1,9 +1,10 @@
 import { green, italic } from "colorette";
-import express from "express";
+import express from 'express';
 import fs from "fs";
 import { Msg } from "../Modules/Logger";
 import path from "path";
 import cors from "cors";
+import { handleError } from "../Modules/ValidationUtils";
 
 export const Application = express()
     .disable("etag")
@@ -35,6 +36,8 @@ const LoadRoutes = async () => {
             path.join(".", Symbol.for("ts-node.register.instance") in process ? "Source" : "bin", "Applications"),
         ),
     );
+
+    Application.use(handleError); // Handles invalid json bodies and other errors
 
     Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
     
