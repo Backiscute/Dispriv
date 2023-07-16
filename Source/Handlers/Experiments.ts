@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "fs";
 import { GuildFeatures, GuildHubType } from "../Entities/Guild";
 import { User } from "../Entities/User";
 import yaml from "yaml";
-import { Err } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
+import chokidar from "chokidar";
 
 export interface IConvertedExperiment {
     Type: "user" | "guild",
@@ -28,10 +29,16 @@ export enum GuildFilterType {
 export interface IExperimentFilter {
     ExperimentHash: number,
     AffectsEveryone: boolean,
-    TargettedUsers: string[],
-    TargettedGuilds: string[],
+    TargetedUsers: string[],
+    TargetedGuilds: string[],
     Bucket: number,
-    Type: GuildFilterType
+    Properties?: {
+        RequiredGuildFeatures?: GuildFeatures[],
+        IDRanges?: { s: string, e: string }[] // [{ s: "1000000000000", "200000000000000000000" }]
+        MembersRequired?: { s: string, e: string }[],
+        VanityURLRequired?: boolean,
+        Percentage?: { s: number, e: number }
+    }
 }
 
 export const HasFeature = 1604612045;
@@ -45,7 +52,7 @@ export const InRangeByHash = 2294888943;
 export type HasFeatureFilter = [
     FilterTypeHash: typeof HasFeature,
     Requirements:
-        [Features: 1183251248, FeaturesArray: GuildFeatures[]] // guild_has_feature
+        [[Features: 1183251248, FeaturesArray: GuildFeatures[]]] // guild_has_feature
 ];
 
 export type IDRangeOrMemberCountFilter = [
@@ -57,19 +64,19 @@ export type IDRangeOrMemberCountFilter = [
 export type GuildIDsFilter = [
     FilterTypeHash: typeof GuildIDs,
     Requirements:
-        [GuildIDsHash: 3013771838, Guilds: string[]] // guild_ids
+        [[GuildIDsHash: 3013771838, Guilds: string[]]] // guild_ids
 ];
 
 export type HubTypesFilter = [
     FilterTypeHash: typeof HubTypes,
     Requirements:
-        [GuildHubTypes: 4148745523, HubTypes: GuildHubType[]] // guild_hub_types
+        [[GuildHubTypes: 4148745523, HubTypes: GuildHubType[]]] // guild_hub_types
 ];
 
 export type HasVanityURLFilter = [
     FilterTypeHash: typeof HasVanityURL,
     Requirements:
-        [VanityURLHash: 188952590, HasVanityURL: boolean] // guild_has_vanity_url
+        [[VanityURLHash: 188952590, HasVanityURL: boolean]] // guild_has_vanity_url
 ];
 
 export type InRangeByHashFilter = [
@@ -87,20 +94,22 @@ export type UserExperiment = [
     AAMode: number
 ];
 
+export type GuildExperimentPopulations = [
+    Ranges: [
+        Bucket: number,
+        Rollout: {
+            s: number,
+            e: number
+        }[]
+    ][],
+    Filters: (HasFeatureFilter | IDRangeOrMemberCountFilter | GuildIDsFilter | HubTypesFilter | HasVanityURLFilter)[]
+];
+
 export type GuildExperiment = [
     MurmurHash: number,
     ReadableName: string | null,
     Rev: number,
-    Populations: [
-        Ranges: [
-            Bucket: number,
-            Rollout: {
-                s: number,
-                e: number
-            }[]
-        ][],
-        Filters: (HasFeatureFilter | IDRangeOrMemberCountFilter | GuildIDsFilter | HubTypesFilter | HasVanityURLFilter)[]
-    ][],
+    Populations: GuildExperimentPopulations[],
     Overrides: [], // NO I HAVE TO DO ALLAT OVER AGAIN NO
     OverridesFormatted: [],
     OnlyEnabledWithExperiment: string | null,
@@ -117,30 +126,120 @@ export let Filters: IExperimentFilter[] = [];
 export function PackageExperiment(Exp: IConvertedExperiment, U?: User | null): UserExperiment | GuildExperiment | null {
     const RelatedFilters = Filters.filter(x => x.ExperimentHash === Exp.CalculatedHash);
     if (Exp.Type === "guild") {
+        const Populations: GuildExperimentPopulations[] = [];
+        /*
+        [ // Populations
+            [ // ->
+                [ // Ranges
+                    [ // ->
+                        -1, // Bucket
+                        [ // Rollout
+                            {
+                                s: 0, // 0% -
+                                e: 10000 // 100%
+                            }
+                        ]
+                    ]
+                ],
+                []
+            ],
+            [
+                [],
+                []
+            ]
+        ]
+        */
+        for (const NFilter of RelatedFilters) {
+            const PopulationItem: GuildExperimentPopulations =
+            [
+                [], // Ranges
+                [] // Filters
+            ];
+
+            if (NFilter.Properties?.Percentage)
+                PopulationItem[0].push([
+                    NFilter.Bucket,
+                    [
+                        {
+                            s: NFilter.Properties.Percentage.s * 100,
+                            e: NFilter.Properties.Percentage.e * 100
+                        }
+                    ]
+                ]);
+
+            if (NFilter.Properties?.RequiredGuildFeatures)
+                PopulationItem[1].push([
+                    HasFeature,
+                    [
+                        [
+                            1183251248,
+                            NFilter.Properties.RequiredGuildFeatures
+                        ]
+                    ]
+                ]);
+
+            if (NFilter.Properties?.IDRanges)
+                for (const FMR of NFilter.Properties.IDRanges)
+                    PopulationItem[1].push([
+                        IDRange,
+                        [
+                            [
+                                3399957344,
+                                FMR.s
+                            ],
+                            [
+                                1238858341,
+                                FMR.e
+                            ]
+                        ]
+                    ]);
+
+            if (NFilter.Properties?.MembersRequired)
+                for (const FMR of NFilter.Properties.MembersRequired)
+                    PopulationItem[1].push([
+                        MemberCount,
+                        [
+                            [
+                                3399957344,
+                                FMR.s
+                            ],
+                            [
+                                1238858341,
+                                FMR.e
+                            ]
+                        ]
+                    ]);
+            
+            if (NFilter.Properties?.VanityURLRequired)
+                PopulationItem[1].push([
+                    HasVanityURL,
+                    [
+                        [
+                            188952590,
+                            NFilter.Properties.VanityURLRequired
+                        ]
+                    ]
+                ]);
+
+            if (NFilter.TargetedGuilds.length !== 0)
+                PopulationItem[1].push([
+                    GuildIDs,
+                    [
+                        [
+                            3013771838,
+                            NFilter.TargetedGuilds
+                        ]
+                    ]
+                ]);
+
+            Populations.push(PopulationItem);
+        }
+
         return [
             Exp.CalculatedHash,
             Exp.HashableName,
             1,
-            [ // Populations
-                [ // ->
-                    [ // Ranges
-                        [ // ->
-                            -1, // Bucket
-                            [ // Rollout
-                                {
-                                    s: 0, // 0% -
-                                    e: 10000 // 100%
-                                }
-                            ]
-                        ]
-                    ],
-                    []
-                ],
-                [
-                    [],
-                    []
-                ]
-            ],
+            Populations,
             [],
             [],
             null,
@@ -150,7 +249,7 @@ export function PackageExperiment(Exp: IConvertedExperiment, U?: User | null): U
     }
 
     // TODO: user experimento
-    const HighestFilterRelatedToUser = RelatedFilters.filter(x => x.AffectsEveryone || (U && x.TargettedUsers.includes(U.ID)));
+    const HighestFilterRelatedToUser = RelatedFilters.filter(x => x.AffectsEveryone || (U && x.TargetedUsers.includes(U.ID)));
     if (HighestFilterRelatedToUser.length === 0)
         return null;
 
@@ -198,3 +297,8 @@ export function GetGuildExperiments() {
 }
 
 ReloadConfigs();
+
+chokidar.watch("./Configs").on("change", () => {
+    Msg("Detected config changes! Reloading cache.", "Config Watcher");
+    ReloadConfigs();
+});

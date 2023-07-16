@@ -1,12 +1,39 @@
 import { IConvertedExperiment, IExperimentFilter } from "@/classes/ExperimentInterfaces";
 import { useState } from "react";
 
-function ExperimentRollouts({ exp, conf }: { exp: IConvertedExperiment, conf: IExperimentFilter[] }) {
+export function ExperimentRollouts({ exp, conf }: { exp: IConvertedExperiment, conf: IExperimentFilter[] }) {
     const Filters = conf.filter(x => x.ExperimentHash === exp.CalculatedHash);
     const Treatments = exp.Treatments;
+    let MostChanceToBeActivated: {
+        idx: number,
+        percentage: number
+    } = {
+        idx: -1000,
+        percentage: -1
+    };
+
+    const ContainFilters: number[] = [];
+
+    for (const Filt of Filters) {
+        const Treatment = Treatments[exp.Buckets.indexOf(Filt.Bucket)];
+        console.log(Treatment, Filt);
+
+        if (Filt.Properties?.Percentage !== undefined) {
+            const Percent = Filt.Properties.Percentage.e - Filt.Properties.Percentage.s;
+            if (Percent > MostChanceToBeActivated.percentage)
+                MostChanceToBeActivated = {
+                    idx: Treatments.indexOf(Treatment),
+                    percentage: Percent
+                };
+        }
+
+        if (!Filt.AffectsEveryone && Filt.TargetedUsers.length !== 0)
+            ContainFilters.push(Treatments.indexOf(Treatment));
+    }
+
     return <td style={{ width: "30%" }}>
         {
-            Treatments.map((Tr, i) => <a>[{exp.Buckets[i]}] {Tr}<br /></a>)
+            Treatments.map((Tr, i) => <a><span style={{ color: i === MostChanceToBeActivated.idx ? "limegreen" : ContainFilters.includes(i) ? "yellow" : "red" }}>[{exp.Buckets[i]}]</span> {Tr}<br /></a>)
         }
     </td>;
 }

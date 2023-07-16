@@ -1,1 +1,132 @@
-[]
+- ExperimentHash: 785391472
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 0
+  Type: 0
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 1443856828
+  AffectsEveryone: false
+  TargetedGuilds: []
+  TargetedUsers:
+    - "1123314129659101184"
+  Bucket: 8
+- ExperimentHash: 41612842
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 2804111708
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 268309827
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 1134868932
+  AffectsEveryone: false
+  TargetedGuilds: []
+  TargetedUsers:
+    - "1123314129659101184"
+  Bucket: 1
+- ExperimentHash: 2236798974
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+    RequiredGuildFeatures:
+      - VERIFIED
+- ExperimentHash: 3723449866
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 1405831955
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 24149521
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 295820329
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 2014775304
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 4
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 671665651
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 1133868976
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 4170652702
+  AffectsEveryone: true
+  TargetedGuilds: []
+  TargetedUsers: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100

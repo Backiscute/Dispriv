@@ -250,9 +250,11 @@ export class Reaction extends BaseEntity {
 
     Package(Context?: User) {
         return {
-            count: this.UsersReacted ? this.UsersReacted.length : 1,
+            count: this.Type === "normal" ? (this.UsersReacted ? this.UsersReacted.length : 1) : undefined,
+            burst_count: this.Type === "super" ? (this.UsersReacted ? this.UsersReacted.length : 1) : undefined,
+            burst_me: this.Type === "super" ? (this.UsersReacted ? this.UsersReacted.find((u) => u.ID === Context?.ID) : false) : undefined,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            me: this.UsersReacted ? this.UsersReacted.find((u) => u.ID === Context?.ID) : false,
+            me: this.Type === "normal" ? (this.UsersReacted ? this.UsersReacted.find((u) => u.ID === Context?.ID) : false) : undefined,
             emoji: {
                 id: null,
                 name: this.EmojiCode,
