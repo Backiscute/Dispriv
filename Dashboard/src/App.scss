@@ -3,10 +3,10 @@
     --discord-on-container-foreground: #f8f9ff;
     --discord-font-primary: "gg sans Medium", sans-serif;
     --discord-background: #313338;
-	--discord-background-secondary: #2b2d31;
+    --discord-background-secondary: #2b2d31;
     --discord-divider: #3c3e44;
     --discord-text-muted: #8e9297;
-	--discord-text-normal: hsl(210 calc(1*9.1%) 87.1%/1);
+    --discord-text-normal: hsl(210 calc(1 * 9.1%) 87.1%/1);
 }
 
 * {
@@ -22,7 +22,7 @@ h4,
 h5,
 h6 {
     font-family: "gg sans", sans-serif;
-	color: var(--discord-text-normal);
+    color: var(--discord-text-normal);
     margin-bottom: 0px;
 }
 
@@ -41,7 +41,7 @@ button {
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.17s ease, color 0.17s ease;
-	min-height: 32px;
+    min-height: 32px;
 }
 
 button:hover {
@@ -58,6 +58,11 @@ button:active {
     padding: 16px;
     height: calc(100vh - 30px);
     position: fixed;
+}
+
+.sidebar-section {
+    overflow: auto;
+    height: 100vh;
 }
 
 .sidebar-button {
@@ -257,13 +262,36 @@ input[type="checkbox"]:focus-visible {
 table,
 th,
 td {
-    border: 1px solid var(--discord-text-muted);
     border-collapse: collapse;
+}
+
+table *,
+th *,
+td * {
+    color: #e3e5e8;
+}
+
+th {
+    background-color: #1e1f22;
+    padding: 8px;
+    font-size: 12px;
+    font-family: "gg sans Semibold";
+    text-align: left;
+    text-transform: uppercase;
+    max-height: 32px;
 }
 
 td {
     padding: 8px;
     line-break: anywhere;
+}
+
+tr:nth-child(odd) {
+    background-color: #111214;
+}
+
+tr:nth-child(even) {
+    background-color: #0c0c0d;
 }
 
 .collapse-button {
@@ -305,25 +333,25 @@ ul {
 }
 
 .profile-picture {
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
 }
 
 .data-box {
     background-color: #1e1f22;
     border: none;
     border-radius: 4px;
-	padding: 10px;
-	min-height: 30px;
-	max-height: 550px;
+    padding: 10px;
+    min-height: 30px;
+    max-height: 550px;
 }
 
 .data-box p.dataHeader {
-	font-family: "gg sans", sans-serif;
-	text-transform: uppercase;
-	margin: 3px 0px 3px 0px;
-	font-size: 13px;
+    font-family: "gg sans", sans-serif;
+    text-transform: uppercase;
+    margin: 3px 0px 3px 0px;
+    font-size: 13px;
 }
 
 dialog {
@@ -404,7 +432,7 @@ dialog > h6 {
 }
 
 span {
-	color: var(--discord-text-normal)
+    color: var(--discord-text-normal);
 }
 
 .is-open > div > div.Dropdown-arrow-wrapper > span {

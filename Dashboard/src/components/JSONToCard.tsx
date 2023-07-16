@@ -11,9 +11,7 @@ export const JSONToList = ({
 }) => {
     const [isEditing, setIsEditing] = useState(parentIsEditing);
     const [editedData, setEditedData] = useState(data);
-    const [nestedIsCollapsed, setNestedIsCollapsed] = useState(
-        new Array(Object.keys(data).length).fill(true)
-    );
+    const [nestedIsCollapsed, setNestedIsCollapsed] = useState(new Array(Object.keys(data).length).fill(true));
 
     const generateListItems = (obj: any) => {
         return Object.keys(obj).map((key, index) => {
@@ -42,11 +40,7 @@ export const JSONToList = ({
                         {key}
                         {!nestedIsCollapsed[index] && (
                             <ul>
-                                <JSONToList
-                                    data={value}
-                                    isEditing={isEditing}
-                                    handleSave={handleSave}
-                                />
+                                <JSONToList data={value} isEditing={isEditing} handleSave={handleSave} />
                             </ul>
                         )}
                     </li>
@@ -171,4 +165,3 @@ export function JSONToCard({
         </div>
     );
 }
-
