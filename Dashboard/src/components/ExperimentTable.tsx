@@ -4,16 +4,38 @@ import { useState } from "react";
 export function ExperimentRollouts({ exp, conf }: { exp: IConvertedExperiment; conf: IExperimentFilter[] }) {
     const Filters = conf.filter((x) => x.ExperimentHash === exp.CalculatedHash);
     const Treatments = exp.Treatments;
-    return (
-        <td style={{ width: "30%" }}>
-            {Treatments.map((Tr, i) => (
-                <a>
-                    [{exp.Buckets[i]}] {Tr}
-                    <br />
-                </a>
-            ))}
-        </td>
-    );
+    let MostChanceToBeActivated: {
+        idx: number,
+        percentage: number
+    } = {
+        idx: -1000,
+        percentage: -1
+    };
+
+    const ContainFilters: number[] = [];
+
+    for (const Filt of Filters) {
+        const Treatment = Treatments[exp.Buckets.indexOf(Filt.Bucket)];
+        console.log(Treatment, Filt);
+
+        if (Filt.Properties?.Percentage !== undefined) {
+            const Percent = Filt.Properties.Percentage.e - Filt.Properties.Percentage.s;
+            if (Percent > MostChanceToBeActivated.percentage)
+                MostChanceToBeActivated = {
+                    idx: Treatments.indexOf(Treatment),
+                    percentage: Percent
+                };
+        }
+
+        if (!Filt.AffectsEveryone && Filt.TargetedUsers.length !== 0)
+            ContainFilters.push(Treatments.indexOf(Treatment));
+    }
+
+    return <>
+        {
+            Treatments.map((Tr, i) => <a key={i}><span style={{ color: i === MostChanceToBeActivated.idx ? "#23a55a" : ContainFilters.includes(i) ? "yellow" : "#da373c" }}>[{exp.Buckets[i]}]</span> {Tr}<br /></a>)
+        }
+    </>;
 }
 
 export default function ExperimentTable({
@@ -69,8 +91,10 @@ export default function ExperimentTable({
                                             <td style={{ width: "25%" }}>{Exp.HashableName}</td>
                                             <td style={{ width: "30%" }}>{Exp.ReadableName}</td>
                                             {/* <a style={{ color: "lime" }}>Control: 0%</a><br /><a style={{ color: "red" }}>Treatment 1: 100%</a> */}
-                                            <ExperimentRollouts exp={Exp} conf={config} />
                                             <td>
+                                                <ExperimentRollouts exp={Exp} conf={config}/>
+                                            </td>
+                                            <td style={{ width: 60 }}>
                                                 <button
                                                     style={{ display: "block", margin: "auto" }}
                                                     onClick={() => editExperimentHook({ exp: Exp, filt: config })}

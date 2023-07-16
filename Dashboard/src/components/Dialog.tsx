@@ -7,6 +7,8 @@ type TextType = {
     label: string;
     jsonName: string;
     placeholder?: string;
+    value?: string;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 type SelectType = {
@@ -17,6 +19,7 @@ type SelectType = {
         label: string;
         value: string;
     }[];
+    defaultIndex?: number;
     onChange?: (value: string | number) => void;
 };
 
@@ -78,7 +81,7 @@ export default function Dialog(props: {
                             return (
                                 <div key={index} className="form-input">
                                     <div className="form-label">{element.label}</div>
-                                    <input type={element.type} placeholder={element.placeholder} />
+                                    <input type={element.type} placeholder={element.placeholder} onChange={(element.onChange ? (e => element.onChange!(e)) : undefined)} value={element.value}/>
                                 </div>
                             );
                         case "select":
@@ -92,6 +95,7 @@ export default function Dialog(props: {
                                             }
                                         }}
                                         options={element.options}
+                                        value={element.defaultIndex ? element.options[element.defaultIndex] : undefined}
                                     />
                                 </div>
                             );
@@ -105,6 +109,16 @@ export default function Dialog(props: {
                     }
                 })}
                 <div className="form-submit-container">
+                    <button
+                        style={{
+                            width: 75,
+                            marginRight: 10,
+                            background: "none",
+                            backgroundColor: "none",
+                        }}
+                    >
+                        Cancel
+                    </button>
                     <button
                         style={{
                             width: 75,
@@ -126,6 +140,8 @@ export default function Dialog(props: {
                                                         (element.getElementsByTagName("input")[0] as HTMLInputElement)
                                                             .value,
                                                     );
+
+                                                    (element.getElementsByTagName("input")[0] as HTMLInputElement).value = el.value ?? "";
                                                     break;
                                                 case "select":
                                                     const root = element.getElementsByClassName("Dropdown-root")[0];
@@ -138,10 +154,11 @@ export default function Dialog(props: {
                                                                     "Dropdown-placeholder",
                                                                 )[0];
                                                             if (placeholder) {
+                                                                console.log(el.options);
                                                                 setNestedValue(
                                                                     obj.current,
                                                                     el.jsonName,
-                                                                    placeholder.innerHTML,
+                                                                    el.options.find(x => x.label.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;") === placeholder.innerHTML)?.value,
                                                                 );
                                                             }
                                                         }

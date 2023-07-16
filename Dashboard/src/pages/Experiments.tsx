@@ -92,7 +92,8 @@ export default function Experiments() {
                                 innerRef={convertDialog}
                             />
                             <button style={{
-                                width: 200
+                                width: 200,
+                                marginRight: 10
                             }} onClick={() => {
                                 console.log(filters, experiments);
                                 if (!existsSync(join("..", "Configs", "Experiments.yaml")) || !existsSync(join("..", "Configs", "ExperimentConfig.yaml")))
@@ -103,6 +104,12 @@ export default function Experiments() {
                                 setExperiments(Object.keys(E).map(x => E[x]));
                             }}>
                                 Load existing config
+                            </button>
+                            <button style={{
+                                width: 200,
+                                marginRight: 10
+                            }} onClick={async () => await navigator.clipboard.writeText(`let _mods = webpackChunkdiscord_app.push([[Symbol()],{},({c})=>Object.values(c)]); webpackChunkdiscord_app.pop(); const findByProps = (...props) => { for (let m of _mods) { try { if (!m.exports || m.exports === window) continue; if (props.every((x) => m.exports?.[x])) return m.exports; for (let ex in m.exports) { if (props.every((x) => m.exports?.[ex]?.[x])) return m.exports[ex]; } } catch {} } }; Object.fromEntries(Object.entries(findByProps("getRegisteredExperiments").getRegisteredExperiments()))`)}>
+                                Copy script
                             </button>
                             <h1>User Experiments</h1>
                             <ExperimentTable experiments={experiments} config={filters} style={{
@@ -115,7 +122,7 @@ export default function Experiments() {
                             }} selectedType="guild" editExperimentHook={setEditedExperiment} />
                         </div>
                     </>
-                ) : <ExperimentEditor exp={editedExperiment.exp} filters={editedExperiment.filt} editExperimentHook={setEditedExperiment} />
+                ) : <ExperimentEditor exp={editedExperiment.exp} filters={filters} editExperimentHook={setEditedExperiment} fullConfHook={setFilters} />
             }
         </div>
     );

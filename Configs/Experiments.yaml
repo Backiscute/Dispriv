@@ -407,19 +407,6 @@
     - 1
     - 2
     - 3
-2023-07_day_0_nux:
-  Type: user
-  ReadableName: Mobile Redesign Day 0 NUX
-  HashableName: 2023-07_day_0_nux
-  CalculatedHash: 1174587839
-  Treatments:
-    - Not Eligible
-    - "Treatment 0: Control"
-    - "Treatment 1: Day 0 Enabled"
-  Buckets:
-    - -1
-    - 0
-    - 1
 2023-06_mobile_redesign_curry_existing_users:
   Type: user
   ReadableName: Tabs V2 - Curry Existing Users
@@ -1018,6 +1005,19 @@
     - -1
     - 0
     - 1
+2023-02_stage_boosting:
+  Type: guild
+  ReadableName: Stage Boosting
+  HashableName: 2023-02_stage_boosting
+  CalculatedHash: 1816004721
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enabled"
+  Buckets:
+    - -1
+    - 0
+    - 1
 2022-09_emoji_ecosystem_holdout:
   Type: user
   ReadableName: Emoji Ecosystem Holdout Experiment
@@ -1048,19 +1048,6 @@
     - 1
     - 2
     - 3
-2023-02_stage_boosting:
-  Type: guild
-  ReadableName: Stage Boosting
-  HashableName: 2023-02_stage_boosting
-  CalculatedHash: 1816004721
-  Treatments:
-    - Not Eligible
-    - Control Bucket
-    - "Treatment 1: Enabled"
-  Buckets:
-    - -1
-    - 0
-    - 1
 2021-09_ios_screenshare_resolution_profiles:
   Type: user
   ReadableName: "iOS: Screenshare resolution profiles"
@@ -1457,6 +1444,19 @@
     - Not Eligible
     - Control Bucket
     - "Treatment 1: Users will see the BOGO announcement modal"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2023-07_bogo_marketing_materials_experiment:
+  Type: user
+  ReadableName: BOGO Marketing Materials
+  HashableName: 2023-07_bogo_marketing_materials_experiment
+  CalculatedHash: 1350945791
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Enable BOGO marketing materials"
   Buckets:
     - -1
     - 0
@@ -1961,10 +1961,12 @@
     - Not Eligible
     - Control Bucket
     - "Treatment 1: Enabled"
+    - "Treatment 2: Enabled w/VC Coachmark"
   Buckets:
     - -1
     - 0
     - 1
+    - 2
 2023-02_referral_trials:
   Type: user
   ReadableName: Referral Trials
@@ -2082,6 +2084,25 @@
     - -1
     - 0
     - 1
+2023-05_fullyemojiautocomplete_aa:
+  Type: user
+  ReadableName: Only show emoji in autocomplete AA test
+  HashableName: 2023-05_fullyemojiautocomplete_aa
+  CalculatedHash: 1279171427
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Hide Stickers, only show 10 Emojis"
+    - "Treatment 2: Hide Stickers, show more Emojis without scrollbar"
+    - "Treatment 3: Hide Stickers, show more Emojis with scrollbar"
+    - "Treatment 4: Show Autocomplete Stickers Toggle on mobile"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
 2023-05_fullyemojiautocomplete:
   Type: user
   ReadableName: Only show emoji in autocomplete
@@ -2114,24 +2135,11 @@
     - -1
     - 0
     - 1
-2021-03_nitro_emoji_autocomplete_upsell:
+2023-07_autocomplete_emojis_nitro_upsell:
   Type: user
-  ReadableName: Emoji Autocomplete Upsell
-  HashableName: 2021-03_nitro_emoji_autocomplete_upsell
-  CalculatedHash: 259025033
-  Treatments:
-    - Not Eligible
-    - Control Bucket
-    - "Treatment 1: Show emoji autocomplete upsell"
-  Buckets:
-    - -1
-    - 0
-    - 1
-2021-04_nitro_emoji_autocomplete_upsell_ios:
-  Type: user
-  ReadableName: Emoji Autocomplete Upsell iOS
-  HashableName: 2021-04_nitro_emoji_autocomplete_upsell_ios
-  CalculatedHash: 371152535
+  ReadableName: Autocomplete Emojis Nitro Upsell
+  HashableName: 2023-07_autocomplete_emojis_nitro_upsell
+  CalculatedHash: 1322503781
   Treatments:
     - Not Eligible
     - Control Bucket
@@ -2161,11 +2169,13 @@
   Treatments:
     - Not Eligible
     - Control Bucket
-    - "Treatment 1: Show alert mode experimence"
+    - "Treatment 1: Show alert mode experience"
+    - "Treatment 2: Show alert mode experience with member safety"
   Buckets:
     - -1
     - 0
     - 1
+    - 2
 2022-07_invites_disabled:
   Type: guild
   ReadableName: Report Raids
@@ -3280,6 +3290,19 @@
     - -1
     - 0
     - 1
+2023-06_clyde_ai_channel_based_personality:
+  Type: guild
+  ReadableName: Channel based Clyde personalities
+  HashableName: 2023-06_clyde_ai_channel_based_personality
+  CalculatedHash: 3143066071
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: enable personality setting"
+  Buckets:
+    - -1
+    - 0
+    - 1
 2023-05_clyde_ai_guild_personality:
   Type: guild
   ReadableName: Modify Clyde's Personality
@@ -3348,6 +3371,81 @@
     - -1
     - 0
     - 1
+2021-03_expiration_notice_mobile_web:
+  Type: user
+  ReadableName: Show expiration notice on mobile web invite
+  HashableName: 2021-03_expiration_notice_mobile_web
+  CalculatedHash: 3623906145
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show expiration notice"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-03_expiration_notice_ios:
+  Type: user
+  ReadableName: Show expiration notice on ios invite
+  HashableName: 2021-03_expiration_notice_ios
+  CalculatedHash: 2088781100
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show expiration notice"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2021-03_expiration_notice_ios_embed:
+  Type: user
+  ReadableName: Show expiration notice on ios invite embed
+  HashableName: 2021-03_expiration_notice_ios_embed
+  CalculatedHash: 733758152
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Show expiration notice"
+  Buckets:
+    - -1
+    - 0
+    - 1
+2022-04_registration_copy_updates:
+  Type: user
+  ReadableName: Registration Copy Updates
+  HashableName: 2022-04_registration_copy_updates
+  CalculatedHash: 1115221338
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Continue / Copy Above Button / High Prominence Copy"
+    - "Treatment 2: Continue / Copy Below Button / High Prominence Copy"
+    - "Treatment 3: Continue / Copy Above Button / Normal Prominence Copy"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+2023-06_unique_username_registration:
+  Type: user
+  ReadableName: Unique Username Registration
+  HashableName: 2023-06_unique_username_registration
+  CalculatedHash: 2476969328
+  Treatments:
+    - Not Eligible
+    - Control Bucket
+    - "Treatment 1: Unique Username Registration enabled -livecheck -suggestions"
+    - "Treatment 2: Unique Username Registration enabled -livecheck +suggestions"
+    - "Treatment 3: Unique Username Registration enabled +livecheck -suggestions"
+    - "Treatment 4: Unique Username Registration enabled +livecheck +suggestions"
+  Buckets:
+    - -1
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
 2023-04_pomelo_announcement:
   Type: user
   ReadableName: Pomelo Announcement

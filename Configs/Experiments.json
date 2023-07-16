@@ -435,20 +435,6 @@
             3
         ]
     },
-    "2023-07_day_0_nux": {
-        "type": "user",
-        "title": "Mobile Redesign Day 0 NUX",
-        "description": [
-            "Not Eligible",
-            "Treatment 0: Control",
-            "Treatment 1: Day 0 Enabled"
-        ],
-        "buckets": [
-            -1,
-            0,
-            1
-        ]
-    },
     "2023-06_mobile_redesign_curry_existing_users": {
         "type": "user",
         "title": "Tabs V2 - Curry Existing Users",
@@ -1081,6 +1067,20 @@
             1
         ]
     },
+    "2023-02_stage_boosting": {
+        "type": "guild",
+        "title": "Stage Boosting",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enabled"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
     "2022-09_emoji_ecosystem_holdout": {
         "type": "user",
         "title": "Emoji Ecosystem Holdout Experiment",
@@ -1111,20 +1111,6 @@
             1,
             2,
             3
-        ]
-    },
-    "2023-02_stage_boosting": {
-        "type": "guild",
-        "title": "Stage Boosting",
-        "description": [
-            "Not Eligible",
-            "Control Bucket",
-            "Treatment 1: Enabled"
-        ],
-        "buckets": [
-            -1,
-            0,
-            1
         ]
     },
     "2021-09_ios_screenshare_resolution_profiles": {
@@ -1546,6 +1532,20 @@
             "Not Eligible",
             "Control Bucket",
             "Treatment 1: Users will see the BOGO announcement modal"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2023-07_bogo_marketing_materials_experiment": {
+        "type": "user",
+        "title": "BOGO Marketing Materials",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Enable BOGO marketing materials"
         ],
         "buckets": [
             -1,
@@ -2085,12 +2085,14 @@
         "description": [
             "Not Eligible",
             "Control Bucket",
-            "Treatment 1: Enabled"
+            "Treatment 1: Enabled",
+            "Treatment 2: Enabled w/VC Coachmark"
         ],
         "buckets": [
             -1,
             0,
-            1
+            1,
+            2
         ]
     },
     "2023-02_referral_trials": {
@@ -2219,6 +2221,26 @@
             1
         ]
     },
+    "2023-05_fullyemojiautocomplete_aa": {
+        "type": "user",
+        "title": "Only show emoji in autocomplete AA test",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Hide Stickers, only show 10 Emojis",
+            "Treatment 2: Hide Stickers, show more Emojis without scrollbar",
+            "Treatment 3: Hide Stickers, show more Emojis with scrollbar",
+            "Treatment 4: Show Autocomplete Stickers Toggle on mobile"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
     "2023-05_fullyemojiautocomplete": {
         "type": "user",
         "title": "Only show emoji in autocomplete",
@@ -2253,23 +2275,9 @@
             1
         ]
     },
-    "2021-03_nitro_emoji_autocomplete_upsell": {
+    "2023-07_autocomplete_emojis_nitro_upsell": {
         "type": "user",
-        "title": "Emoji Autocomplete Upsell",
-        "description": [
-            "Not Eligible",
-            "Control Bucket",
-            "Treatment 1: Show emoji autocomplete upsell"
-        ],
-        "buckets": [
-            -1,
-            0,
-            1
-        ]
-    },
-    "2021-04_nitro_emoji_autocomplete_upsell_ios": {
-        "type": "user",
-        "title": "Emoji Autocomplete Upsell iOS",
+        "title": "Autocomplete Emojis Nitro Upsell",
         "description": [
             "Not Eligible",
             "Control Bucket",
@@ -2301,12 +2309,14 @@
         "description": [
             "Not Eligible",
             "Control Bucket",
-            "Treatment 1: Show alert mode experimence"
+            "Treatment 1: Show alert mode experience",
+            "Treatment 2: Show alert mode experience with member safety"
         ],
         "buckets": [
             -1,
             0,
-            1
+            1,
+            2
         ]
     },
     "2022-07_invites_disabled": {
@@ -3502,6 +3512,20 @@
             1
         ]
     },
+    "2023-06_clyde_ai_channel_based_personality": {
+        "type": "guild",
+        "title": "Channel based Clyde personalities",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: enable personality setting"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
     "2023-05_clyde_ai_guild_personality": {
         "type": "guild",
         "title": "Modify Clyde's Personality",
@@ -3572,6 +3596,86 @@
             -1,
             0,
             1
+        ]
+    },
+    "2021-03_expiration_notice_mobile_web": {
+        "type": "user",
+        "title": "Show expiration notice on mobile web invite",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show expiration notice"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-03_expiration_notice_ios": {
+        "type": "user",
+        "title": "Show expiration notice on ios invite",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show expiration notice"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2021-03_expiration_notice_ios_embed": {
+        "type": "user",
+        "title": "Show expiration notice on ios invite embed",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Show expiration notice"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1
+        ]
+    },
+    "2022-04_registration_copy_updates": {
+        "type": "user",
+        "title": "Registration Copy Updates",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Continue / Copy Above Button / High Prominence Copy",
+            "Treatment 2: Continue / Copy Below Button / High Prominence Copy",
+            "Treatment 3: Continue / Copy Above Button / Normal Prominence Copy"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3
+        ]
+    },
+    "2023-06_unique_username_registration": {
+        "type": "user",
+        "title": "Unique Username Registration",
+        "description": [
+            "Not Eligible",
+            "Control Bucket",
+            "Treatment 1: Unique Username Registration enabled -livecheck -suggestions",
+            "Treatment 2: Unique Username Registration enabled -livecheck +suggestions",
+            "Treatment 3: Unique Username Registration enabled +livecheck -suggestions",
+            "Treatment 4: Unique Username Registration enabled +livecheck +suggestions"
+        ],
+        "buckets": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
         ]
     },
     "2023-04_pomelo_announcement": {
