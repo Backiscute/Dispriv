@@ -1,3 +1,5 @@
+import { GuildFeatures } from "@/components/GuildCard";
+
 export interface IRawExperiment {
     type: "user" | "guild",
     title: string,
@@ -23,6 +25,7 @@ export const HasVanityURL = 188952590;
 export const InRangeByHash = 2294888943;
 
 export enum GuildFilterType {
+    USER, // for user
     HAS_FEATURE,
     ID_RANGE,
     MEMBER_COUNT,
@@ -35,8 +38,14 @@ export enum GuildFilterType {
 export interface IExperimentFilter {
     ExperimentHash: number,
     AffectsEveryone: boolean,
-    TargettedUsers: string[],
-    TargettedGuilds: string[],
+    TargetedUsers: string[],
+    TargetedGuilds: string[],
     Bucket: number,
-    Type: GuildFilterType
+    Properties?: {
+        Percentage?: { s: number, e: number },
+        RequiredGuildFeatures?: GuildFeatures[],
+        IDRanges?: { s: string, e: string }[] // [{ s: "1000000000000", "200000000000000000000" }]
+        MembersRequired?: { s: string, e: string }[],
+        VanityURLRequired?: boolean
+    }
 }

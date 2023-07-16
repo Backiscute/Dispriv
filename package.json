@@ -63,6 +63,7 @@
         "axios": "^1.4.0",
         "bcrypt": "^5.1.0",
         "cheerio": "^1.0.0-rc.12",
+        "chokidar": "^3.5.3",
         "class-transformer": "^0.5.1",
         "colorette": "^2.0.20",
         "cors": "^2.8.5",

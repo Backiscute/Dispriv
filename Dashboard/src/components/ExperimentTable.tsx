@@ -1,13 +1,13 @@
 import { IConvertedExperiment, IExperimentFilter } from "@/classes/ExperimentInterfaces";
 import { useState } from "react";
 
-function ExperimentRollouts({ exp, conf }: { exp: IConvertedExperiment; conf: IExperimentFilter[] }) {
+export function ExperimentRollouts({ exp, conf }: { exp: IConvertedExperiment; conf: IExperimentFilter[] }) {
     const Filters = conf.filter((x) => x.ExperimentHash === exp.CalculatedHash);
     const Treatments = exp.Treatments;
     return (
         <td style={{ width: "30%" }}>
             {Treatments.map((Tr, i) => (
-                <a key={Tr}>
+                <a>
                     [{exp.Buckets[i]}] {Tr}
                     <br />
                 </a>

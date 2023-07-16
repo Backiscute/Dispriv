@@ -93,7 +93,7 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
     res.json(RequestedMessage.Package(MyUser));
 });
 
-App.delete("/:ChannelID/messages/:MessageID", async (req, res) => {
+App.delete("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 
     const RequestedMessage = await Message.findOne({
@@ -650,7 +650,7 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     });
 });
 
-App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) => {
+App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
         GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true, Memberships: { ToGuild: true } }),
         Channel.findOne({
@@ -663,11 +663,20 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
         }),
     ]);
     const Emoji = req.params.Emoji as string;
+    const Type = req.query.type as string;
+
+    if (Type !== "0" && Type !== "1") return res.status(400).json({ code: 0, message: "Invalid reaction type" });
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
         return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    
+    if (Type === "1") { // superreaction
+        if (MyUser!.AvailableSuperreactions <= 0) return res.status(400).json({ code: JsonErrorCodes.REACTION_BLOCKED, message: "No burst credits" });
+        MyUser!.AvailableSuperreactions -= 1;
+        await MyUser!.save();
+    }
 
-    const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji);
+    const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji && R.Type === (Type === "0" ? "normal" : "super"));
     if (MessageReaction) {
         if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID))
             return res.sendStatus(204);
@@ -678,13 +687,14 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
         const MessageReaction = Reaction.create({
             ID: GenerateSnowflake(),
             EmojiCode: Emoji,
-            Type: "normal",
+            Type: Type === "0" ? "normal" : "super",
             UsersReacted: [],
             ToMessage: RequestedMessage,
         });
         MessageReaction.UsersReacted.push(MyUser!);
         await MessageReaction.save();
     }
+
     if (RequestedChannel.IsDM) {
         RequestedChannel.DMRecipients?.forEach((Recipient) => {
             const Conn = FindConnection(Recipient.ID);
@@ -694,7 +704,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
                     OpCodes.DISPATCH,
                     {
                         user_id: MyUser!.ID,
-                        type: 0,
+                        type: MessageReaction?.Type === "normal" ? 0 : 1,
                         message_id: RequestedMessage.ID,
                         message_author_id: RequestedMessage.Author.ID,
                         emoji: {
@@ -702,7 +712,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
                             id: null,
                         },
                         channel_id: RequestedChannel.ID,
-                        burst: false,
+                        burst: MessageReaction?.Type === "super",
                     },
                     null,
                     "MESSAGE_REACTION_ADD",
@@ -717,7 +727,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
                     OpCodes.DISPATCH,
                     {
                         user_id: MyUser!.ID,
-                        type: 0,
+                        type: MessageReaction?.Type === "normal" ? 0 : 1,
                         message_id: RequestedMessage.ID,
                         message_author_id: RequestedMessage.Author.ID,
                         member: {
@@ -731,7 +741,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
                             id: null,
                         },
                         channel_id: RequestedChannel.ID,
-                        burst: false,
+                        burst: MessageReaction?.Type === "super",
                         guild_id: RequestedChannel.OwnerGuild!.ID,
                     },
                     null,
@@ -742,7 +752,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) =
     return res.sendStatus(204);
 });
 
-App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", async (req, res) => {
+App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
         GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }),
         Channel.findOne({
