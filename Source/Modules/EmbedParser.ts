@@ -50,6 +50,41 @@ export default async function (url: string): Promise<Embed | undefined> {
                 proxy_url: Media[0].url,
             } : undefined
         };*/
+        const Response = await Request(url.replace("twitter", "vxtwitter"));
+        if (!Response) return;
+
+        if (Response.headers["content-type"].includes("image")) return await HandleImage(url);
+        else {
+            const Metadata = GetMetadata(Response.data);
+            const Image = Metadata.image ?? Metadata.image_fallback;
+
+            if (!Image && !Metadata.title && !Metadata.description) return;
+
+            if (Image && (!Metadata.height || !Metadata.width)) {
+                try {
+                    const ImageMetadata = await probe(Image);
+                    Metadata.width = ImageMetadata.width;
+                    Metadata.height = ImageMetadata.height;
+                } catch (e) {
+                    if (!Metadata.title && !Metadata.description) return;
+                }
+            }
+
+            return {
+                url,
+                type: EmbedType.link,
+                title: Metadata.title,
+                color: Metadata.color,
+                thumbnail: Image ? {
+                    width: Metadata.width,
+                    height: Metadata.height,
+                    url: Image,
+                    proxy_url: Image,
+                } : undefined,
+                description: Metadata.description,
+            };
+        }
+
         return {
             type: EmbedType.rich,
             url,
