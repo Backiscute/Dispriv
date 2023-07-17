@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-case-declarations */
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
@@ -30,6 +30,8 @@ import { FindAttachment, HandleAttachment } from "../Modules/AssetUtils";
 import { User } from "../Entities/User";
 import { VoiceSessions } from "../Handlers/RTCSocket";
 import { FindOptionsWhere, LessThan, MoreThan } from "typeorm";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { MessageSendSchema, VCEffectSchema } from "../Validators/Channels";
 
 const App = Router();
 
@@ -483,7 +485,9 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
     res.json(NewInvite.Package());
 });
 
-App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/messages", VerifyAuth, async (req, res, next) => {
+    ValidateRequest(req, res, next, MessageSendSchema);
+}, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, {
         Memberships: { ToGuild: true },
         RelationsFrom: true,
@@ -505,8 +509,6 @@ App.post("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     }
 
-    if (typeof req.body.content !== "string" || req.body.content.length > 2000)
-        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Message too long" });
     if (RequestedChannel.Type === ChannelType.DM) {
         const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
         const RelationshipBetweenUsers = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding].find(
@@ -908,7 +910,9 @@ App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res, next) => {
+    ValidateRequest(req, res, next, VCEffectSchema);
+}, async (req, res) => {
     const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true } });
 
     if (!RequestedChannel) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
@@ -929,19 +933,8 @@ App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res) => {
     const EmojiID = req.body.emoji_id;
     const EmojiName = req.body.emoji_name;
 
-    if (!EmojiName) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-
-    if (typeof AnimationID != "number") return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-    if (AnimationID > 20) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-    if (typeof EmojiName != "string") return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-    if (typeof AnimationType != "number") return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-    if (AnimationType > 1) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
-
     // TODO: Add nitro check for animationtype 0
-
-    const EmojiRegex = /\p{Emoji}/u;
-
-    if (!EmojiID && !EmojiRegex.test(EmojiName)) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_EMOJI, message: "Unknown Emoji" });
+    // TODO: Add check for emojiID (guild emojis)
 
     await SendToVC(RequestedChannel, OpCodes.DISPATCH, { guild_id: RequestedChannel.OwnerGuild!.ID, channel_id: RequestedChannel.ID, user_id: MyUser!.ID, animation_id: AnimationID, animation_type: AnimationType, emoji: { animated: false, id: EmojiID, name: EmojiName } }, null, "VOICE_CHANNEL_EFFECT_SEND");
     res.sendStatus(204);

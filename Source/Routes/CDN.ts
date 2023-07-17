@@ -52,7 +52,12 @@ App.get("/attachments/:ChannelID/:AttachmentID/:Filename", async (req, res) => {
 App.get(["/:Folder/:Filename", "/:Folder/\\d+/:Subfolder/*/:Filename", "/:Folder/\\d+/:Subfolder/\\d+/\\d+/:Filename", "/:Folder/\\d+/:Filename"], async (req, res) => {
     if (!/^[a-z0-9.-]+$/g.test(req.params.Filename)) return res.status(403).json({ code: 0, message: "nuh uh" });
     const FilenameSplit = req.params.Filename.split("."), FilenameRaw = FilenameSplit[0], FileExtension = FilenameSplit[1];
-    const FilePath = path.join(__dirname, "..", "Assets", FolderMap[req.params.Folder as keyof typeof FolderMap], req.params.Subfolder ? FolderMap[req.params.Subfolder as keyof typeof FolderMap] : "", FilenameRaw);
+    let FilePath: string;
+    try {
+        FilePath = path.join(__dirname, "..", "Assets", FolderMap[req.params.Folder as keyof typeof FolderMap], req.params.Subfolder ? FolderMap[req.params.Subfolder as keyof typeof FolderMap] : "", FilenameRaw);
+    } catch {
+        return res.status(404).send();
+    }
 
     if (!existsSync(FilePath)) return res.status(404).send();
     else {
