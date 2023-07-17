@@ -31,6 +31,15 @@ export const enum GuildHubType {
     COLLEGE = 2
 }
 
+export const enum SystemChannelFlags {
+    SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
+    SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
+    SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = 1 << 2,
+    SUPPRESS_JOIN_NOTIFICATION_REPLIES = 1 << 3,
+    SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS = 1 << 4,
+    SUPPRESS_GUILD_REMINDER_NOTIFICATION_REPLIES = 1 << 5
+}
+
 export const enum GuildFeatures {
     ACTIVITIES_ALPHA = "ACTIVITIES_ALPHA",
     ACTIVITIES_EMPLOYEE = "ACTIVITIES_EMPLOYEE",
@@ -199,9 +208,16 @@ export class Guild extends BaseEntity {
     @Column({ nullable: true })
         SystemChannelID?: string;
 
+    @Column({ default: 0 })
+        SystemChannelFlags: number;
+
     get DefaultRole() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.Roles.find((R) => R.ID === this.ID)!;
+    }
+
+    SystemChannelHasFlag(Flag: SystemChannelFlags) {
+        return (this.SystemChannelFlags & Flag) === Flag;
     }
 
     @AfterInsert()
@@ -227,8 +243,6 @@ export class Guild extends BaseEntity {
             //OwnerCategory: TextCategory,
         }).save();
 
-        this.SystemChannelID = GeneralChannel.ID;
-
         await Channel.create({
             ID: GenerateSnowflake(),
             DisplayName: "General",
@@ -236,6 +250,9 @@ export class Guild extends BaseEntity {
             OwnerGuild: this,
             //OwnerCategory: VoiceCategory,
         }).save();
+
+        this.SystemChannelID = GeneralChannel.ID;
+        await this.save();
     }
 
     Partial() {

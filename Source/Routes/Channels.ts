@@ -1073,7 +1073,11 @@ App.post(
         const EmojiName = req.body.emoji_name;
 
         // TODO: Add nitro check for animationtype 0
-        // TODO: Add check for emojiID (guild emojis)
+
+        const EmojiRegex = /\p{Emoji}/u;
+
+        if (!EmojiID && (!EmojiRegex.test(EmojiName) || EmojiName.length > 2))
+            return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_EMOJI, message: "Unknown Emoji" });
 
         await SendToVC(
             RequestedChannel,
