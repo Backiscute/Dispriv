@@ -85,9 +85,12 @@ function decodePacket(
     )._webSocketMessages;
     let decoded: AsyncReturnType<typeof decodePacket>[] = [];
     for (const packet of packets) {
-        if (packet.type === "send") continue;
-        const data = await decodePacket(Buffer.from(packet.data, "base64"), true);
-        decoded.push(data);
+        if (packet.type === "receive") {
+            const data = await decodePacket(Buffer.from(packet.data, "base64"), true);
+            decoded.push(data);
+        } else {
+            decoded.push(JSON.parse(packet.data));
+        }
     }
     fs.writeFileSync("packets.json", JSON.stringify(decoded, null, 4));
 })();

@@ -4,89 +4,67 @@
   TargetedGuilds: []
   Bucket: 1
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 1443856828
   AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 8
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 2413236121
   AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 1
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 412458642
   AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 2
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 2014775304
   AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 4
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 3495789820
   AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 1
   Properties:
-      Percentage:
-          s: 0
-          e: 100
+    Percentage:
+      s: 0
+      e: 100
 - ExperimentHash: 139947315
   AffectsEveryone: false
   TargetedUsers:
-      - "1123314129659101184"
+    - "1123314129659101184"
   TargetedGuilds: []
   Bucket: 1
+  Properties: null
 - ExperimentHash: 41612842
   AffectsEveryone: false
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 1
   Properties:
-      Percentage:
-          s: 0
-          e: 100
-- ExperimentHash: 1133868976
-  AffectsEveryone: true
-  TargetedUsers: []
-  TargetedGuilds: []
-  Bucket: 1
-- ExperimentHash: 3039064495
-  AffectsEveryone: true
-  TargetedUsers: []
-  TargetedGuilds: []
-  Bucket: 2
-  Properties:
-      Percentage:
-          s: 0
-          e: 100
-- ExperimentHash: 4083096281
-  AffectsEveryone: false
-  TargetedUsers: []
-  TargetedGuilds: []
-  Bucket: 3
-  Properties:
-      RequiredGuildFeatures:
-          - VERIFIED
-          - PARTNERED
+    Percentage:
+      s: 0
+      e: 100

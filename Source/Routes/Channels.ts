@@ -67,15 +67,15 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
 
     try {
         if (req.body.content)
-            for await (const link of (req.body.content.match(
+            for await (const link of req.body.content.match(
                 /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
-            )) ?? []) {
+            ) ?? []) {
                 if (
                     !RequestedChannel.IsDM &&
-                        !HasPermission(
-                            MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
-                            Permissions.EMBED_LINKS,
-                        )
+                    !HasPermission(
+                        MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                        Permissions.EMBED_LINKS,
+                    )
                 )
                     break;
                 const Embed = await EmbedParser(link);
@@ -84,13 +84,19 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
     } catch (e) {
         Err("Error while parsing embeds");
     }
-    
+
     RequestedMessage.Embeds = Embeds;
     RequestedMessage.Content = req.body.content;
     RequestedMessage.EditedTimestamp = new Date();
 
     await RequestedMessage.save();
-    await SendToDMOrServer(RequestedMessage.Channel, OpCodes.DISPATCH, RequestedMessage.Package(new User()), null, "MESSAGE_UPDATE"); // update the message
+    await SendToDMOrServer(
+        RequestedMessage.Channel,
+        OpCodes.DISPATCH,
+        RequestedMessage.Package(new User()),
+        null,
+        "MESSAGE_UPDATE",
+    ); // update the message
 
     res.json(RequestedMessage.Package(MyUser));
 });
@@ -105,7 +111,7 @@ App.delete("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
         relations: {
             Author: false,
             Channel: {
-                OwnerGuild: true
+                OwnerGuild: true,
             },
         },
     });
@@ -146,7 +152,9 @@ App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
     if (!req.body.files || !Array.isArray(req.body.files))
         return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No attachments provided" });
     if (req.body.files.length > 4)
-        return res.status(400).json({ code: JsonErrorCodes.MAXIMUM_ATTACHMENTS_IN_MESSAGE_REACHED, message: "Too many attachments" });
+        return res
+            .status(400)
+            .json({ code: JsonErrorCodes.MAXIMUM_ATTACHMENTS_IN_MESSAGE_REACHED, message: "Too many attachments" });
     for (const file of req.body.files)
         if (file.file_size > 25 * 1024 * 1024)
             return res.status(403).json({
@@ -167,13 +175,15 @@ App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
 });
 
 App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!, Before = /^\d+$/.test(req.query.before as string) ? req.query.before as string : undefined, After = /^\d+$/.test(req.query.after as string) ? req.query.after as string : undefined;
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!,
+        Before = /^\d+$/.test(req.query.before as string) ? (req.query.before as string) : undefined,
+        After = /^\d+$/.test(req.query.after as string) ? (req.query.after as string) : undefined;
     let Limit = /^\d+$/.test(req.query.limit as string) ? parseInt(req.query.limit as string) : 50;
     if (Limit > 250) Limit = 250;
-    if ((After && After > GenerateSnowflake()) || (Before && Before < req.params.ChannelID)) 
+    if ((After && After > GenerateSnowflake()) || (Before && Before < req.params.ChannelID))
         return res.status(422).json({
             code: JsonErrorCodes.GENERAL_ERROR,
-            message: "After is more than latest snowflake or Before less than channel snowflake."
+            message: "After is more than latest snowflake or Before less than channel snowflake.",
         });
 
     const RequestedChannel = await Channel.findOne({
@@ -187,8 +197,8 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
             DMRecipients: true,
             Type: true,
             Owner: {
-                ID: true
-            }
+                ID: true,
+            },
         },
     });
 
@@ -205,8 +215,8 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
 
     const Where: FindOptionsWhere<Message> = {
         Channel: {
-            ID: RequestedChannel.ID
-        }
+            ID: RequestedChannel.ID,
+        },
     };
     if (Before) Where.ID = LessThan(Before);
     if (After) Where.ID = MoreThan(After);
@@ -215,7 +225,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
         order: { ID: "DESC" },
         where: Where,
         take: Limit,
-        relations: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } }
+        relations: { ReplyingTo: { Channel: { Messages: false }, Author: true }, Channel: { Messages: false } },
     });
     let PackagedMessages = Messages.map((M) => M.Package(MyUser));
     if (Before && After) PackagedMessages = PackagedMessages.filter((M) => M.id < Before);
@@ -243,13 +253,13 @@ App.get("/:ChannelID", VerifyAuth, async (req, res) => {
     }
 
     const Mmbr = MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!;
-    if (!Mmbr) return res.status(403).json({
-        code: JsonErrorCodes.UNKNOWN_MEMBER,
-        message: "You are not participating in this guild."
-    });
+    if (!Mmbr)
+        return res.status(403).json({
+            code: JsonErrorCodes.UNKNOWN_MEMBER,
+            message: "You are not participating in this guild.",
+        });
 
-    if (!HasPermission(Mmbr, Permissions.VIEW_CHANNEL))
-        return res.status(400).json({ code: 0, message: "No access" });
+    if (!HasPermission(Mmbr, Permissions.VIEW_CHANNEL)) return res.status(400).json({ code: 0, message: "No access" });
 
     res.json(RequestedChannel.GuildPackage(undefined, MyUser.ID));
 });
@@ -485,172 +495,235 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
     res.json(NewInvite.Package());
 });
 
-App.post("/:ChannelID/messages", VerifyAuth, async (req, res, next) => {
-    ValidateRequest(req, res, next, MessageSendSchema);
-}, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, {
-        Memberships: { ToGuild: true },
-        RelationsFrom: true,
-        RelationsRegarding: true,
-    }))!;
-    const RequestedChannel = await Channel.findOne({
-        where: { ID: req.params.ChannelID },
-        relations: { DMRecipients: true, OwnerGuild: true },
-    });
-
-    if (!RequestedChannel)
-        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
-    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
-        return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No access" });
-    else if (!RequestedChannel.IsDM) {
-        const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
-        if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-        if (!HasPermission(Mmbr, Permissions.SEND_MESSAGES))
-            return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
-    }
-
-    if (RequestedChannel.Type === ChannelType.DM) {
-        const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
-        const RelationshipBetweenUsers = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding].find(
-            (R) => R.From.ID === OtherUser.ID || R.Regarding.ID === OtherUser.ID,
-        );
-
-        if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
-            return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM non-friends" });
-
-        if (OtherUser.HasFlag(UserFlags.SYSTEM)) // its impossible to dm a system account in normal discord
-            return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM a system account" });
-    }
-
-    let MessageReplyingTo: Message | undefined;
-    if (
-        typeof req.body.message_reference === "object" &&
-        typeof req.body.message_reference.channel_id === "string" &&
-        typeof req.body.message_reference.message_id === "string"
-    ) {
-        const ChannelReference = await Channel.findOne({
-            where: {
-                ID: req.body.message_reference.channel_id,
-            },
-            relations: {
-                Messages: {
-                    Channel: {
-                        Messages: false,
-                    },
-                },
-            },
+App.post(
+    "/:ChannelID/messages",
+    VerifyAuth,
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, MessageSendSchema);
+    },
+    async (req, res) => {
+        const MyUser = (await GetUserByRequest(req, {
+            Memberships: { ToGuild: true },
+            RelationsFrom: true,
+            RelationsRegarding: true,
+        }))!;
+        const RequestedChannel = await Channel.findOne({
+            where: { ID: req.params.ChannelID },
+            relations: { DMRecipients: true, OwnerGuild: true },
         });
 
-        if (!ChannelReference)
+        if (!RequestedChannel)
             return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
-        const MessageReference = ChannelReference.Messages.find((M) => M.ID === req.body.message_reference.message_id);
+        if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
+            return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No access" });
+        else if (!RequestedChannel.IsDM) {
+            const Mmbr = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID);
+            if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+            if (!HasPermission(Mmbr, Permissions.SEND_MESSAGES))
+                return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+        }
 
-        if (!MessageReference)
-            return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
-        MessageReplyingTo = MessageReference;
-    }
+        if (RequestedChannel.Type === ChannelType.DM) {
+            const OtherUser = RequestedChannel.AllRecipientsExceptYou(MyUser)![0];
+            const RelationshipBetweenUsers = [...MyUser.RelationsFrom, ...MyUser.RelationsRegarding].find(
+                (R) => R.From.ID === OtherUser.ID || R.Regarding.ID === OtherUser.ID,
+            );
 
-    const Embeds: Embed[] = [];
+            if (!RelationshipBetweenUsers || RelationshipBetweenUsers?.Type !== RelationType.FRIEND)
+                return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM non-friends" });
 
-    try {
-        if (req.body.content)
-            for await (const link of (req.body.content.match(
-                /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
-            )) ?? []) {
+            if (OtherUser.HasFlag(UserFlags.SYSTEM))
+                // its impossible to dm a system account in normal discord
+                return res
+                    .status(400)
+                    .json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM a system account" });
+        }
+
+        let MessageReplyingTo: Message | undefined;
+        if (
+            typeof req.body.message_reference === "object" &&
+            typeof req.body.message_reference.channel_id === "string" &&
+            typeof req.body.message_reference.message_id === "string"
+        ) {
+            const ChannelReference = await Channel.findOne({
+                where: {
+                    ID: req.body.message_reference.channel_id,
+                },
+                relations: {
+                    Messages: {
+                        Channel: {
+                            Messages: false,
+                        },
+                    },
+                },
+            });
+
+            if (!ChannelReference)
+                return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+            const MessageReference = ChannelReference.Messages.find(
+                (M) => M.ID === req.body.message_reference.message_id,
+            );
+
+            if (!MessageReference)
+                return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
+            MessageReplyingTo = MessageReference;
+        }
+
+        const Embeds: Embed[] = [];
+
+        try {
+            if (req.body.content)
+                for await (const link of req.body.content.match(
+                    /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+                ) ?? []) {
+                    if (
+                        !RequestedChannel.IsDM &&
+                        !HasPermission(
+                            MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                            Permissions.EMBED_LINKS,
+                        )
+                    )
+                        break;
+                    const Embed = await EmbedParser(link);
+                    if (Embed) Embeds.push(Embed);
+                }
+        } catch (e) {
+            Err("Error while parsing embeds");
+        }
+        let Type = MessageType[req.body.content.replace("!", "") as keyof typeof MessageType] || MessageType.DEFAULT;
+        if (req.body.content === "!ALL") {
+            // for (const Type of Object.values(MessageType)) {
+            //     const CreatedMessage = Message.create({
+            //         ID: GenerateSnowflake(),
+            //         Author: MyUser,
+            //         Type: Type as any,
+            //         Content: Type.toString(),
+            //         CreationDate: new Date(),
+            //         Channel: RequestedChannel,
+            //     });
+            //     await CreatedMessage.save();
+            //     if (!RequestedChannel.FirstMessageID) {
+            //         RequestedChannel.FirstMessageID = CreatedMessage.ID;
+            //         await RequestedChannel.save();
+            //     }
+            //     await SendMessage(CreatedMessage);
+            // }
+            const MessageTypes = Object.entries(MessageType);
+            const CreatedMessage = Message.create({
+                ID: GenerateSnowflake(),
+                Author: MyUser,
+                Type: MessageType.DEFAULT,
+                Content: "",
+                CreationDate: new Date(),
+                Channel: RequestedChannel,
+            });
+            const PMessage = CreatedMessage.Package(MyUser);
+            res.json({
+                ...PMessage,
+                nonce: req.body.nonce ?? undefined,
+                components: [],
+                edited_timestamp: null,
+            });
+            for (const [K, V] of MessageTypes) {
+                if (typeof V !== "number") continue;
+                const [Name, Value]: [string, number] = [K, V];
+                const CreatedMessage = Message.create({
+                    ID: GenerateSnowflake(),
+                    Author: MyUser,
+                    Type: Value,
+                    Content: Name,
+                    CreationDate: new Date(),
+                    Channel: RequestedChannel,
+                });
+                await CreatedMessage.save();
+                if (!RequestedChannel.FirstMessageID) {
+                    RequestedChannel.FirstMessageID = CreatedMessage.ID;
+                    await RequestedChannel.save();
+                }
+                await SendMessage(CreatedMessage);
+            }
+            return;
+        }
+        const CreatedMessage = Message.create({
+            ID: GenerateSnowflake(),
+            Author: MyUser,
+            Content: Type === MessageType.DEFAULT ? req.body.content : "​",
+            CreationDate: new Date(),
+            Channel: RequestedChannel,
+            Embeds,
+            Type,
+        });
+
+        const Attachments: Attachment[] = [];
+
+        try {
+            for (const Attachment of (req.body.attachments ?? []) as AttachmentMessagePost[]) {
                 if (
                     !RequestedChannel.IsDM &&
                     !HasPermission(
                         MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
-                        Permissions.EMBED_LINKS,
+                        Permissions.ATTACH_FILES,
                     )
                 )
-                    break;
-                const Embed = await EmbedParser(link);
-                if (Embed) Embeds.push(Embed);
-            }
-    } catch (e) {
-        Err("Error while parsing embeds");
-    }
+                    return res.status(403).json({
+                        code: JsonErrorCodes.MISSING_ACCESS,
+                        message: 'You must have "ATTACH_FILES" permission to attach files.',
+                    });
+                const File = FindAttachment(Attachment.uploaded_filename);
+                if (!File) continue;
+                const AttachmentID = GenerateSnowflake();
+                const { ContentType, Size, ImageOrVideoSize } = await HandleAttachment(
+                    File,
+                    `${CreatedMessage.Channel.ID}-${AttachmentID}-${Attachment.filename}`,
+                );
 
-    const CreatedMessage = Message.create({
-        ID: GenerateSnowflake(),
-        Author: MyUser,
-        Type: MessageType.DEFAULT,
-        Content: req.body.content,
-        CreationDate: new Date(),
-        Channel: RequestedChannel,
-        Embeds,
-    });
-
-    const Attachments: Attachment[] = [];
-
-    try {
-        for (const Attachment of (req.body.attachments ?? []) as AttachmentMessagePost[]) {
-            if (
-                !RequestedChannel.IsDM &&
-                !HasPermission(
-                    MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
-                    Permissions.ATTACH_FILES,
-                )
-            )
-                return res.status(403).json({
-                    code: JsonErrorCodes.MISSING_ACCESS,
-                    message: "You must have \"ATTACH_FILES\" permission to attach files.",
+                Attachments.push({
+                    content_type: ContentType,
+                    filename: Attachment.filename,
+                    url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+                    proxy_url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
+                    id: AttachmentID,
+                    size: Size,
+                    height: ImageOrVideoSize.height,
+                    width: ImageOrVideoSize.width,
                 });
-            const File = FindAttachment(Attachment.uploaded_filename);
-            if (!File) continue;
-            const AttachmentID = GenerateSnowflake();
-            const { ContentType, Size, ImageOrVideoSize } = await HandleAttachment(
-                File,
-                `${CreatedMessage.Channel.ID}-${AttachmentID}-${Attachment.filename}`,
-            );
-
-            Attachments.push({
-                content_type: ContentType,
-                filename: Attachment.filename,
-                url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
-                proxy_url: `https://cdn.discordapp.com/attachments/${CreatedMessage.Channel.ID}/${AttachmentID}/${Attachment.filename}`,
-                id: AttachmentID,
-                size: Size,
-                height: ImageOrVideoSize.height,
-                width: ImageOrVideoSize.width,
+            }
+        } catch (e) {
+            return res.status(400).json({
+                code: JsonErrorCodes.GENERAL_ERROR,
+                message: "An error occurred while processing your attachments.",
             });
         }
-    } catch (e) {
-        return res.status(400).json({
-            code: JsonErrorCodes.GENERAL_ERROR,
-            message: "An error occurred while processing your attachments.",
+
+        if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0)
+            return res.status(400).json({
+                code: JsonErrorCodes.CANNOT_SEND_EMPTY_MESSAGE,
+                message: "Cannot send empty message.",
+            });
+
+        CreatedMessage.Attachments = Attachments;
+
+        if (MessageReplyingTo) {
+            CreatedMessage.ReplyingTo = MessageReplyingTo;
+            CreatedMessage.Type = MessageType.REPLY;
+        }
+
+        await CreatedMessage.save();
+        if (!RequestedChannel.FirstMessageID) {
+            RequestedChannel.FirstMessageID = CreatedMessage.ID;
+            await RequestedChannel.save();
+        }
+        await SendMessage(CreatedMessage);
+
+        const PMessage = CreatedMessage.Package(MyUser);
+        res.json({
+            ...PMessage,
+            nonce: req.body.nonce ?? undefined,
+            components: [],
+            edited_timestamp: null,
         });
-    }
-
-    if (!CreatedMessage.Content && Attachments.length === 0 && Embeds.length === 0)
-        return res.status(400).json({
-            code: JsonErrorCodes.CANNOT_SEND_EMPTY_MESSAGE,
-            message: "Cannot send empty message.",
-        });
-
-    CreatedMessage.Attachments = Attachments;
-
-    if (MessageReplyingTo) {
-        CreatedMessage.ReplyingTo = MessageReplyingTo;
-        CreatedMessage.Type = MessageType.REPLY;
-    }
-
-    await CreatedMessage.save();
-    if (!RequestedChannel.FirstMessageID) {
-        RequestedChannel.FirstMessageID = CreatedMessage.ID;
-        await RequestedChannel.save();
-    }
-    await SendMessage(CreatedMessage);
-
-    const PMessage = CreatedMessage.Package(MyUser);
-    res.json({
-        ...PMessage,
-        nonce: req.body.nonce ?? undefined,
-        components: [],
-        edited_timestamp: null,
-    });
-});
+    },
+);
 
 App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
@@ -671,18 +744,21 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async 
     if (!RequestedChannel || !RequestedMessage) return res.sendStatus(404);
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
         return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
-    
-    if (Type === "1") { // superreaction
-        if (MyUser!.AvailableSuperreactions <= 0) return res.status(400).json({ code: JsonErrorCodes.REACTION_BLOCKED, message: "No burst credits" });
+
+    if (Type === "1") {
+        // superreaction
+        if (MyUser!.AvailableSuperreactions <= 0)
+            return res.status(400).json({ code: JsonErrorCodes.REACTION_BLOCKED, message: "No burst credits" });
         MyUser!.AvailableSuperreactions -= 1;
         await MyUser!.save();
     }
 
-    const MessageReaction = RequestedMessage.Reactions?.find((R) => R.EmojiCode === Emoji && R.Type === (Type === "0" ? "normal" : "super"));
+    const MessageReaction = RequestedMessage.Reactions?.find(
+        (R) => R.EmojiCode === Emoji && R.Type === (Type === "0" ? "normal" : "super"),
+    );
     if (MessageReaction) {
-        if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID))
-            return res.sendStatus(204);
-			
+        if (MessageReaction.UsersReacted.find((U) => U.ID === MyUser!.ID)) return res.sendStatus(204);
+
         MessageReaction.UsersReacted.push(MyUser!);
         await MessageReaction.save();
     } else {
@@ -830,13 +906,18 @@ App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, asy
 });
 
 App.get("/:ChannelID/pins", VerifyAuth, async (req, res) => {
-    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true, Messages: { Channel: true } } });
-    
-    if (!RequestedChannel) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+    const RequestedChannel = await Channel.findOne({
+        where: { ID: req.params.ChannelID },
+        relations: { OwnerGuild: true, Messages: { Channel: true } },
+    });
+
+    if (!RequestedChannel)
+        return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
 
     const MyUser = await GetUserByRequest(req);
 
-    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser!))
+        return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     // TODO: add permission check for guilds
 
     const PinnedMessages = RequestedChannel.Messages.filter((M) => M.Pinned);
@@ -845,24 +926,38 @@ App.get("/:ChannelID/pins", VerifyAuth, async (req, res) => {
 });
 
 App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
-    const MessageToPin = await Message.findOne({ where: { ID: req.params.MessageID }, relations: { Channel: { OwnerGuild: true, Messages: true } } });
+    const MessageToPin = await Message.findOne({
+        where: { ID: req.params.MessageID },
+        relations: { Channel: { OwnerGuild: true, Messages: true } },
+    });
 
-    if (!MessageToPin) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
+    if (!MessageToPin)
+        return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
 
-    if (MessageToPin.Channel.ID !== req.params.ChannelID) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
-    
+    if (MessageToPin.Channel.ID !== req.params.ChannelID)
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+
     const MyUser = await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } });
 
-    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
-    if (!MessageToPin.Channel.IsDM && !HasPermission(MembershipFromGuild(MyUser!, MessageToPin.Channel.OwnerGuild!)!, Permissions.MANAGE_MESSAGES)) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!))
+        return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (
+        !MessageToPin.Channel.IsDM &&
+        !HasPermission(MembershipFromGuild(MyUser!, MessageToPin.Channel.OwnerGuild!)!, Permissions.MANAGE_MESSAGES)
+    )
+        return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
-    if (MessageToPin.Type != MessageType.DEFAULT && MessageToPin.Type != MessageType.REPLY) return res.json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Cannot Execute On Message Type" });
+    if (MessageToPin.Type != MessageType.DEFAULT && MessageToPin.Type != MessageType.REPLY)
+        return res.json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Cannot Execute On Message Type" });
     if (MessageToPin.Pinned) return res.sendStatus(204);
 
     // TODO: sort by pinning date (latest on top, oldest on bottom)
     const PinnedMessages = MessageToPin.Channel.Messages.filter((M) => M.Pinned);
 
-    if (PinnedMessages.length >= 50) return res.status(400).json({ code: JsonErrorCodes.MAXIMUM_PINS_REACHED_FOR_CHANNEL, message: "Too Many Pins In Channel" });
+    if (PinnedMessages.length >= 50)
+        return res
+            .status(400)
+            .json({ code: JsonErrorCodes.MAXIMUM_PINS_REACHED_FOR_CHANNEL, message: "Too Many Pins In Channel" });
 
     MessageToPin.Pinned = true;
 
@@ -875,28 +970,46 @@ App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
         Author: MyUser!,
         ReplyingTo: MessageToPin,
         Content: "",
-        CreationDate: new Date()
+        CreationDate: new Date(),
     });
 
     await PinnedMessage.save();
 
     await SendMessage(PinnedMessage);
-    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, MessageToPin.Package(new User()), null, "MESSAGE_UPDATE"); // update the original message
-    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, { channel_id: MessageToPin.Channel.ID, last_pin_timestamp: new Date().toISOString() }, null, "CHANNEL_PINS_UPDATE"); // reload pins
+    await SendToDMOrServer(
+        MessageToPin.Channel,
+        OpCodes.DISPATCH,
+        MessageToPin.Package(new User()),
+        null,
+        "MESSAGE_UPDATE",
+    ); // update the original message
+    await SendToDMOrServer(
+        MessageToPin.Channel,
+        OpCodes.DISPATCH,
+        { channel_id: MessageToPin.Channel.ID, last_pin_timestamp: new Date().toISOString() },
+        null,
+        "CHANNEL_PINS_UPDATE",
+    ); // reload pins
 
     res.sendStatus(204);
 });
 
 App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
-    const MessageToPin = await Message.findOne({ where: { ID: req.params.MessageID }, relations: { Channel: { OwnerGuild: true } } });
+    const MessageToPin = await Message.findOne({
+        where: { ID: req.params.MessageID },
+        relations: { Channel: { OwnerGuild: true } },
+    });
 
-    if (!MessageToPin) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
+    if (!MessageToPin)
+        return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
 
-    if (MessageToPin.Channel.ID !== req.params.ChannelID) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
-    
+    if (MessageToPin.Channel.ID !== req.params.ChannelID)
+        return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+
     const MyUser = await GetUserByRequest(req);
 
-    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!)) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (MessageToPin.Channel.IsDM && !MessageToPin.Channel.CheckDMAccess(MyUser!))
+        return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     // TODO: add permission check for guilds
 
     if (!MessageToPin.Pinned) return res.sendStatus(204);
@@ -905,40 +1018,80 @@ App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
 
     await MessageToPin.save();
 
-    await SendToDMOrServer(MessageToPin.Channel, OpCodes.DISPATCH, MessageToPin.Package(new User()), null, "MESSAGE_UPDATE"); // update the original message
+    await SendToDMOrServer(
+        MessageToPin.Channel,
+        OpCodes.DISPATCH,
+        MessageToPin.Package(new User()),
+        null,
+        "MESSAGE_UPDATE",
+    ); // update the original message
 
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res, next) => {
-    ValidateRequest(req, res, next, VCEffectSchema);
-}, async (req, res) => {
-    const RequestedChannel = await Channel.findOne({ where: { ID: req.params.ChannelID }, relations: { OwnerGuild: true } });
+App.post(
+    "/:ChannelID/voice-channel-effects",
+    VerifyAuth,
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, VCEffectSchema);
+    },
+    async (req, res) => {
+        const RequestedChannel = await Channel.findOne({
+            where: { ID: req.params.ChannelID },
+            relations: { OwnerGuild: true },
+        });
 
-    if (!RequestedChannel) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+        if (!RequestedChannel)
+            return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
 
-    if (RequestedChannel.Type != ChannelType.GUILD_VOICE) return res.status(400).json({ code: JsonErrorCodes.CANNOT_EXECUTE_ACTION_ON_THIS_CHANNEL_TYPE, message: "Cannot Execute On Channel Type" });
+        if (RequestedChannel.Type != ChannelType.GUILD_VOICE)
+            return res.status(400).json({
+                code: JsonErrorCodes.CANNOT_EXECUTE_ACTION_ON_THIS_CHANNEL_TYPE,
+                message: "Cannot Execute On Channel Type",
+            });
 
-    const VoiceSession = VoiceSessions.find((S) => S.channel_id == RequestedChannel.ID);
+        const VoiceSession = VoiceSessions.find((S) => S.channel_id == RequestedChannel.ID);
 
-    if (VoiceSession === undefined) return res.status(403).json({ code: JsonErrorCodes.TARGET_USER_NOT_CONNECTED_TO_VOICE, message: "User must be in voice channel to send voice channel effect" });
+        if (VoiceSession === undefined)
+            return res.status(403).json({
+                code: JsonErrorCodes.TARGET_USER_NOT_CONNECTED_TO_VOICE,
+                message: "User must be in voice channel to send voice channel effect",
+            });
 
-    const MyUser = await GetUserByRequest(req);
-    const VoiceState = VoiceSession.voice_states.find((S) => S.user_id == MyUser!.ID);
+        const MyUser = await GetUserByRequest(req);
+        const VoiceState = VoiceSession.voice_states.find((S) => S.user_id == MyUser!.ID);
 
-    if (VoiceState === undefined) return res.status(403).json({ code: JsonErrorCodes.TARGET_USER_NOT_CONNECTED_TO_VOICE, message: "User must be in voice channel to send voice channel effect" });
+        if (VoiceState === undefined)
+            return res.status(403).json({
+                code: JsonErrorCodes.TARGET_USER_NOT_CONNECTED_TO_VOICE,
+                message: "User must be in voice channel to send voice channel effect",
+            });
 
-    const AnimationID = req.body.animation_id ?? 0;
-    const AnimationType = req.body.animation_type ?? 1;
-    const EmojiID = req.body.emoji_id;
-    const EmojiName = req.body.emoji_name;
+        const AnimationID = req.body.animation_id ?? 0;
+        const AnimationType = req.body.animation_type ?? 1;
+        const EmojiID = req.body.emoji_id;
+        const EmojiName = req.body.emoji_name;
 
-    // TODO: Add nitro check for animationtype 0
-    // TODO: Add check for emojiID (guild emojis)
+        // TODO: Add nitro check for animationtype 0
+        // TODO: Add check for emojiID (guild emojis)
 
-    await SendToVC(RequestedChannel, OpCodes.DISPATCH, { guild_id: RequestedChannel.OwnerGuild!.ID, channel_id: RequestedChannel.ID, user_id: MyUser!.ID, animation_id: AnimationID, animation_type: AnimationType, emoji: { animated: false, id: EmojiID, name: EmojiName } }, null, "VOICE_CHANNEL_EFFECT_SEND");
-    res.sendStatus(204);
-});
+        await SendToVC(
+            RequestedChannel,
+            OpCodes.DISPATCH,
+            {
+                guild_id: RequestedChannel.OwnerGuild!.ID,
+                channel_id: RequestedChannel.ID,
+                user_id: MyUser!.ID,
+                animation_id: AnimationID,
+                animation_type: AnimationType,
+                emoji: { animated: false, id: EmojiID, name: EmojiName },
+            },
+            null,
+            "VOICE_CHANNEL_EFFECT_SEND",
+        );
+        res.sendStatus(204);
+    },
+);
 
 module.exports = {
     DefaultAPI: "/api/v9/channels",

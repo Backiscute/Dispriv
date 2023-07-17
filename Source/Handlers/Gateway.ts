@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WebSocketServer } from "ws";
 import { unpack } from "erlpack";
-import { Msg } from "../Modules/Logger";
+import { Err, Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { GatewayCloseCodes, OpCodes } from "../Classes/GatewayOpCodes";
 import { CloseConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
@@ -24,6 +24,8 @@ import {
     VoiceServerUpdatePacket,
 } from "../Classes/GatewayPackets";
 import { GetGuildExperiments, GetUserExperiments } from "./Experiments";
+import { Guild } from "../Entities/Guild";
+import { Membership } from "../Entities/User";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
@@ -38,6 +40,12 @@ function RemoveConnection(Conn: GatewayConnection) {
 
     const Idx = Connections.findIndex((C) => C.ID === Conn.ID);
     if (Idx !== -1) Connections.splice(Idx, 1);
+}
+
+function SplitArrayIntoChunks(Data: Array<any>, ChunkSize: number) {
+    return Array.from({ length: Math.ceil(Data.length / ChunkSize) }, (_, index) =>
+        Data.slice(index * ChunkSize, (index + 1) * ChunkSize),
+    );
 }
 
 Socket.on("connection", async (Client, req) => {
@@ -60,8 +68,7 @@ Socket.on("connection", async (Client, req) => {
     Client.on("close", () => {
         GatewayClient.ScheduledForRemoval = true;
         setTimeout(() => {
-            if (!GatewayClient.ScheduledForRemoval)
-                return; // client resumed the connection in time
+            if (!GatewayClient.ScheduledForRemoval) return; // client resumed the connection in time
 
             RemoveConnection(GatewayClient);
         }, 120 * 1000);
@@ -361,7 +368,6 @@ Socket.on("connection", async (Client, req) => {
                     await SendToMembers(VoiceState.guild_id, OpCodes.DISPATCH, VoiceState, null, "VOICE_STATE_UPDATE");
 
                     if (VoiceSession.voice_states.length === 0) {
-                        
                         const LinkedChannel = await Channel.findOne({
                             where: { ID: VoiceSession.channel_id },
                             relations: { OwnerGuild: true },
@@ -386,7 +392,7 @@ Socket.on("connection", async (Client, req) => {
                                 "EMBEDDED_ACTIVITY_UPDATE",
                             );
                         });
-                        
+
                         VoiceSessions.splice(VoiceSessions.indexOf(VoiceSession), 1);
                     }
                 }
@@ -394,9 +400,42 @@ Socket.on("connection", async (Client, req) => {
                 break;
             }
 
-            case OpCodes.REQUEST_GUILD_MEMBERS:
+            case OpCodes.REQUEST_GUILD_MEMBERS: {
+                async function DoChunking(GuildID: string, Nonce: string) {
+                    const UserGuild = await Guild.findOne({
+                        where: { ID: GuildID },
+                        relations: { Members: true },
+                    });
+                    if (!UserGuild) throw new Error("No guild");
+                    const Chunks = SplitArrayIntoChunks(UserGuild.Members, Data.limit);
+                    Chunks.forEach((Chunk, Index) => {
+                        SendOp(
+                            GatewayClient,
+                            OpCodes.DISPATCH,
+                            {
+                                guild_id: GuildID,
+                                members: Chunk,
+                                chunk_index: Index,
+                                chunk_count: Chunks.length,
+                                nonce: Nonce,
+                            },
+                            null,
+                            "GUILD_MEMBERS_CHUNK",
+                        );
+                    });
+                }
+                if (!GatewayClient.Account!)
+                    return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
+                const Data = UnpackedData.d;
+                if (Array.isArray(Data.guild_id)) {
+                    Data.guild_id.forEach((GuildID: string) => {
+                        DoChunking(GuildID, Data.nonce);
+                    });
+                } else {
+                    DoChunking(Data.guild_id, Data.nonce);
+                }
                 break;
-
+            }
             case OpCodes.CLIENT_SPEEDTEST_DELETE:
                 if (!GatewayClient.Account!)
                     return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
@@ -412,56 +451,59 @@ Socket.on("connection", async (Client, req) => {
             case OpCodes.RESUME: {
                 const Token = UnpackedData.d.token ?? "";
                 try {
-                    if (!(await VerifyToken(Token)))
-                        throw new Error("Invalid token"); // no doubling up the code when you can just throw an error
+                    if (!(await VerifyToken(Token))) throw new Error("Invalid token"); // no doubling up the code when you can just throw an error
 
-                    if (typeof UnpackedData.d.session_id !== "string")
-                        throw new Error("Invalid session");
+                    if (typeof UnpackedData.d.session_id !== "string") throw new Error("Invalid session");
 
-                    if (typeof UnpackedData.d.seq !== "number")
-                        throw new Error("Invalid seq");
+                    if (typeof UnpackedData.d.seq !== "number") throw new Error("Invalid seq");
                 } catch (e) {
                     SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
 
                     const er = (e as Error).message.split(" ")[1].toLowerCase();
-                    const CloseCode = er === "token" || er === "session" ?
-                        GatewayCloseCodes.AuthenticationFailed : er === "seq" ?
-                        GatewayCloseCodes.InvalidSeq :
-                        GatewayCloseCodes.UnknownError;
+                    const CloseCode =
+                        er === "token" || er === "session"
+                            ? GatewayCloseCodes.AuthenticationFailed
+                            : er === "seq"
+                            ? GatewayCloseCodes.InvalidSeq
+                            : GatewayCloseCodes.UnknownError;
 
                     CloseConnection(GatewayClient, CloseCode, "Authentication failed.");
                     return;
                 }
 
                 const Session = UnpackedData.d.session_id ?? "";
-                const NewGtCl = Connections.find(x =>
-                    x.ScheduledForRemoval
-                    && x.ID === Session
-                    && x.Account?.ID === GetTokenUserId(Token));
+                const NewGtCl = Connections.find(
+                    (x) => x.ScheduledForRemoval && x.ID === Session && x.Account?.ID === GetTokenUserId(Token),
+                );
 
-                if (!NewGtCl)
-                {
+                if (!NewGtCl) {
                     SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
                     CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
                     return;
                 }
-                
+
                 NewGtCl.UseZlib = GatewayClient.UseZlib;
                 NewGtCl.Encoding = GatewayClient.Encoding;
                 RemoveConnection(GatewayClient);
-                
+
                 NewGtCl.SocketClient = Client;
                 NewGtCl.ScheduledForRemoval = false;
                 GatewayClient = NewGtCl;
 
                 await ReplayMissedPackets(GatewayClient, Number(UnpackedData.d.seq));
 
-                SendOp(GatewayClient, OpCodes.DISPATCH, {
-                    _trace: [
-                        // eslint-disable-next-line quotes
-                        '["Dispriv-Gateway",{"micros":189890,"calls":["id_created",{"micros":735,"calls":[]},"session_lookup_time",{"micros":480,"calls":[]},"session_lookup_finished",{"micros":14,"calls":[]},"discord-sessions-prd-2-73",{"micros":187060,"calls":["start_session",{"micros":120393,"calls":["discord-api-785656c5b6-hnsw9",{"micros":112351,"calls":["get_user",{"micros":23943},"get_guilds",{"micros":16119},"user_settings_proto",{"micros":129},"relationships",{"micros":19935},"friend_suggestion",{"micros":59},"connections",{"micros":27},"serialized_read_states",{"micros":8},"pending_payments",{"micros":2},"send_scheduled_deletion_message",{"micros":1},"sanitize_premium_perks",{"micros":1},"guild_join_requests",{"micros":1},"user_guild_settings",{"micros":2},"serialized_private_channels",{"micros":5724},"user_segments",{"micros":5},"experiments",{"micros":12410},"affine_user_ids",{"micros":10646},"required_action",{"micros":4},"authorized_ip_coro",{"micros":1}]}]},"starting_guild_connect",{"micros":33,"calls":[]},"presence_started",{"micros":279,"calls":[]},"guilds_started",{"micros":114,"calls":[]},"guilds_connect",{"micros":65877,"calls":[]},"presence_connect",{"micros":1,"calls":[]},"connect_finished",{"micros":65894,"calls":[]},"build_ready",{"micros":312,"calls":[]},"clean_ready",{"micros":1,"calls":[]},"optimize_ready",{"micros":27,"calls":[]},"split_ready",{"micros":4,"calls":[]}]}]}]',
-                    ]
-                }, null, "RESUMED");
+                SendOp(
+                    GatewayClient,
+                    OpCodes.DISPATCH,
+                    {
+                        _trace: [
+                            // eslint-disable-next-line quotes
+                            '["Dispriv-Gateway",{"micros":189890,"calls":["id_created",{"micros":735,"calls":[]},"session_lookup_time",{"micros":480,"calls":[]},"session_lookup_finished",{"micros":14,"calls":[]},"discord-sessions-prd-2-73",{"micros":187060,"calls":["start_session",{"micros":120393,"calls":["discord-api-785656c5b6-hnsw9",{"micros":112351,"calls":["get_user",{"micros":23943},"get_guilds",{"micros":16119},"user_settings_proto",{"micros":129},"relationships",{"micros":19935},"friend_suggestion",{"micros":59},"connections",{"micros":27},"serialized_read_states",{"micros":8},"pending_payments",{"micros":2},"send_scheduled_deletion_message",{"micros":1},"sanitize_premium_perks",{"micros":1},"guild_join_requests",{"micros":1},"user_guild_settings",{"micros":2},"serialized_private_channels",{"micros":5724},"user_segments",{"micros":5},"experiments",{"micros":12410},"affine_user_ids",{"micros":10646},"required_action",{"micros":4},"authorized_ip_coro",{"micros":1}]}]},"starting_guild_connect",{"micros":33,"calls":[]},"presence_started",{"micros":279,"calls":[]},"guilds_started",{"micros":114,"calls":[]},"guilds_connect",{"micros":65877,"calls":[]},"presence_connect",{"micros":1,"calls":[]},"connect_finished",{"micros":65894,"calls":[]},"build_ready",{"micros":312,"calls":[]},"clean_ready",{"micros":1,"calls":[]},"optimize_ready",{"micros":27,"calls":[]},"split_ready",{"micros":4,"calls":[]}]}]}]',
+                        ],
+                    },
+                    null,
+                    "RESUMED",
+                );
 
                 /*console.log("--- GETTING RESUME ACCOUNT");
 
@@ -502,21 +544,22 @@ Socket.on("connection", async (Client, req) => {
                 time(`identify-${GatewayClient.ID}`);
                 const Token = UnpackedData.d.token ?? "";
 
-                if (!(await VerifyToken(Token)))
-                {
+                if (!(await VerifyToken(Token))) {
                     SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
                     CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Authentication failed.");
                     return;
                 }
 
-                const ExistingSession = Connections.find(x => x.Account?.ID === GetTokenUserId(Token));
+                const ExistingSession = Connections.find((x) => x.Account?.ID === GetTokenUserId(Token));
                 if (ExistingSession) {
-                    if (ExistingSession.ScheduledForRemoval)
-                        RemoveConnection(ExistingSession);
-                    else
-                    {
+                    if (ExistingSession.ScheduledForRemoval) RemoveConnection(ExistingSession);
+                    else {
                         SendOp(GatewayClient, OpCodes.INVALID_SESSION, false);
-                        CloseConnection(GatewayClient, GatewayCloseCodes.AuthenticationFailed, "Someone is already logged into that account.");
+                        CloseConnection(
+                            GatewayClient,
+                            GatewayCloseCodes.AuthenticationFailed,
+                            "Someone is already logged into that account.",
+                        );
                         return;
                     }
                 }
@@ -530,7 +573,7 @@ Socket.on("connection", async (Client, req) => {
                                 Owner: true,
                             },
                             Channels: {
-                                OwnerCategory: true
+                                OwnerCategory: true,
                             },
                         },
                     },
@@ -539,16 +582,16 @@ Socket.on("connection", async (Client, req) => {
                     },
                     RelationsFrom: {
                         From: true,
-                        Regarding: true
+                        Regarding: true,
                     },
                     RelationsRegarding: {
                         From: true,
-                        Regarding: true
+                        Regarding: true,
                     },
                 }))!;
                 GatewayClient.UserToken = Token;
                 GatewayClient.PackagedAccount = GatewayClient.Account.Package();
-				
+
                 console.log("--- ACCOUNT GOTTEN");
                 const ConnectionIntents = UnpackedData.d.intents ?? 0;
                 GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
@@ -637,7 +680,7 @@ Socket.on("connection", async (Client, req) => {
                     {
                         disclose: ["pomelo"], // username system?
                         guilds: GatewayClient.Account!.Memberships.map((M) => M.ToGuild.GatewaySupplementalPackage()), // embedded_activities array (empty), guild id and voice_states array
-                        lazy_private_channels: [], // not sure but not needed i think
+                        lazy_private_channels: [], // list of channels to lazy-load (member access related, ig?)
                         merged_members: [
                             ...GatewayClient.Account!.Memberships.map((M) =>
                                 M.ToGuild.Members.map((M) => M.PackageGateway()),
@@ -650,6 +693,26 @@ Socket.on("connection", async (Client, req) => {
                 );
                 console.log("--- CLIENT READY'IED");
                 timeEnd(`identify-${GatewayClient.ID}`);
+                break;
+            }
+
+            case OpCodes.REGISTER_GUILD_EVENTS: {
+                const Data = UnpackedData.d;
+                // {
+                //     guild_id: "1130498665497100288",
+                //     typing: true,
+                //     activities: true,
+                //     threads: true,
+                //     channels: {
+                //         "1130498665513877504": [[0, 99]],
+                //     },
+                // };
+                const FoundGuild = await Guild.findOne({
+                    where: { ID: Data.guild_id },
+                    relations: { Members: true },
+                });
+                if (!FoundGuild) return;
+                SendOp(GatewayClient, OpCodes.DISPATCH, {}, null, "GUILD_MEMBER_LIST_UPDATE");
                 break;
             }
         }

@@ -17,11 +17,28 @@ import { FindConnection } from "../Modules/GatewayUtils";
 
 const App = Router();
 
+function IsBase64Image(Data: string) {
+    try {
+        const ImageBuffer = Buffer.from(Data, "base64");
+        return ImageBuffer.length > 0;
+    } catch (error) {
+        return false;
+    }
+}
+
 App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
     const U = (await GetUserByRequest(req, {
         Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true }, Members: true } },
     }))!;
-
+    // const AllowedKeys = [
+    //     "accent_color",
+    //     "avatar",
+    //     "avatar_decoration",
+    //     "discriminator",
+    //     "display_name",
+    //     "global_name",
+    //     "theme_colors",
+    // ];
     for (const PropKey of Object.keys(req.body)) {
         const Value = req.body[PropKey];
         switch (PropKey) {
@@ -30,8 +47,8 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                     Remove(U.AvatarID);
                     U.AvatarID = undefined;
                 }
-                
-                if (!ValidBaseURL(Value)) continue;
+
+                if (!IsBase64Image(Value)) continue;
 
                 U.AvatarID = await Upload(Value, "Users");
                 continue;
@@ -41,14 +58,14 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                     U.BannerID = undefined;
                 }
 
-                if (!ValidBaseURL(Value)) continue;
-                
+                if (!IsBase64Image(Value)) continue;
+
                 U.BannerID = await Upload(Value, "Users");
                 break;
             case "bio":
                 if (!/^[a-z 0-9!?,.*-_#!;()[\]|`]{0,250}$/gi.test(Value))
                     return res.status(403).json({ code: 0, message: "Bio failed validation" });
-    
+
                 U.Bio = Value;
                 continue;
             case "discriminator":
@@ -73,6 +90,9 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Username = Value.trim();
                 U.Discriminator = DiscrimRandom;
                 continue;
+            case "theme_colors":
+                U.ThemeColors = Value;
+                continue;
         }
     }
 
@@ -83,52 +103,55 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     const Conn = FindConnection(U.ID);
     if (Conn) Conn.PackagedAccount = U.Package();
 
+    await SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
     SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
-    SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
 });
 App.post("/@me/devices", (req, res) => res.sendStatus(204));
 
 //TODO: check if all update or only key
 App.use("/@me/settings-proto/:index", (req, res, next) => {
     const Index = parseInt(req.params.index);
-    if (isNaN(Index)) return res.status(400).json({
-        code: JsonErrorCodes.GENERAL_ERROR,
-        message: "Index can only be an integer."
-    });
-    else if (Index < 1 || Index > 3) return res.status(400).json({
-        code: JsonErrorCodes.GENERAL_ERROR,
-        message: "Settings proto index can only be between 1 and 3."
-    });
+    if (isNaN(Index))
+        return res.status(400).json({
+            code: JsonErrorCodes.GENERAL_ERROR,
+            message: "Index can only be an integer.",
+        });
+    else if (Index < 1 || Index > 3)
+        return res.status(400).json({
+            code: JsonErrorCodes.GENERAL_ERROR,
+            message: "Settings proto index can only be between 1 and 3.",
+        });
     else next();
-    
 });
 App.get("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
-    
+
     res.send({ settings: MyUser.SettingsProto[parseInt(req.params.index) - 1] });
 });
 
 App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req))!, Index = parseInt(req.params.index);
+    const MyUser = (await GetUserByRequest(req))!,
+        Index = parseInt(req.params.index);
     if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
-    
-    try 
-    {
+
+    try {
         switch (Index) {
             case 1:
                 const PreloadedUSettings = PreloadedUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
                 const PreloadedUSettingsChange = PreloadedUserSettings.fromBase64(req.body.settings);
-                
-                for (const [Key, Value] of Object.entries(PreloadedUSettingsChange)) PreloadedUSettings[Key as keyof PreloadedUserSettings] = Value;
-    
+
+                for (const [Key, Value] of Object.entries(PreloadedUSettingsChange))
+                    PreloadedUSettings[Key as keyof PreloadedUserSettings] = Value;
+
                 MyUser.SettingsProto[Index - 1] = PreloadedUserSettings.toBase64(PreloadedUSettings);
                 break;
             case 2:
                 const FrenecyUSettings = FrecencyUserSettings.fromBase64(MyUser.SettingsProto[Index - 1]);
                 const FrenecyUSettingsChange = FrecencyUserSettings.fromBase64(req.body.settings);
-        
-                for (const [Key, Value] of Object.entries(FrenecyUSettingsChange)) FrenecyUSettings[Key as keyof FrecencyUserSettings] = Value;
-    
+
+                for (const [Key, Value] of Object.entries(FrenecyUSettingsChange))
+                    FrenecyUSettings[Key as keyof FrecencyUserSettings] = Value;
+
                 MyUser.SettingsProto[Index - 1] = FrecencyUserSettings.toBase64(FrenecyUSettings);
                 break;
             case 3:
@@ -235,14 +258,14 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
             where: {
                 ID: req.query.guild_id as string,
                 Owner: {
-                    ID: FoundUser.ID
-                }
+                    ID: FoundUser.ID,
+                },
             },
             relations: {
-                Owner: true
-            }
+                Owner: true,
+            },
         });
-        
+
         if (Mmbr) {
             Guild.guild_member = Mmbr.Package(true);
             Guild.guild_member_profile = {
@@ -277,9 +300,9 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
             banner: FoundUser.BannerID,
             emoji: null,
             popout_animation_particle_type: null,
-            theme_colors: null,
+            theme_colors: FoundUser.ThemeColors,
         },
-        ...Guild
+        ...Guild,
     });
 });
 
@@ -331,14 +354,26 @@ App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => 
         `Relation between ${MyUser.Username}#${MyUser.Discriminator} <-> ${RelationTarget.Username}#${RelationTarget.Discriminator} valid and not BLOCKED.`,
     );
 
-    SendToUser(RelationTarget, OpCodes.DISPATCH, {
-        id: MyUser.ID,
-        type: TargetRelation.Type
-    }, null, "RELATIONSHIP_REMOVE");
-    SendToUser(MyUser, OpCodes.DISPATCH, {
-        id: RelationTarget.ID,
-        type: TargetRelation.Type
-    }, null, "RELATIONSHIP_REMOVE");
+    SendToUser(
+        RelationTarget,
+        OpCodes.DISPATCH,
+        {
+            id: MyUser.ID,
+            type: TargetRelation.Type,
+        },
+        null,
+        "RELATIONSHIP_REMOVE",
+    );
+    SendToUser(
+        MyUser,
+        OpCodes.DISPATCH,
+        {
+            id: RelationTarget.ID,
+            type: TargetRelation.Type,
+        },
+        null,
+        "RELATIONSHIP_REMOVE",
+    );
 
     await TargetRelation.remove();
 
@@ -403,15 +438,21 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
         }).save();
         NChannel = CreatedChannel;
     }
-    
-    SendToUser(RelationTarget, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, RelationTarget), null, "RELATIONSHIP_ADD");
+
+    SendToUser(
+        RelationTarget,
+        OpCodes.DISPATCH,
+        TargetRelation.PackageGateway(true, RelationTarget),
+        null,
+        "RELATIONSHIP_ADD",
+    );
     SendToUser(MyUser, OpCodes.DISPATCH, TargetRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
 
     if (!ChannelCheck) {
         SendToUser(RelationTarget, OpCodes.DISPATCH, NChannel.SmallDMPackage(RelationTarget), null, "CHANNEL_CREATE");
         SendToUser(MyUser, OpCodes.DISPATCH, NChannel.SmallDMPackage(MyUser), null, "CHANNEL_CREATE");
     }
-    
+
     res.status(204).send();
 });
 
@@ -468,13 +509,7 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
             "RELATIONSHIP_ADD",
         );
 
-        SendToUser(
-            MyUser,
-            OpCodes.DISPATCH,
-            CreatedRelation.PackageGateway(true, MyUser),
-            null,
-            "RELATIONSHIP_ADD",
-        );
+        SendToUser(MyUser, OpCodes.DISPATCH, CreatedRelation.PackageGateway(true, MyUser), null, "RELATIONSHIP_ADD");
 
         await RelationTarget.save();
         await MyUser.save();

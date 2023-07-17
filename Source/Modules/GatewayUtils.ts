@@ -43,6 +43,7 @@ export type DispatchType =
     | "GUILD_MEMBER_REMOVE"
     | "GUILD_MEMBER_UPDATE"
     | "GUILD_MEMBERS_CHUNK"
+    | "GUILD_MEMBER_LIST_UPDATE"
     | "GUILD_ROLE_CREATE"
     | "GUILD_ROLE_UPDATE"
     | "GUILD_ROLE_DELETE"
@@ -87,7 +88,6 @@ export type DispatchType =
     | "EMBEDDED_ACTIVITY_UPDATE"
     | "VOICE_CHANNEL_EFFECT_SEND";
 
-
 export function CloseConnection(SocketClient: GatewayConnection, Code: number, Reason: string) {
     SocketClient.Deflater.close();
     SocketClient.Inflater.close();
@@ -95,14 +95,13 @@ export function CloseConnection(SocketClient: GatewayConnection, Code: number, R
 }
 
 export function FindConnection(UserID: string) {
-    const Conns = Connections.filter(x => x.Account?.ID === UserID);
-    if (Conns.length < 1)
-        return null;
+    const Conns = Connections.filter((x) => x.Account?.ID === UserID);
+    if (Conns.length < 1) return null;
 
     let ReturnedConn = Conns[0];
     if (Conns.length > 1)
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ReturnedConn = Conns.find(x => !x.ScheduledForRemoval)!;
+        ReturnedConn = Conns.find((x) => !x.ScheduledForRemoval)!;
 
     return ReturnedConn;
 }
@@ -125,33 +124,40 @@ export function SendOp<T>(
     // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     _s: unknown = null, // no longer taken into account, done automatically
     t?: DispatchType,
-    ReplayingPacket?: BasePacket
+    ReplayingPacket?: BasePacket,
 ) {
-    if (!ReplayingPacket)
-        SocketClient.LastPacketSession++;
+    if (!ReplayingPacket) SocketClient.LastPacketSession++;
 
     const D: BasePacket = ReplayingPacket ?? {
         op: Opcode,
         d: Data,
         s: SocketClient.LastPacketSession,
-        t: t
+        t: t,
     };
 
     const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
     const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
 
     if (SocketClient.ScheduledForRemoval) {
-        Msg(`Scheduling packet ${red(D.s)} as missed for client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
+        Msg(
+            `Scheduling packet ${red(D.s)} as missed for client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`,
+            "Gateway",
+        );
         SocketClient.MissedPackets.push(D);
         return;
     }
 
-    Msg(`${ReplayingPacket ? "Re-s" : "S"}ending packet ${red(D.s)} to client ${red(SocketClient.ID)}: ${JSON.stringify(D)}`, "Gateway");
+    Msg(
+        `${ReplayingPacket ? "Re-s" : "S"}ending packet ${red(D.s)} to client ${red(SocketClient.ID)}: ${JSON.stringify(
+            D,
+        )}`,
+        "Gateway",
+    );
     SocketClient.SocketClient.send(Bf);
 }
 
 export async function ReplayMissedPackets(SocketClient: GatewayConnection, FromSeq: number) {
-    for await (const Packet of SocketClient.MissedPackets.filter(bp => bp.s >= FromSeq)) {
+    for await (const Packet of SocketClient.MissedPackets.filter((bp) => bp.s >= FromSeq)) {
         await SendOp(SocketClient, 0, undefined, undefined, undefined, Packet);
     }
 
