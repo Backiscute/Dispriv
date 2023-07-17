@@ -21,5 +21,5 @@ export const VCEffectSchema = z.object({
   animation_id: z.number().max(20),
   animation_type: z.number().min(0).max(1),
   emoji_id: z.string().nullable(),
-  emoji_name: z.string().emoji(),
+  emoji_name: z.string() // no zod emoji check because custom emojis use strings
 });

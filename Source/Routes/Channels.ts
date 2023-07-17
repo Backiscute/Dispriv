@@ -934,7 +934,10 @@ App.post("/:ChannelID/voice-channel-effects", VerifyAuth, async (req, res, next)
     const EmojiName = req.body.emoji_name;
 
     // TODO: Add nitro check for animationtype 0
-    // TODO: Add check for emojiID (guild emojis)
+
+    const EmojiRegex = /\p{Emoji}/u;
+
+    if (!EmojiID && (!EmojiRegex.test(EmojiName) || EmojiName.length > 2)) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_EMOJI, message: "Unknown Emoji" });
 
     await SendToVC(RequestedChannel, OpCodes.DISPATCH, { guild_id: RequestedChannel.OwnerGuild!.ID, channel_id: RequestedChannel.ID, user_id: MyUser!.ID, animation_id: AnimationID, animation_type: AnimationType, emoji: { animated: false, id: EmojiID, name: EmojiName } }, null, "VOICE_CHANNEL_EFFECT_SEND");
     res.sendStatus(204);
