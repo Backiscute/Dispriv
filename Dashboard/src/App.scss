@@ -342,9 +342,15 @@ ul {
     background-color: #1e1f22;
     border: none;
     border-radius: 4px;
-    padding: 10px;
     min-height: 30px;
     max-height: 550px;
+    padding: 0px;
+}
+
+.internal-data {
+    border-radius: 0px 0px 8px 8px;
+    padding: 24px;
+    background-color: var(--discord-background-secondary);
 }
 
 .data-box p.dataHeader {
