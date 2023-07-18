@@ -4,38 +4,47 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import { OAuth2App } from "../Entities/OAuth2";
 import { User } from "../Entities/User";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { TokenSchema } from "../Validators/DiscordSays";
 
 // Authorization endpoints for different applications
 
 const App = Router();
 
-App.post("/:ApplicationID/api/token", async (req, res) => {
-    const Token = req.body.code;
+App.post(
+    "/:ApplicationID/api/token",
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, TokenSchema);
+    },
+    async (req, res) => {
+        const Token = req.body.code;
+        const UserID = Token.split("-")[0];
 
-    if (!Token) return res.status(404).json({ message: "Missing Token", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+        const MyUser = await User.findOne({
+            where: { ID: UserID },
+            relations: { AuthorizedApps: { Application: true } },
+        });
 
-    const UserID = Token.split("-")[0];
+        if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UNKNOWN_USER });
 
-    const MyUser = await User.findOne({ where: { ID: UserID }, relations: { AuthorizedApps: { Application: true } } });
+        const OAuthApp = MyUser?.AuthorizedApps.find((R: OAuth2App) => R.Application.ID === req.params.ApplicationID);
 
-    if (!MyUser) return res.status(404).json({ message: "User not found", code: JsonErrorCodes.UNKNOWN_USER });
+        if (OAuthApp === undefined)
+            return res
+                .status(404)
+                .json({ message: "Authorized Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
-    const OAuthApp = MyUser?.AuthorizedApps.find((R: OAuth2App) => R.Application.ID === req.params.ApplicationID);
+        const TokenCheck = bcrypt.compareSync(`${OAuthApp.ID}-${MyUser?.ID}`, Token.split("-")[1]);
 
-    if (OAuthApp === undefined)
-        return res
-            .status(404)
-            .json({ message: "Authorized Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+        if (!TokenCheck)
+            return res.status(404).json({ message: "Invalid Token", code: JsonErrorCodes.INVALID_OAUTH2_ACCESS_TOKEN });
 
-    const TokenCheck = bcrypt.compareSync(`${OAuthApp.ID}-${MyUser?.ID}`, Token.split("-")[1]);
+        // generate a token for api and stuff ig
 
-    if (!TokenCheck) return res.status(404).json({ message: "Invalid Token", code: JsonErrorCodes.INVALID_OAUTH2_ACCESS_TOKEN });
-
-    // generate a token for api and stuff ig
-
-    const GeneratedOAuthToken = await GenerateOAuth2Token(OAuthApp.ID);
-    res.json({ access_token: GeneratedOAuthToken });
-});
+        const GeneratedOAuthToken = await GenerateOAuth2Token(OAuthApp.ID);
+        res.json({ access_token: GeneratedOAuthToken });
+    },
+);
 
 
 App.get("/:ApplicationID/discord/api/users/@me/guilds/:GuildID/member", VerifyOAuthReq, async (req, res) => {

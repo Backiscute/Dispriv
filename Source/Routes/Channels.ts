@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-case-declarations */
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Channel, ChannelType } from "../Entities/Channel";
@@ -590,7 +590,7 @@ App.post(
         } catch (e) {
             Err("Error while parsing embeds");
         }
-        let Type = MessageType[req.body.content.replace("!", "") as keyof typeof MessageType] || MessageType.DEFAULT;
+        const Type = MessageType[req.body.content.replace("!", "") as keyof typeof MessageType] || MessageType.DEFAULT;
         if (req.body.content === "!ALL") {
             // for (const Type of Object.values(MessageType)) {
             //     const CreatedMessage = Message.create({
@@ -667,7 +667,7 @@ App.post(
                 )
                     return res.status(403).json({
                         code: JsonErrorCodes.MISSING_ACCESS,
-                        message: 'You must have "ATTACH_FILES" permission to attach files.',
+                        message: "You must have \"ATTACH_FILES\" permission to attach files.",
                     });
                 const File = FindAttachment(Attachment.uploaded_filename);
                 if (!File) continue;

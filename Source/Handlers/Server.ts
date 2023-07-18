@@ -1,5 +1,5 @@
 import { green, italic } from "colorette";
-import express from 'express';
+import express from "express";
 import fs from "fs";
 import { Msg } from "../Modules/Logger";
 import path from "path";

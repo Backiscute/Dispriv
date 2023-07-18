@@ -8,7 +8,7 @@ import { RelationType, Relation } from "../Entities/FriendUser";
 import { Err, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
+import { Remove, Upload } from "../Modules/AssetUtils";
 import { GenerateRandomString, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
