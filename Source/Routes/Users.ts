@@ -256,7 +256,9 @@ App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
     if (req.query.guild_id) {
         const Mmbr = await Membership.findOne({
             where: {
-                ID: req.query.guild_id as string,
+                ToGuild: {
+                    ID: req.query.guild_id as string,
+                },
                 Owner: {
                     ID: FoundUser.ID,
                 },

@@ -27,6 +27,7 @@ export function GenerateExperimentHash(Name: string): number {
 
 export async function HasPermission(Usr: Membership, Permission: Permissions) {
     const HR = GetHighestRole(Usr);
+    //if (Usr.ToGuild.Owner.ID === Usr.Owner.ID) return true;
     if ((HR.Permissions & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR) return true;
 
     return (HR.Permissions & Permission) === Permission;
@@ -66,53 +67,53 @@ export async function SyncMemberList(Guild: Guild) {
         .forEach((C) =>
             C
                 ? SendOp(
-                      C,
-                      OpCodes.DISPATCH,
-                      {
-                          ops: [
-                              {
-                                  range: [0, 99],
-                                  op: "SYNC",
-                                  items: [
-                                      {
-                                          group: {
-                                              id: "online",
-                                              count: OnlineMembers.length,
-                                          },
-                                      },
-                                      ...OnlineMembers.map((m) => ({
-                                          member: m.Package(),
-                                      })),
-                                      {
-                                          group: {
-                                              id: "offline",
-                                              count: OfflineMembers.length,
-                                          },
-                                      },
-                                      ...OfflineMembers.map((m) => ({
-                                          member: m.Package(),
-                                      })),
-                                  ],
-                              },
-                          ],
-                          online_count: OnlineMembers.length,
-                          member_count: Guild.Members.length,
-                          id: "everyone",
-                          guild_id: Guild.ID,
-                          groups: [
-                              {
-                                  id: "online",
-                                  count: OnlineMembers.length,
-                              },
-                              {
-                                  id: "offline",
-                                  count: OfflineMembers.length,
-                              },
-                          ],
-                      },
-                      null,
-                      "GUILD_MEMBER_LIST_UPDATE",
-                  )
+                    C,
+                    OpCodes.DISPATCH,
+                    {
+                        ops: [
+                            {
+                                range: [0, 99],
+                                op: "SYNC",
+                                items: [
+                                    {
+                                        group: {
+                                            id: "online",
+                                            count: OnlineMembers.length,
+                                        },
+                                    },
+                                    ...OnlineMembers.map((m) => ({
+                                        member: m.Package(),
+                                    })),
+                                    {
+                                        group: {
+                                            id: "offline",
+                                            count: OfflineMembers.length,
+                                        },
+                                    },
+                                    ...OfflineMembers.map((m) => ({
+                                        member: m.Package(),
+                                    })),
+                                ],
+                            },
+                        ],
+                        online_count: OnlineMembers.length,
+                        member_count: Guild.Members.length,
+                        id: "everyone",
+                        guild_id: Guild.ID,
+                        groups: [
+                            {
+                                id: "online",
+                                count: OnlineMembers.length,
+                            },
+                            {
+                                id: "offline",
+                                count: OfflineMembers.length,
+                            },
+                        ],
+                    },
+                    null,
+                    "GUILD_MEMBER_LIST_UPDATE",
+                )
                 : null,
         );
 }
@@ -139,52 +140,52 @@ export async function UpdateMemberList(Guild: Guild, Member: Membership) {
         .forEach((C) =>
             C
                 ? SendOp(
-                      C,
-                      OpCodes.DISPATCH,
-                      {
-                          ops: [
-                              {
-                                  op: "UPDATE",
-                                  item: {
-                                      member: {
-                                          ...Member.Package(),
-                                          presence: {
-                                              user: {
-                                                  id: Member.Owner.ID,
-                                              },
-                                              status: Member.Owner.Presence,
-                                              client_status: {
-                                                  web: Member.Owner.Presence,
-                                              },
-                                              broadcast: null,
-                                              activities: [],
-                                          },
-                                      },
-                                  },
-                                  index:
-                                      OnlineMembers.concat(OfflineMembers)
-                                          .map((O) => O.Owner.ID)
-                                          .indexOf(Member.Owner.ID) + 1,
-                              },
-                          ],
-                          online_count: OnlineMembers.length,
-                          member_count: Guild.Members.length,
-                          id: "everyone",
-                          guild_id: Guild.ID,
-                          groups: [
-                              {
-                                  id: "online",
-                                  count: OnlineMembers.length,
-                              },
-                              {
-                                  id: "offline",
-                                  count: OfflineMembers.length,
-                              },
-                          ],
-                      },
-                      null,
-                      "GUILD_MEMBER_LIST_UPDATE",
-                  )
+                    C,
+                    OpCodes.DISPATCH,
+                    {
+                        ops: [
+                            {
+                                op: "UPDATE",
+                                item: {
+                                    member: {
+                                        ...Member.Package(),
+                                        presence: {
+                                            user: {
+                                                id: Member.Owner.ID,
+                                            },
+                                            status: Member.Owner.Presence,
+                                            client_status: {
+                                                web: Member.Owner.Presence,
+                                            },
+                                            broadcast: null,
+                                            activities: [],
+                                        },
+                                    },
+                                },
+                                index:
+                                    OnlineMembers.concat(OfflineMembers)
+                                        .map((O) => O.Owner.ID)
+                                        .indexOf(Member.Owner.ID) + 1,
+                            },
+                        ],
+                        online_count: OnlineMembers.length,
+                        member_count: Guild.Members.length,
+                        id: "everyone",
+                        guild_id: Guild.ID,
+                        groups: [
+                            {
+                                id: "online",
+                                count: OnlineMembers.length,
+                            },
+                            {
+                                id: "offline",
+                                count: OfflineMembers.length,
+                            },
+                        ],
+                    },
+                    null,
+                    "GUILD_MEMBER_LIST_UPDATE",
+                )
                 : null,
         );
 }
@@ -278,19 +279,17 @@ export async function SendGuildStatusUpdate(Usr: User, Status: Presence) {
                 Connection,
                 OpCodes.DISPATCH,
                 {
-                    user: Usr.PackageSmall(),
+                    user: Usr.Partial(),
                     status: Usr.Presence,
                     guild_id: G.ID,
                     client_status: {
                         web: Usr.Presence,
                     },
-                    broadcast: null,
                     activities: [],
                 },
                 null,
                 "PRESENCE_UPDATE",
             );
-            Debug(`${Status}, ${Usr.Presence}`, "Presence manager");
             const FoundUser = await User.findOne({ where: { ID: U.ID }, relations: { Memberships: true } });
             const FoundGuild = await Guild.findOne({ where: { ID: G.ID } });
             if (!FoundUser || !FoundGuild) return;

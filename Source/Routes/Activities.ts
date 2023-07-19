@@ -88,23 +88,25 @@ App.get("/shelf", async (req, res) => {
     const Activities: object[] = [];
 
     EmbeddedApps.forEach((R) => {
-        const Fr = {"client_platform_config": {
-            "web": {
-                "label_type": 0,
-                "label_until": null,
-                "release_phase": "global_launch"
-            },
-            "ios": {
-                "label_type": 0,
-                "label_until": null,
-                "release_phase": "global_launch"
-            },
-            "android": {
-                "label_type": 0,
-                "label_until": null,
-                "release_phase": "global_launch"
+        const Fr = {
+            "client_platform_config": {
+                "web": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                },
+                "ios": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                },
+                "android": {
+                    "label_type": 0,
+                    "label_until": null,
+                    "release_phase": "global_launch"
+                }
             }
-        }};
+        };
         const ForReal = {...R.embedded_activity_config, ...Fr};
         Activities.push({
             application_id: R.ID,

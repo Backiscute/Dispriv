@@ -77,7 +77,7 @@ App.post("/SystemMessages", async (req, res) => {
         if (!U) return res.status(400).json({ success: false, errorMessage: "Invalid Recipient" });
         let UrgentChannel = await Channel.findOne({
             where: {
-                DMRecipients: [{ ID: U.ID }, { ID: SystemUser.ID }],
+                DMRecipients: {}, // TODO: can someone check how do you make it contain??????????? cuz [] is OR
             },
             relations: {
                 DMRecipients: true,

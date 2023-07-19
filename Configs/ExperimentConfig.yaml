@@ -60,7 +60,7 @@
   Bucket: 1
   Properties: null
 - ExperimentHash: 41612842
-  AffectsEveryone: false
+  AffectsEveryone: true
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 1
@@ -68,3 +68,17 @@
     Percentage:
       s: 0
       e: 100
+- ExperimentHash: 1504498621
+  AffectsEveryone: false
+  TargetedUsers: []
+  TargetedGuilds:
+    - "1130229851987509248"
+  Bucket: 1
+  Properties:
+    RequiredGuildFeatures:
+      - SUMMARIES_ENABLED
+- ExperimentHash: 1504498621
+  AffectsEveryone: true
+  TargetedUsers: []
+  TargetedGuilds: []
+  Bucket: 1

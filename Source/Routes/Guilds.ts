@@ -84,24 +84,34 @@ App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], Verify
 
     const Mmbr = await Membership.findOne({
         where: {
-            ID: req.params.GuildID,
+            ToGuild: {
+                ID: req.params.GuildID
+            },
             Owner: {
                 ID: MyUser.ID
             }
         }
     });
     if (!Mmbr) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "You aren't participating in that guild." });
-    const G = Mmbr.ToGuild;
     const GuildMember = IsMe ? Mmbr : await Membership.findOne({
         where: {
-            ID: req.params.GuildID,
+            ToGuild: {
+                ID: req.params.GuildID
+            },
             Owner: {
                 ID: req.params.MemberID
+            }
+        },
+        relations: {
+            ToGuild: {
+                Owner: true
             }
         }
     });
 
     if (!GuildMember) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "That user isn't a member of this guild." });
+
+    const G = GuildMember.ToGuild;
 
     for (const PropKey of Object.keys(req.body)) {
         const Value = req.body[PropKey];
@@ -187,7 +197,7 @@ App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], Verify
 App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req, res) => {
     const SingleRole = typeof req.params.RoleID === "string";
 
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Owner: true } } }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
     const G = Mmbr.ToGuild;
@@ -233,7 +243,7 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
                     Rl.Color = Value;
                     continue;
                 case "icon":
-                    if (!G.Features.includes(GuildFeatures.ROLE_ICONS))
+                    if (Rl.IconID !== null && !G.Features.includes(GuildFeatures.ROLE_ICONS))
                         return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
                     if (Rl.IconID && Rl.IconID !== Value) {

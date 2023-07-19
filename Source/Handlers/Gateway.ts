@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WebSocketServer } from "ws";
 import { unpack } from "erlpack";
-import { Debug, Err, Msg } from "../Modules/Logger";
+import { Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { GatewayCloseCodes, OpCodes } from "../Classes/GatewayOpCodes";
-import { CloseConnection, FindConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
+import { CloseConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
 import { GetTokenUserId, GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import {
-    SendGuildMemberUpdate,
     SendGuildStatusUpdate,
     SendToDMOrServer,
     SendToMembers,
-    SyncMemberList,
-    UpdateMemberList,
+    SyncMemberList
 } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import { gray, green, red } from "colorette";
@@ -32,7 +30,6 @@ import {
 } from "../Classes/GatewayPackets";
 import { GetGuildExperiments, GetUserExperiments } from "./Experiments";
 import { Guild } from "../Entities/Guild";
-import { Membership, User } from "../Entities/User";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
@@ -47,12 +44,6 @@ function RemoveConnection(Conn: GatewayConnection) {
 
     const Idx = Connections.findIndex((C) => C.ID === Conn.ID);
     if (Idx !== -1) Connections.splice(Idx, 1);
-}
-
-function SplitArrayIntoChunks(Data: Array<any>, ChunkSize: number) {
-    return Array.from({ length: Math.ceil(Data.length / ChunkSize) }, (_, index) =>
-        Data.slice(index * ChunkSize, (index + 1) * ChunkSize),
-    );
 }
 
 Socket.on("connection", async (Client, req) => {
@@ -377,8 +368,7 @@ Socket.on("connection", async (Client, req) => {
                                 endpoint: "rotterdam11006.discord.media:443",
                                 guild_id: GuildID,
                                 token: bcrypt.hashSync(
-                                    `${GuildID}-${GatewayClient.Account!.ID}-${GatewayClient.ID}-${
-                                        GatewayClient.Account!.Password
+                                    `${GuildID}-${GatewayClient.Account!.ID}-${GatewayClient.ID}-${GatewayClient.Account!.Password
                                     }`,
                                     10,
                                 ),
@@ -410,8 +400,7 @@ Socket.on("connection", async (Client, req) => {
                                 endpoint: "rotterdam11006.discord.media:443",
                                 guild_id: GuildID,
                                 token: bcrypt.hashSync(
-                                    `${GuildID}-${GatewayClient.Account!.ID}-${GatewayClient.ID}-${
-                                        GatewayClient.Account!.Password
+                                    `${GuildID}-${GatewayClient.Account!.ID}-${GatewayClient.ID}-${GatewayClient.Account!.Password
                                     }`,
                                     10,
                                 ),
@@ -477,23 +466,24 @@ Socket.on("connection", async (Client, req) => {
             }
 
             case OpCodes.REQUEST_GUILD_MEMBERS: {
-                async function DoChunking(GuildID: string, Nonce: string) {
+                // eslint-disable-next-line no-inner-declarations
+                async function Chunk(GuildID: string, Nonce: string) {
                     const UserGuild = await Guild.findOne({
                         where: { ID: GuildID },
-                        relations: { Members: true },
+                        select: { ID: true, Members: true, Roles: true },
+                        relations: { Members: true, Roles: true }
                     });
-                    if (!UserGuild) throw new Error("No guild");
+                    if (!UserGuild) return; // no guild
+                    // ur not catching error
                 }
-                if (!GatewayClient.Account!)
+
+                if (!GatewayClient.Account)
                     return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
                 const Data = UnpackedData.d;
-                if (Array.isArray(Data.guild_id)) {
-                    Data.guild_id.forEach((GuildID: string) => {
-                        DoChunking(GuildID, Data.nonce);
-                    });
-                } else {
-                    DoChunking(Data.guild_id, Data.nonce);
-                }
+
+                Array.isArray(Data.guild_id)
+                    ? Data.guild_id.forEach((GuildID: string) => Chunk(GuildID, Data.nonce))
+                    : Chunk(Data.guild_id, Data.nonce);
                 break;
             }
             case OpCodes.CLIENT_SPEEDTEST_DELETE:
@@ -524,8 +514,8 @@ Socket.on("connection", async (Client, req) => {
                         er === "token" || er === "session"
                             ? GatewayCloseCodes.AuthenticationFailed
                             : er === "seq"
-                            ? GatewayCloseCodes.InvalidSeq
-                            : GatewayCloseCodes.UnknownError;
+                                ? GatewayCloseCodes.InvalidSeq
+                                : GatewayCloseCodes.UnknownError;
 
                     CloseConnection(GatewayClient, CloseCode, "Authentication failed.");
                     return;
