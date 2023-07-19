@@ -8,7 +8,14 @@ import { CloseConnection, FindConnection, ReplayMissedPackets, SendOp } from "..
 import { GetTokenUserId, GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { SendGuildMemberUpdate, SendGuildStatusUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
+import {
+    SendGuildMemberUpdate,
+    SendGuildStatusUpdate,
+    SendToDMOrServer,
+    SendToMembers,
+    SyncMemberList,
+    UpdateMemberList,
+} from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import { gray, green, red } from "colorette";
 import { Channel, ChannelType } from "../Entities/Channel";
@@ -25,7 +32,7 @@ import {
 } from "../Classes/GatewayPackets";
 import { GetGuildExperiments, GetUserExperiments } from "./Experiments";
 import { Guild } from "../Entities/Guild";
-import { Membership } from "../Entities/User";
+import { Membership, User } from "../Entities/User";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
@@ -46,75 +53,6 @@ function SplitArrayIntoChunks(Data: Array<any>, ChunkSize: number) {
     return Array.from({ length: Math.ceil(Data.length / ChunkSize) }, (_, index) =>
         Data.slice(index * ChunkSize, (index + 1) * ChunkSize),
     );
-}
-
-async function UpdateMemberList(Guild: Guild) {
-    const OnlineMembers = Guild.Members.filter(
-        (x) =>
-            x.Owner.Presence === Presence.ONLINE ||
-            x.Owner.Presence === Presence.IDLE ||
-            x.Owner.Presence === Presence.DND,
-    );
-    const OfflineMembers = Guild.Members.filter(
-        (x) =>
-            x.Owner.Presence !== Presence.ONLINE &&
-            x.Owner.Presence !== Presence.IDLE &&
-            x.Owner.Presence !== Presence.DND,
-    );
-    Guild.Members.map((M) => M.Owner)
-        .map((U) => FindConnection(U.ID))
-        .forEach((C) =>
-            C
-                ? SendOp(
-                      C,
-                      OpCodes.DISPATCH,
-                      {
-                          ops: [
-                              {
-                                  range: [0, 99],
-                                  op: "SYNC",
-                                  items: [
-                                      {
-                                          group: {
-                                              id: "online",
-                                              count: OnlineMembers.length,
-                                          },
-                                      },
-                                      ...OnlineMembers.map((m) => ({
-                                          member: m.Package(),
-                                      })),
-                                      {
-                                          group: {
-                                              id: "offline",
-                                              count: OfflineMembers.length,
-                                          },
-                                      },
-                                      ...OfflineMembers.map((m) => ({
-                                          member: m.Package(),
-                                      })),
-                                  ],
-                              },
-                          ],
-                          online_count: OnlineMembers.length,
-                          member_count: Guild.Members.length,
-                          id: "everyone",
-                          guild_id: Guild.ID,
-                          groups: [
-                              {
-                                  id: "online",
-                                  count: OnlineMembers.length,
-                              },
-                              {
-                                  id: "offline",
-                                  count: OfflineMembers.length,
-                              },
-                          ],
-                      },
-                      null,
-                      "GUILD_MEMBER_LIST_UPDATE",
-                  )
-                : null,
-        );
 }
 
 Socket.on("connection", async (Client, req) => {
@@ -182,13 +120,12 @@ Socket.on("connection", async (Client, req) => {
                         return await Guild.findOne({ where: { ID: G.ID }, relations: { Members: true } });
                     }),
                 );
-
                 Guilds.forEach((G) => {
                     if (!G) return;
-                    UpdateMemberList(G);
-                    // G.Members.map((M) => M.Owner)
-                    //     .map((U) => FindConnection(U.ID))
-                    //     .forEach((C) =>
+                    const CurrentMembership = G.Members.find((M) => (M.Owner.ID = GatewayClient.Account?.ID || ""));
+                    if (!CurrentMembership) return;
+                    SyncMemberList(G);
+                    // UpdateMemberList(G, CurrentMembership);
                     //         C
                     //             ? SendOp(C, OpCodes.DISPATCH, {
                     //                 user: C.Account
@@ -546,22 +483,6 @@ Socket.on("connection", async (Client, req) => {
                         relations: { Members: true },
                     });
                     if (!UserGuild) throw new Error("No guild");
-                    const Chunks = SplitArrayIntoChunks(UserGuild.Members, Data.limit);
-                    Chunks.forEach((Chunk, Index) => {
-                        SendOp(
-                            GatewayClient,
-                            OpCodes.DISPATCH,
-                            {
-                                guild_id: GuildID,
-                                members: Chunk,
-                                chunk_index: Index,
-                                chunk_count: Chunks.length,
-                                nonce: Nonce,
-                            },
-                            null,
-                            "GUILD_MEMBERS_CHUNK",
-                        );
-                    });
                 }
                 if (!GatewayClient.Account!)
                     return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
@@ -742,9 +663,9 @@ Socket.on("connection", async (Client, req) => {
                     "Gateway",
                 );
 
-                const PresenceSet = UnpackedData.d.presence.status ?? Presence.ONLINE;
+                const PresenceSet: Presence = UnpackedData.d.presence.status ?? Presence.ONLINE;
                 GatewayClient.Account!.Presence = PresenceSet;
-
+                SendGuildStatusUpdate(GatewayClient.Account!, PresenceSet);
                 await GatewayClient.Account!.save();
 
                 console.log("--- SENDING READY DISPATCH");
@@ -812,7 +733,9 @@ Socket.on("connection", async (Client, req) => {
                 );
 
                 //console.log(GatewayClient.Account!.Memberships[0].ToGuild);
-                console.log("--- SENDING READY_SUPPLIMENTAL DISPATCH");
+                console.log("--- SENDING READY_SUPPLEMENTAL DISPATCH");
+                const Guilds = GatewayClient.Account.Memberships.map((M) => M.ToGuild);
+                const Memberships = Guilds.map((G) => G.Members);
                 SendOp<ReadySupplementalPacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
@@ -825,7 +748,20 @@ Socket.on("connection", async (Client, req) => {
                                 M.ToGuild.Members.map((M) => M.PackageGateway()),
                             ).flat(),
                         ], // OTHER members object in every guild (for roles and stuff)
-                        merged_presences: { friends: [], guilds: [] }, // presences from friends and guilds
+                        merged_presences: {
+                            friends: [],
+                            guilds: Memberships.map((M) =>
+                                M.map((M) => M.Owner).map((U) => ({
+                                    user_id: U.ID,
+                                    status: U.Presence,
+                                    client_status: {
+                                        web: U.Presence,
+                                    },
+                                    broadcast: null,
+                                    activities: [],
+                                })),
+                            ),
+                        }, // presences from friends and guilds
                     },
                     2,
                     "READY_SUPPLEMENTAL",
@@ -851,7 +787,7 @@ Socket.on("connection", async (Client, req) => {
                     relations: { Members: true },
                 });
                 if (!FoundGuild) return;
-                UpdateMemberList(FoundGuild);
+                SyncMemberList(FoundGuild);
                 break;
             }
         }
