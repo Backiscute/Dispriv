@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { WebSocketServer } from "ws";
 import { unpack } from "erlpack";
-import { Err, Msg } from "../Modules/Logger";
+import { Debug, Err, Msg } from "../Modules/Logger";
 import { GatewayConnection } from "../Classes/GatewayConnection";
 import { GatewayCloseCodes, OpCodes } from "../Classes/GatewayOpCodes";
-import { CloseConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
+import { CloseConnection, FindConnection, ReplayMissedPackets, SendOp } from "../Modules/GatewayUtils";
 import { GetTokenUserId, GetUserByToken, VerifyToken } from "../Modules/AuthUtils";
 import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
-import { SendGuildMemberUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
+import { SendGuildMemberUpdate, SendGuildStatusUpdate, SendToDMOrServer, SendToMembers } from "../Modules/DiscordUtils";
 import { time, timeEnd } from "console";
 import { gray, green, red } from "colorette";
 import { Channel, ChannelType } from "../Entities/Channel";
@@ -46,6 +46,75 @@ function SplitArrayIntoChunks(Data: Array<any>, ChunkSize: number) {
     return Array.from({ length: Math.ceil(Data.length / ChunkSize) }, (_, index) =>
         Data.slice(index * ChunkSize, (index + 1) * ChunkSize),
     );
+}
+
+async function UpdateMemberList(Guild: Guild) {
+    const OnlineMembers = Guild.Members.filter(
+        (x) =>
+            x.Owner.Presence === Presence.ONLINE ||
+            x.Owner.Presence === Presence.IDLE ||
+            x.Owner.Presence === Presence.DND,
+    );
+    const OfflineMembers = Guild.Members.filter(
+        (x) =>
+            x.Owner.Presence !== Presence.ONLINE &&
+            x.Owner.Presence !== Presence.IDLE &&
+            x.Owner.Presence !== Presence.DND,
+    );
+    Guild.Members.map((M) => M.Owner)
+        .map((U) => FindConnection(U.ID))
+        .forEach((C) =>
+            C
+                ? SendOp(
+                      C,
+                      OpCodes.DISPATCH,
+                      {
+                          ops: [
+                              {
+                                  range: [0, 99],
+                                  op: "SYNC",
+                                  items: [
+                                      {
+                                          group: {
+                                              id: "online",
+                                              count: OnlineMembers.length,
+                                          },
+                                      },
+                                      ...OnlineMembers.map((m) => ({
+                                          member: m.Package(),
+                                      })),
+                                      {
+                                          group: {
+                                              id: "offline",
+                                              count: OfflineMembers.length,
+                                          },
+                                      },
+                                      ...OfflineMembers.map((m) => ({
+                                          member: m.Package(),
+                                      })),
+                                  ],
+                              },
+                          ],
+                          online_count: OnlineMembers.length,
+                          member_count: Guild.Members.length,
+                          id: "everyone",
+                          guild_id: Guild.ID,
+                          groups: [
+                              {
+                                  id: "online",
+                                  count: OnlineMembers.length,
+                              },
+                              {
+                                  id: "offline",
+                                  count: OfflineMembers.length,
+                              },
+                          ],
+                      },
+                      null,
+                      "GUILD_MEMBER_LIST_UPDATE",
+                  )
+                : null,
+        );
 }
 
 Socket.on("connection", async (Client, req) => {
@@ -87,27 +156,97 @@ Socket.on("connection", async (Client, req) => {
                 return SendOp(GatewayClient, OpCodes.HEARTBEAT_ACK);
 
             case OpCodes.PRESENCE_UPDATE:
-                if (!GatewayClient.Account!)
+                if (!GatewayClient.Account)
                     return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
 
                 switch (UnpackedData.d.status) {
                     case "online":
-                        GatewayClient.Account!.Presence = Presence.ONLINE;
+                        GatewayClient.Account.Presence = Presence.ONLINE;
                         break;
                     case "idle":
-                        GatewayClient.Account!.Presence = Presence.IDLE;
+                        GatewayClient.Account.Presence = Presence.IDLE;
                         break;
                     case "dnd":
-                        GatewayClient.Account!.Presence = Presence.DND;
+                        GatewayClient.Account.Presence = Presence.DND;
                         break;
                     case "invisible":
-                        GatewayClient.Account!.Presence = Presence.INVISIBLE;
+                        GatewayClient.Account.Presence = Presence.INVISIBLE;
                         break;
+                    default:
+                        GatewayClient.Account.Presence = Presence.UNKNOWN;
                 }
+                await GatewayClient.Account.save();
+                // GatewayClient.Account.Memberships.map((M) => M.ToGuild).map(async (G) => await Guild.findOne({where: {ID: G.ID}, relations: { Members: true }})).forEach((G) => UpdateMemberList(G));
+                const Guilds = await Promise.all(
+                    GatewayClient.Account.Memberships.map((M) => M.ToGuild).map(async (G) => {
+                        return await Guild.findOne({ where: { ID: G.ID }, relations: { Members: true } });
+                    }),
+                );
 
-                await GatewayClient.Account!.save();
-
-                SendGuildMemberUpdate(GatewayClient.Account!);
+                Guilds.forEach((G) => {
+                    if (!G) return;
+                    UpdateMemberList(G);
+                    // G.Members.map((M) => M.Owner)
+                    //     .map((U) => FindConnection(U.ID))
+                    //     .forEach((C) =>
+                    //         C
+                    //             ? SendOp(C, OpCodes.DISPATCH, {
+                    //                 user: C.Account
+                    //             }, null, "GUILD_MEMBER_UPDATE")
+                    //             : null,
+                    //     );
+                    //     SendToMembers(
+                    //         G.ID,
+                    //         OpCodes.DISPATCH,
+                    //         {
+                    //             user: GatewayClient.Account?.PackageSmall(),
+                    //             status: "online",
+                    //             client_status: {
+                    //                 web: "online",
+                    //             },
+                    //             guild_id: "1130498665497100288",
+                    //             broadcast: null,
+                    //             activities: [
+                    //                 // {
+                    //                 //     type: 4,
+                    //                 //     state: "crazy? i was crazy once. they locked me in a room. a rubber room. a rubber room with rats. and rats make me crazy.",
+                    //                 //     name: "Custom Status",
+                    //                 //     id: "custom",
+                    //                 //     emoji: {
+                    //                 //         name: "🤪",
+                    //                 //     },
+                    //                 //     created_at: 1689734268424,
+                    //                 // },
+                    //                 // {
+                    //                 //     type: 2,
+                    //                 //     timestamps: {
+                    //                 //         start: 1689734251754,
+                    //                 //         end: 1689734433254,
+                    //                 //     },
+                    //                 //     sync_id: "1LTBpEzgN3dplgZG2qo8bO",
+                    //                 //     state: "Jordana; TV Girl",
+                    //                 //     session_id: "6e7a14333499d23bb9a192973a0d0a48",
+                    //                 //     party: {
+                    //                 //         id: "spotify:1053012491006910504",
+                    //                 //     },
+                    //                 //     name: "Spotify",
+                    //                 //     id: "spotify:1",
+                    //                 //     flags: 48,
+                    //                 //     details: "Ordinary Day",
+                    //                 //     created_at: 1689734261303,
+                    //                 //     assets: {
+                    //                 //         large_text: "Summer's Over",
+                    //                 //         large_image: "spotify:ab67616d0000b27379c72e2c38f9d47a19dc1ecc",
+                    //                 //     },
+                    //                 // },
+                    //             ],
+                    //         },
+                    //         null,
+                    //         "GUILD_MEMBER_UPDATE",
+                    //     );
+                    // });
+                });
+                SendGuildStatusUpdate(GatewayClient.Account, GatewayClient.Account.Presence);
                 break;
 
             case OpCodes.CLIENT_SPEEDTEST_CREATE:
@@ -712,7 +851,7 @@ Socket.on("connection", async (Client, req) => {
                     relations: { Members: true },
                 });
                 if (!FoundGuild) return;
-                SendOp(GatewayClient, OpCodes.DISPATCH, {}, null, "GUILD_MEMBER_LIST_UPDATE");
+                UpdateMemberList(FoundGuild);
                 break;
             }
         }

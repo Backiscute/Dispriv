@@ -6,6 +6,7 @@ import { GenerateToken } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Msg } from "../Modules/Logger";
 import { Application } from "../Handlers/Server";
+import { Presence } from "../Classes/Presence";
 
 const App = Router();
 
@@ -23,8 +24,18 @@ App.post("/register", async (req, res) => {
     const Password = req.body.password;
     const DOB = req.body.date_of_birth;
 
-    if (!Email) return GenAccountErrorLogin("DISPRIV_MISSING_PARAM", "Dispriv doesn't support your current parameters, use normal login if you are not using it yet.", res);
-    if (!Password) return GenAccountErrorLogin("DISPRIV_MISSING_PARAM", "Dispriv doesn't support your current parameters, use normal login if you are not using it yet.", res);
+    if (!Email)
+        return GenAccountErrorLogin(
+            "DISPRIV_MISSING_PARAM",
+            "Dispriv doesn't support your current parameters, use normal login if you are not using it yet.",
+            res,
+        );
+    if (!Password)
+        return GenAccountErrorLogin(
+            "DISPRIV_MISSING_PARAM",
+            "Dispriv doesn't support your current parameters, use normal login if you are not using it yet.",
+            res,
+        );
     if (!Username || Username.length > 32)
         return GenAccountErrorLogin("DISPRIV_MISSING_PARAM", "Invalid Username", res);
     if (!DOB) return GenAccountErrorLogin("DISPRIV_MISSING_PARAM", "missing date of birth param", res);
@@ -44,7 +55,8 @@ App.post("/register", async (req, res) => {
         Password: HashedPassword,
         DateOfBirth: new Date(DOB),
         TutorialReadIndicators: [],
-        AuthorizedApps: []
+        AuthorizedApps: [],
+        Presence: Presence.ONLINE,
     });
 
     try {
@@ -53,7 +65,7 @@ App.post("/register", async (req, res) => {
         if ((err as Error).cause === "USERNAME_TOO_MANY_USERS")
             return res.status(403).json({
                 code: "USERNAME_TOO_MANY_USERS",
-                message: (err as Error).message
+                message: (err as Error).message,
             });
         else throw err;
     }

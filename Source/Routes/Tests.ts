@@ -119,7 +119,7 @@ App.post("/SystemMessages", async (req, res) => {
         await SendMessage(UrgentMessage);
     } else {
         const AllUsers = await User.find();
-        for await (const U of AllUsers) {
+        AllUsers.forEach(async (U) => {
             let UrgentChannel = await Channel.findOne({
                 where: {
                     DMRecipients: [{ ID: U.ID }, { ID: SystemUser.ID }],
@@ -129,7 +129,7 @@ App.post("/SystemMessages", async (req, res) => {
                 },
             });
 
-            if (U.ID === SystemUser.ID) continue;
+            if (U.ID === SystemUser.ID) return;
 
             console.log(`${U.ID} -> ${U.Username}#${U.Discriminator}`);
             console.log(`${SystemUser.ID} -> ${SystemUser.Username}#${SystemUser.Discriminator}`);
@@ -154,7 +154,7 @@ App.post("/SystemMessages", async (req, res) => {
                 Author: SystemUser,
                 Type: MessageType.DEFAULT,
                 Flags: MessageFlags.URGENT,
-                Content: req.body.Content,
+                Content: req.body.Content.replaceAll("{USER}", U.Username),
                 CreationDate: new Date(),
                 Channel: UrgentChannel,
             }).save();
@@ -162,7 +162,7 @@ App.post("/SystemMessages", async (req, res) => {
             Msg(`Sent urgent DM to ${green(U.Username + "#" + U.Discriminator)}!`);
 
             await SendMessage(UrgentMessage);
-        }
+        });
     }
 
     res.json({

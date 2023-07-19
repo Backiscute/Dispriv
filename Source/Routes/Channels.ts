@@ -624,7 +624,7 @@ App.post(
                 components: [],
                 edited_timestamp: null,
             });
-            for (const [K, V] of MessageTypes) {
+            for await (const [K, V] of MessageTypes) {
                 if (typeof V !== "number") continue;
                 const [Name, Value]: [string, number] = [K, V];
                 const CreatedMessage = Message.create({
@@ -642,6 +642,22 @@ App.post(
                 }
                 await SendMessage(CreatedMessage);
             }
+            // for (let i = 0; i < 100; i++) {
+            //     const CreatedMessage = Message.create({
+            //         ID: GenerateSnowflake(),
+            //         Author: MyUser,
+            //         Type: i,
+            //         Content: "content",
+            //         CreationDate: new Date(),
+            //         Channel: RequestedChannel,
+            //     });
+            //     await CreatedMessage.save();
+            //     if (!RequestedChannel.FirstMessageID) {
+            //         RequestedChannel.FirstMessageID = CreatedMessage.ID;
+            //         await RequestedChannel.save();
+            //     }
+            //     await SendMessage(CreatedMessage);
+            // }
             return;
         }
         const CreatedMessage = Message.create({

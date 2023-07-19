@@ -8,6 +8,7 @@ import { Guild, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { Permissions } from "../Classes/Flags";
 import { VoiceSessions } from "../Handlers/RTCSocket";
+import { Err } from "./Logger";
 
 export const DISCORD_EPOCH = 1420070400000;
 
@@ -47,7 +48,7 @@ export async function SendToUser(
     Opcode: OpCodes,
     Data?: unknown,
     s?: unknown,
-    t?: DispatchType | undefined
+    t?: DispatchType | undefined,
 ) {
     const Conn = FindConnection(Usr.ID);
     if (!Conn) return;
@@ -83,12 +84,16 @@ export async function SendGuildMemberUpdate(Usr: User) {
     });
 }
 
+export async function SendGuildStatusUpdate(Usr: User, Status: string) {
+    Err("Unimplemented function! (SendGuildStatusUpdate(), DiscordUtils.ts)");
+}
+
 export async function SendToConnections(
     Usr: User,
     Opcode: OpCodes,
     Data?: unknown,
     s?: unknown,
-    t?: DispatchType | undefined
+    t?: DispatchType | undefined,
 ) {
     const AlreadySentTo: string[] = [];
 
@@ -123,7 +128,7 @@ export async function SendToMembers(
     Opcode: OpCodes,
     Data?: unknown,
     s?: unknown,
-    t?: DispatchType | undefined
+    t?: DispatchType | undefined,
 ) {
     const SentGuild = await Guild.findOne({ where: { ID: ServerID }, relations: { Members: true } });
 
@@ -143,7 +148,7 @@ export async function SendToVC(
     Opcode: OpCodes,
     Data?: unknown,
     s?: unknown,
-    t?: DispatchType | undefined
+    t?: DispatchType | undefined,
 ) {
     if (Chnl.Type !== ChannelType.GUILD_VOICE) return;
 
@@ -153,7 +158,7 @@ export async function SendToVC(
     VoiceSession.voice_states.forEach((x) => {
         const Conn = FindConnection(x.user_id);
         if (!Conn) return;
-        
+
         SendOp(Conn, Opcode, Data, s, t);
     });
 }
@@ -163,7 +168,7 @@ export async function SendToDMOrServer(
     Opcode: OpCodes,
     Data?: unknown,
     s?: unknown,
-    t?: DispatchType | undefined
+    t?: DispatchType | undefined,
 ) {
     if (Chnl.IsDM) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
