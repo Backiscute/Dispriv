@@ -10,6 +10,7 @@ import { Permissions } from "../Classes/Flags";
 import { VoiceSessions } from "../Handlers/RTCSocket";
 import { Debug, Err } from "./Logger";
 import { Presence } from "../Classes/Presence";
+import { GetUserByToken } from "./AuthUtils";
 
 export const DISCORD_EPOCH = 1420070400000;
 
@@ -23,6 +24,33 @@ export function CreateTimestamp(DateToConvert?: Date) {
 export function GenerateExperimentHash(Name: string): number {
     const Hash = MurmurHash3.x86.hash32(Name);
     return Hash >>> 0;
+}
+
+export function RequestGatewayAccount(Token: string) {
+    return GetUserByToken(Token, {
+        Memberships: {
+            Owner: false,
+            ToGuild: {
+                Members: {
+                    Owner: true,
+                },
+                Channels: {
+                    OwnerCategory: true,
+                },
+            },
+        },
+        AvailableDMs: {
+            DMRecipients: true,
+        },
+        RelationsFrom: {
+            From: true,
+            Regarding: true,
+        },
+        RelationsRegarding: {
+            From: true,
+            Regarding: true,
+        },
+    });
 }
 
 export async function HasPermission(Usr: Membership, Permission: Permissions) {

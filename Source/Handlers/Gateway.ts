@@ -9,6 +9,7 @@ import { GetTokenUserId, GetUserByToken, VerifyToken } from "../Modules/AuthUtil
 import { URLSearchParams } from "url";
 import { Presence } from "../Classes/Presence";
 import {
+    RequestGatewayAccount,
     SendGuildStatusUpdate,
     SendToDMOrServer,
     SendToMembers,
@@ -615,30 +616,7 @@ Socket.on("connection", async (Client, req) => {
                 }
 
                 console.log("--- GETTING ACCOUNT");
-                GatewayClient.Account = (await GetUserByToken(Token, {
-                    Memberships: {
-                        Owner: false,
-                        ToGuild: {
-                            Members: {
-                                Owner: true,
-                            },
-                            Channels: {
-                                OwnerCategory: true,
-                            },
-                        },
-                    },
-                    AvailableDMs: {
-                        DMRecipients: true,
-                    },
-                    RelationsFrom: {
-                        From: true,
-                        Regarding: true,
-                    },
-                    RelationsRegarding: {
-                        From: true,
-                        Regarding: true,
-                    },
-                }))!;
+                GatewayClient.Account = (await RequestGatewayAccount(Token))!;
                 GatewayClient.UserToken = Token;
                 GatewayClient.PackagedAccount = GatewayClient.Account.Package();
 

@@ -9,7 +9,7 @@ import { Err, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Remove, Upload } from "../Modules/AssetUtils";
-import { GenerateRandomString, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
+import { GenerateRandomString, RequestGatewayAccount, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
@@ -91,7 +91,7 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
                 U.Discriminator = DiscrimRandom;
                 continue;
             case "theme_colors":
-                U.ThemeColors = Value;
+                //U.ThemeColors = Value;
                 continue;
         }
     }
@@ -101,7 +101,10 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, re
     res.json(U.Package());
 
     const Conn = FindConnection(U.ID);
-    if (Conn) Conn.PackagedAccount = U.Package();
+    if (Conn) {
+        Conn.PackagedAccount = U.Package();
+        Conn.Account = (await RequestGatewayAccount(Conn.UserToken))!;
+    }
 
     await SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
     SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
