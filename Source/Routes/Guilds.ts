@@ -451,6 +451,50 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
 
                 G.IconID = await Upload(Value, "Guilds");
                 continue;
+            case "system_channel_id":
+                if (!Value) 
+                {
+                    G.SystemChannelID = undefined;
+                    continue;
+                }
+                    
+                const Chnl = await Channel.findOne({
+                    where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_TEXT },
+                });
+
+                if (!Chnl) continue;
+
+                G.SystemChannelID = Chnl.ID;
+                continue;
+            case "system_channel_flags":
+                G.SystemChannelFlags = Value;
+                continue;
+            case "afk_channel_id":
+                if (!Value)
+                {
+                    G.AfkChannelID = undefined;
+                    continue;
+                }
+
+                const AfkChnl = await Channel.findOne({
+                    where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_VOICE },
+                });
+
+                if (!AfkChnl) continue;
+
+                G.AfkChannelID = AfkChnl.ID;
+                continue;
+            case "afk_timeout":
+                G.AfkTimeout = Value;
+                continue;
+
+            case "premium_progress_bar_enabled":
+                G.ShowBoostBar = Value;
+                continue;
+
+            case "default_message_notifications":
+                G.DefaultMessageNotifications = Value;
+                continue;
         }
     }
 

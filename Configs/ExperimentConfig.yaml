@@ -87,3 +87,12 @@
   TargetedUsers: []
   TargetedGuilds: []
   Bucket: 1
+- ExperimentHash: 3190368920
+  AffectsEveryone: true
+  TargetedUsers: []
+  TargetedGuilds: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
