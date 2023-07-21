@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import MurmurHash3 from "murmurhash3js";
 import { Message } from "../Entities/Message";
 import { Channel, ChannelType } from "../Entities/Channel";

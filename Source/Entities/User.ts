@@ -224,7 +224,7 @@ export class User extends BaseEntity {
             nick: null,
             pending: false,
             premium_since: null,
-            roles: MemberOf.Roles.map((R) => R.ID),
+            roles: MemberOf.Roles.filter((R) => R.ID !== MemberOf.ToGuild.ID).map((R) => R.ID),
             user: this.PackageSmall(),
         };
     }
@@ -310,7 +310,7 @@ export class Membership extends BaseEntity {
             banner: this.BannerID,
             bio: this.Bio,
             nick: this.GuildNickname,
-            roles: this.Roles ? this.Roles.map((R) => R.ID) : [],
+            roles: this.Roles ? this.Roles.map((R) => R.ID).slice(1) : [],
             joined_at: CreateTimestamp(this.CreatedAt),
             deaf: this.Deafened,
             mute: this.Muted,

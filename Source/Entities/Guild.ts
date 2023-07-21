@@ -175,6 +175,9 @@ export class Guild extends BaseEntity {
         VanityInviteURL?: string;
 
     @Column({ default: false })
+        ShowBoostBar: boolean;
+
+    @Column({ default: false })
         ClassifiedAsNSFW: boolean;
 
     @Column({ nullable: true })
@@ -210,6 +213,15 @@ export class Guild extends BaseEntity {
 
     @Column({ default: 0 })
         SystemChannelFlags: number;
+
+    @Column({ nullable: true })
+        AfkChannelID?: string;
+
+    @Column({ default: 0 })
+        AfkTimeout: number;
+
+    @Column({ default: 0 })
+        DefaultMessageNotifications: number;
 
     get DefaultRole() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -287,12 +299,12 @@ export class Guild extends BaseEntity {
             owner: UserContext?.ID === this.Owner?.ID,
             owner_id: this.Owner?.ID,
             permissions: UserMembershipHere ? GetHighestRole(UserMembershipHere).Permissions.toString() : "0",
-            afk_channel_id: "",
-            afk_timeout: 0,
+            afk_channel_id: this.AfkChannelID,
+            afk_timeout: this.AfkTimeout,
             widget_enabled: true,
             widget_channel_id: null,
             verification_level: 0,
-            default_message_notifications: 0,
+            default_message_notifications: this.DefaultMessageNotifications,
             explicit_content_filter: 0,
             roles: this.Roles?.map((R) => R.Package()),
             emojis: [],
@@ -312,7 +324,9 @@ export class Guild extends BaseEntity {
             premium_subscription_count: Boosters,
             preferred_locale: "en-US",
             nsfw_level: 0,
-            system_channel_id: this.SystemChannelID
+            system_channel_id: this.SystemChannelID,
+            system_channel_flags: this.SystemChannelFlags,
+            premium_progress_bar_enabled: this.ShowBoostBar
         };
     }
 
@@ -336,6 +350,7 @@ export class Guild extends BaseEntity {
             threads: [],
             version: Date.now(),
             system_channel_id: this.SystemChannelID,
+            system_channel_flags: this.SystemChannelFlags
         };
     }
 
