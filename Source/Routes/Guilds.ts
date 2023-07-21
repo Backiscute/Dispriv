@@ -17,6 +17,7 @@ import {
 } from "../Modules/DiscordUtils";
 import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { ILike } from "typeorm";
 
 const App = Router();
 
@@ -409,7 +410,7 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
         return;
     }
 
-    const ExistingInviteGuild = await Guild.findOne({ where: { VanityInviteURL: req.body.code } });
+    const ExistingInviteGuild = await Guild.findOne({ where: { VanityInviteURL: ILike(`%${req.body.code}%`) } });
     if (ExistingInviteGuild) return res.status(400).json({ code: 0, message: "Invite link already taken" });
 
     Mmbr.ToGuild.VanityInviteURL = req.body.code;
