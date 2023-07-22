@@ -328,26 +328,26 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 });
 
 App.get("/:GuildID/emojis", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true } } } }))!;
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } } }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-    //const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
+    const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-    //if (!Permission) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     res.json(Mmbr.ToGuild.Emojis.map((E) => E.Package(true)));
 });
 
 App.patch("/:GuildID/emojis/:EmojiID", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true } } } }))!;
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } } }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
 
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-    //const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
+    const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-    //if (!Permission) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     const Emoji = Mmbr.ToGuild.Emojis.find((E) => E.ID === req.params.EmojiID);
 
@@ -377,13 +377,13 @@ App.post(
         ValidateRequest(req, res, next, CustomEmojiUploadSchema);
     },
     async (req, res) => {
-        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: true } } }))!;
+        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: true, Owner: true } } }))!;
         const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
         if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-        //const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
+        const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-        //if (!Permission) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+        if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
         const Image = req.body.image;
         const Name = req.body.name;
