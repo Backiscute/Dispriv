@@ -21,6 +21,7 @@ import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
 import { Gift } from "./Gift";
+import { CustomEmoji } from "./Emoji";
 
 @Entity()
 export class User extends BaseEntity {
@@ -66,9 +67,14 @@ export class User extends BaseEntity {
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
         Badges: Badge[];
+
     @OneToMany(() => OAuth2App, (O) => O.AuthorizedUsers, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
         AuthorizedApps: OAuth2App[];
+
+    @OneToMany(() => CustomEmoji, (E) => E.Author, { eager: true })
+    @JoinTable()
+        UploadedEmojis: CustomEmoji[];
 
     @OneToOne(() => DiscordApplication, (DA) => DA.Bot, { nullable: true, onDelete: "CASCADE" })
         BotApplication?: DiscordApplication;

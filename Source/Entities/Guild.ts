@@ -18,6 +18,7 @@ import { Channel, ChannelType } from "./Channel";
 import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { VoiceSessions } from "../Handlers/RTCSocket";
+import { CustomEmoji } from "./Emoji";
 
 export const enum InviteType {
     GUILD = 0,
@@ -204,6 +205,10 @@ export class Guild extends BaseEntity {
     @JoinColumn()
         Roles: Role[];
 
+    @OneToMany(() => CustomEmoji, (E) => E.Guild, { eager: true })
+    @JoinTable()
+        Emojis: CustomEmoji[];
+
     @OneToMany(() => Invite, (I) => I.InGuild, { eager: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()
         Invites: Invite[];
@@ -281,7 +286,7 @@ export class Guild extends BaseEntity {
             approximate_member_count: 0,
             approximate_presence_count: 0,
             vanity_url_code: this.VanityInviteURL,
-            emojis: [],
+            emojis: this.Emojis?.map((E) => E.Package()) ?? [],
             stickers: [],
         };
     }
@@ -307,7 +312,7 @@ export class Guild extends BaseEntity {
             default_message_notifications: this.DefaultMessageNotifications,
             explicit_content_filter: 0,
             roles: this.Roles?.map((R) => R.Package()),
-            emojis: [],
+            emojis: this.Emojis?.map((E) => E.Package()) ?? [],
             features: this.Features,
             mfa_level: 0,
             joined_at: CreateTimestamp(new Date()),
@@ -335,7 +340,7 @@ export class Guild extends BaseEntity {
             application_command_counts: {},
             channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
             data_mode: "full",
-            emojis: [],
+            emojis: this.Emojis?.map((E) => E.Package()) ?? [],
             guild_scheduled_events: [],
             id: this.ID,
             joined_at: CreateTimestamp(new Date()),
@@ -381,7 +386,7 @@ export class Guild extends BaseEntity {
             application_command_counts: {},
             channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
             data_mode: "full",
-            emojis: [],
+            emojis: this.Emojis?.map((E) => E.Package()) ?? [],
             guild_scheduled_events: [],
             id: this.ID,
             joined_at: CreateTimestamp(new Date()),

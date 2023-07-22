@@ -32,6 +32,7 @@ import { VoiceSessions } from "../Handlers/RTCSocket";
 import { FindOptionsWhere, LessThan, MoreThan } from "typeorm";
 import { ValidateRequest } from "../Modules/ValidationUtils";
 import { MessageSendSchema, VCEffectSchema } from "../Validators/Channels";
+import { CustomEmoji } from "../Entities/Emoji";
 
 const App = Router();
 
@@ -1095,6 +1096,13 @@ App.post(
         if (!EmojiID && (!EmojiRegex.test(EmojiName) || EmojiName.length > 2))
             return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_EMOJI, message: "Unknown Emoji" });
 
+        let Emoji;
+
+        if (EmojiID) 
+            Emoji = await CustomEmoji.findOne({ where: { ID: EmojiID } });
+
+        if (!Emoji && EmojiID) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_EMOJI, message: "Unknown Emoji" });
+
         await SendToVC(
             RequestedChannel,
             OpCodes.DISPATCH,
@@ -1104,7 +1112,7 @@ App.post(
                 user_id: MyUser!.ID,
                 animation_id: AnimationID,
                 animation_type: AnimationType,
-                emoji: { animated: false, id: EmojiID, name: EmojiName },
+                emoji: { animated: (Emoji ? Emoji.Animated : false), id: (Emoji ? Emoji.ID : EmojiID), name: (Emoji ? Emoji.Name : EmojiName) },
             },
             null,
             "VOICE_CHANNEL_EFFECT_SEND",

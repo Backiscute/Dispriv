@@ -56,7 +56,9 @@ export function RequestGatewayAccount(Token: string) {
 
 export async function HasPermission(Usr: Membership, Permission: Permissions) {
     const HR = GetHighestRole(Usr);
-    //if (Usr.ToGuild.Owner.ID === Usr.Owner.ID) return true;
+
+    //    if (Usr.ToGuild.Owner.ID === Usr.Owner.ID) return true;
+
     if ((HR.Permissions & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR) return true;
 
     return (HR.Permissions & Permission) === Permission;

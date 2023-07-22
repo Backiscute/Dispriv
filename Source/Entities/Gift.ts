@@ -6,9 +6,7 @@ import {
     BaseEntity,
     OneToMany,
     ManyToOne,
-    ManyToMany,
     JoinColumn,
-    BeforeRemove,
 } from "typeorm";
 
 import { User } from "./User";

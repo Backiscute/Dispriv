@@ -7,14 +7,14 @@ import imageSize from "image-size";
 import ffmpeg from "fluent-ffmpeg";
 import { path as ffprobeBinary} from "ffprobe-static";
 import ffmpegBinary from "ffmpeg-static";
-import { Folders, PhotoContentTypes, PhotoFileTypes, VideoContentTypes } from "../Classes/Misc";
+import { Folders, PhotoContentTypes, VideoContentTypes } from "../Classes/Misc";
 
 ffmpeg.setFfprobePath(ffprobeBinary);
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 ffmpeg.setFfmpegPath(ffmpegBinary!);
 
 export function ValidBaseURL(URL: string) {
-    return /^data:(image\/png|application\/octet-stream);base64,/g.test(URL);
+    return /^data:(image\/png|image\/jpeg|application\/octet-stream);base64,/g.test(URL);
 }
 
 export function URLToBuffer(URL: string) {
@@ -37,9 +37,9 @@ export async function GetFirstFrame(FilePath: string, OutputPath: string) {
     });
 }
 
-export async function Upload(RawImageString: string, Directory: Folders) {
+export async function Upload(RawImageString: string, Directory: Folders, FileName?: string) {
     const ImgBlob = URLToBuffer(RawImageString);
-    const ID = v4().replaceAll("-", "");
+    const ID = FileName ? FileName : v4().replaceAll("-", "");
 
     const Buffer = await sharp(ImgBlob).webp({ quality: 80 }).toBuffer();
 
