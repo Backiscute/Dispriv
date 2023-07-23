@@ -45,6 +45,9 @@ export class SubscriptionPlan extends BaseEntity {
 
     Package() {
         return {
+            discount_price: 0,
+            fallback_currency: "usd",
+            fallback_price: 0,
             id: this.ID,
             name: this.Name,
             interval: this.Interval,
@@ -53,6 +56,7 @@ export class SubscriptionPlan extends BaseEntity {
             sku_id: this.SKUID,
             currency: this.Currency,
             price: this.Price,
+            prices: {},
             price_tier: this.PriceTier,
         };
     }

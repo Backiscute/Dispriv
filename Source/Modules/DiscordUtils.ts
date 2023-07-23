@@ -9,9 +9,11 @@ import { Guild, Role } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { Permissions } from "../Classes/Flags";
 import { VoiceSessions } from "../Handlers/RTCSocket";
-import { Debug, Err } from "./Logger";
 import { Presence } from "../Classes/Presence";
 import { GetUserByToken } from "./AuthUtils";
+import { SKU, SubscriptionPlan } from "../Entities/Gift";
+import { Application } from "../Handlers/Server";
+import { DiscordApplication } from "../Entities/Application";
 
 export const DISCORD_EPOCH = 1420070400000;
 
@@ -147,6 +149,153 @@ export async function SyncMemberList(Guild: Guild) {
                 )
                 : null,
         );
+}
+
+export function CreateDefaultSubscriptions()
+{
+    DiscordApplication.create({
+        ID: "521842831262875670",
+        DisplayName: "Nitro",
+        IsHook: true,
+        Flags: 0,
+        Summary: ""
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "978380692553465866",
+        SKUID: "978380684370378762",
+        Name: "Nitro Basic Monthly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "1024422698568122368",
+        SKUID: "978380684370378762",
+        Name: "Nitro Basic Yearly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "511651876987469824",
+        SKUID: "521846918637420545",
+        Name: "Nitro Classic Yearly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "511651871736201216",
+        SKUID: "521846918637420545",
+        Name: "Nitro Classic Monthly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "642251038925127690",
+        SKUID: "521847234246082599",
+        Name: "Nitro 3 Month",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "511651880837840896",
+        SKUID: "521847234246082599",
+        Name: "Nitro Monthly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "511651885459963904",
+        SKUID: "521847234246082599",
+        Name: "Nitro Yearly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "944037208325619722",
+        SKUID: "521847234246082599",
+        Name: "Nitro 6 Month",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "590665532894740483",
+        SKUID: "590663762298667008",
+        Name: "Server Boost Monthly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "590665538238152709",
+        SKUID: "590663762298667008",
+        Name: "Server Boost Yearly",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "944037355453415424",
+        SKUID: "590663762298667008",
+        Name: "Server Boost 3 Month",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SubscriptionPlan.create({
+        ID: "944037391444738048",
+        SKUID: "590663762298667008",
+        Name: "Server Boost 6 Month",
+        Interval: 1,
+        IntervalCount: 1,
+        Price: 0,
+        TaxInclusive: true
+    }).save();
+
+    SKU.create({
+        ID: "978380684370378762"
+    }).save();
+
+    SKU.create({
+        ID: "521846918637420545"
+    }).save();
+
+    SKU.create({
+        ID: "521847234246082599"
+    }).save();
+
+    SKU.create({
+        ID: "590663762298667008"
+    }).save();
 }
 
 export async function UpdateMemberList(Guild: Guild, Member: Membership) {

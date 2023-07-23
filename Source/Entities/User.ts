@@ -22,6 +22,7 @@ import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
 import { Gift } from "./Gift";
 import { CustomEmoji } from "./Emoji";
+import { UserSubscription } from "./Subscription";
 
 @Entity()
 export class User extends BaseEntity {
@@ -75,6 +76,10 @@ export class User extends BaseEntity {
     @OneToMany(() => CustomEmoji, (E) => E.Author, { eager: true })
     @JoinTable()
         UploadedEmojis: CustomEmoji[];
+
+    @OneToMany(() => UserSubscription, (S) => S.LinkedUser, { eager: true })
+    @JoinTable()
+        Subscriptions: UserSubscription[];
 
     @OneToOne(() => DiscordApplication, (DA) => DA.Bot, { nullable: true, onDelete: "CASCADE" })
         BotApplication?: DiscordApplication;

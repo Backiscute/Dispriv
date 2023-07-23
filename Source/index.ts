@@ -5,6 +5,8 @@ import { Msg } from "./Modules/Logger";
 import fs from "fs";
 import path from "path";
 import { italic } from "colorette";
+import { DiscordApplication } from "./Entities/Application";
+import { CreateDefaultSubscriptions } from "./Modules/DiscordUtils";
 
 // dynamic import of all handlers
 async function LoadHandlers() {
@@ -16,6 +18,16 @@ async function LoadHandlers() {
 
         Msg(`Loaded handler ${italic(File)}!`, "Handlers");
     }
+}
+
+async function SubscriptionCheck() {
+    const NitroApp = await DiscordApplication.findOne({ where: { ID: "521842831262875670" } });
+
+    if (NitroApp) return;
+
+    Msg("Creating Default Subscriptions!", "Database");
+
+    CreateDefaultSubscriptions();
 }
 
 const UsePublicTestsDB = true;
@@ -32,4 +44,5 @@ export const DisprivDataSource = new DataSource({
     .then(() => {
         Msg("Database initialized!", "Database");
         LoadHandlers();
+        SubscriptionCheck();
     });

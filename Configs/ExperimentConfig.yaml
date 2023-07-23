@@ -96,3 +96,31 @@
     Percentage:
       s: 0
       e: 100
+- ExperimentHash: 2753834830
+  AffectsEveryone: true
+  TargetedUsers: []
+  TargetedGuilds: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 4190502511
+  AffectsEveryone: true
+  TargetedUsers: []
+  TargetedGuilds: []
+  Bucket: 1
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+- ExperimentHash: 102690720
+  AffectsEveryone: true
+  TargetedUsers: []
+  TargetedGuilds: []
+  Bucket: 2
+  Properties:
+    Percentage:
+      s: 0
+      e: 100
+      

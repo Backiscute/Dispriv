@@ -9,11 +9,20 @@ import { Err, Msg } from "../Modules/Logger";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Channel, ChannelType } from "../Entities/Channel";
 import { Remove, Upload } from "../Modules/AssetUtils";
-import { GenerateRandomString, RequestGatewayAccount, SendGuildMemberUpdate, SendToUser } from "../Modules/DiscordUtils";
-import { SubscriptionPlan } from "../Entities/Gift";
+import {
+    CreateTimestamp,
+    GenerateRandomString,
+    RequestGatewayAccount,
+    SendGuildMemberUpdate,
+    SendToUser,
+} from "../Modules/DiscordUtils";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 import { FindConnection } from "../Modules/GatewayUtils";
+import { SubscriptionSlot, UserSubscription } from "../Entities/Subscription";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { SubscriptionPurchaseSchema } from "../Validators/Users";
+import { SubscriptionPlan } from "../Entities/Gift";
 
 const App = Router();
 
@@ -527,46 +536,221 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
 });
 
 App.get("/@me/billing/subscriptions", VerifyAuth, async (req, res) => {
-    // res.json({
-    //     id: "0",
-    //     sku_id: "6969",
-    //     application_id: "521842831262875670",
-    //     user_id: "Dispriv",
-    //     promotion_id: null,
-    //     type: 6,
-    //     deleted: false,
-    //     gift_code_flags: 0,
-    //     consumed: true,
-    //     gifter_user_id: "805530068860403742",
-    //     subscription_plan: {
-    //         id: "511651871736201216",
-    //         name: "Nitro Classic Monthly",
-    //         interval: 1,
-    //         interval_count: 1,
-    //         tax_inclusive: true,
-    //         sku_id: "6969",
-    //         currency: "usd",
-    //         price: 499,
-    //         price_tier: null,
-    //     },
-    //     sku: {
-    //         id: "521846918637420545",
-    //         type: 5,
-    //         dependent_sku_id: null,
-    //         application_id: "521842831262875670",
-    //         manifest_labels: null,
-    //         access_type: 1,
-    //         name: "Nitro Classic",
-    //         features: [],
-    //         release_date: null,
-    //         premium: false,
-    //         slug: "nitro-classic",
-    //         flags: 68,
-    //         show_age_gate: false,
-    //     },
-    // });
-    const subscriptions = await SubscriptionPlan.find();
-    res.json(subscriptions.map((S) => S.Package()));
+    const MyUser = (await GetUserByRequest(req, { Subscriptions: { LinkedUser: true } }))!;
+    res.json(MyUser.Subscriptions.map((S) => S.Package()));
+});
+
+App.post("/@me/billing/subscriptions", VerifyAuth, async (req, res, next) => {
+    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+},
+async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
+    const Items = req.body.items;
+
+    const Subs: object[] = [];
+
+    for (const Item of Items) {
+        const PlanID = Item.plan_id;
+        const Quantity = Item.quantity;
+
+        const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
+
+        if (!Plan) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
+
+        const SubID = GenerateSnowflake();
+        if (Plan.Name.includes("Server Boost"))
+        {
+            const Sub = MyUser.Subscriptions.find((S) => S.Items[0].plan_id === PlanID);
+            if (Sub) return;
+
+            await UserSubscription.create({
+                ID: SubID,
+                LinkedUser: MyUser,
+                Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
+            }).save();
+        }
+
+        for ( let i = 0; i < Quantity; i++ ) {
+            if (Plan.Name.includes("Nitro"))
+            {
+                const UserSub = await UserSubscription.create({
+                    ID: SubID,
+                    LinkedUser: MyUser,
+                    Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
+                });
+    
+                await UserSub.save();
+    
+                Subs.push(UserSub.Package());
+            }
+            else if (Plan.Name.includes("Server Boost"))
+            {
+                const SubSlot = await SubscriptionSlot.create({
+                    ID: GenerateSnowflake(),
+                    UserID: MyUser.ID,
+                    LinkedSubscriptionID: SubID,
+                });
+
+                await SubSlot.save();
+    
+                Subs.push(SubSlot.Package());
+            }
+        }
+    };
+
+    res.json((Subs.length === 1 ? Subs[0] : Subs));
+    
+});
+
+App.patch("/@me/billing/subscriptions/:SubID", VerifyAuth, async (req, res, next) => {
+    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+},
+async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
+    const Items = req.body.items;
+
+    const Subscription = await UserSubscription.findOne({ where: { ID: req.params.SubID }, relations: { LinkedUser: true } });
+
+    if (!Subscription) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
+
+    const New: object[] = [];
+
+    for (const Item of Items) {
+        const PlanID = Item.plan_id;
+        const Quantity = Item.quantity;
+
+        const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
+
+        if (!Plan) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
+
+        for ( let i = 0; i < Quantity; i++ ) {
+            if (Object.prototype.hasOwnProperty.call(Item, "id")) continue;
+
+            if (Plan.Name.includes("Nitro"))
+            {
+                Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: GenerateSnowflake() });
+
+                await Subscription.save();
+
+                res.json(Subscription.Package());
+                return;
+            }
+            else if (Plan.Name.includes("Server Boost"))
+            {
+                const SubID = GenerateSnowflake();
+                const SubSlot = await SubscriptionSlot.create({
+                    ID: GenerateSnowflake(),
+                    UserID: MyUser.ID,
+                    LinkedSubscriptionID: SubID,
+                });
+
+                await SubSlot.save();
+    
+                New.push(SubSlot.Package());
+            }
+        }
+    };
+
+    res.json(New);
+    
+});
+
+App.get("/@me/billing/country-code", (req, res) => {
+    res.json({ country_code: "US" });
+});
+
+App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
+    res.json({
+        id: GenerateSnowflake(),
+        invoice_items: [
+            {
+                id: "1",
+                amount: 0,
+                discounts: [],
+                subscription_plan_id: req.body.items[0].plan_id,
+                subscription_plan_price: 0,
+                quantity: req.body.items[0].quantity,
+                proration: false
+            }
+        ],
+        total: 0,
+        subtotal: 0,
+        currency: "usd",
+        tax: 0,
+        tax_inclusive: true,
+        subscription_period_start: CreateTimestamp(),
+        subscription_period_end: "2048-01-01T00:00:00.000000+00:00",
+    });
+});
+
+App.all("/@me/billing/subscriptions/*/preview", VerifyAuth, async (req, res) => {
+    const Items = req.body.items ?? [];
+    const InvoiceItems = [];
+
+    for (const Item of Items) {
+        const PlanID = Item.plan_id;
+        const Quantity = Item.quantity;
+
+        InvoiceItems.push({
+            id: GenerateSnowflake(),
+            amount: 0,
+            discounts: [],
+            subscription_plan_id: PlanID,
+            subscription_plan_price: 0,
+            quantity: Quantity,
+            proration: false
+        });
+    }
+
+    res.json({
+        id: GenerateSnowflake(),
+        invoice_items: InvoiceItems,
+        total: 0,
+        subtotal: 0,
+        currency: "usd",
+        tax: 0,
+        tax_inclusive: true,
+        subscription_period_start: CreateTimestamp(),
+        subscription_period_end: "2048-01-01T00:00:00.000000+00:00",
+    });
+});
+
+App.get("/@me/guilds/premium/subscription-slots", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req))!;
+
+    const Boosts = await SubscriptionSlot.find({ where: { UserID: MyUser.ID } });
+
+    res.json(Boosts.map((B) => B.Package()));
+});
+
+App.get("/@me/applications/:ApplicationID/entitlements", VerifyAuth, async (req, res) => {
+    res.json([]);
+});
+
+App.get("/@me/billing/payment-sources", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req))!;
+
+    res.json([
+        {
+            id: GenerateSnowflake(),
+            type: 2,
+            invalid: false,
+            flags: 2,
+            email: MyUser.Email,
+            billing_address: {
+                name: MyUser.Username,
+                line_1: "DisprivStreet 123",
+                line_2: null,
+                city: "NY",
+                state: "NY",
+                country: "US",
+                postal_code: "10080",
+            },
+            country: "US",
+            payment_gateway: 2,
+            default: true,
+        },
+    ]);
 });
 
 module.exports = {
