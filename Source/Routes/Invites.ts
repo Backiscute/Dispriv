@@ -9,7 +9,6 @@ import { OpCodes } from "../Classes/GatewayOpCodes";
 import { HasPermission, SendMessage } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { Msg } from "../Modules/Logger";
 import { Message, MessageType } from "../Entities/Message";
 import { ChannelType } from "../Entities/Channel";
 
@@ -104,7 +103,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
             ToGuild: VanityGuild,
             CreatedAt: new Date(),
             Roles: [VanityGuild.DefaultRole],
-        })
+        });
     
         await NewMembership.save();
 
@@ -148,7 +147,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
             Type: MessageType.USER_JOIN,
             CreationDate: new Date(),
             Author: MyUser,
-        })
+        });
     
         SendMessage(SystemMessage);
     
@@ -166,7 +165,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
         ToGuild: TargetGuild,
         CreatedAt: new Date(),
         Roles: [TargetGuild.DefaultRole],
-    })
+    });
 
     await NewMembership.save();
 
@@ -198,7 +197,7 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
         Content: "",
         CreationDate: new Date(),
         Author: MyUser,
-    })
+    });
 
     SendMessage(SystemMessage);
 

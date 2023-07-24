@@ -12,10 +12,20 @@ import { VoiceSessions } from "../Handlers/RTCSocket";
 import { Presence } from "../Classes/Presence";
 import { GetUserByToken } from "./AuthUtils";
 import { SKU, SubscriptionPlan } from "../Entities/Gift";
-import { Application } from "../Handlers/Server";
 import { DiscordApplication } from "../Entities/Application";
 
 export const DISCORD_EPOCH = 1420070400000;
+export const NitroSubs = ["978380692553465866", "1024422698568122368", "511651876987469824", "511651871736201216", "642251038925127690", "511651880837840896", "511651885459963904", "944037208325619722"];
+export const NitroClassic = ["511651876987469824", "511651871736201216"];
+export const NitroBasic = ["978380692553465866", "1024422698568122368"];
+export const NitroPremium = ["511651880837840896", "511651885459963904", "944037208325619722", "642251038925127690"];
+
+export enum NitroType {
+    NONE, // Deprecated
+    NITRO_CLASSIC,
+    NITRO,
+    NITRO_BASIC
+}
 
 export function CreateTimestamp(DateToConvert?: Date) {
     // Creates a timestamp in ISO 8601 format (Discord uses timezone offset +00:00)
@@ -53,6 +63,7 @@ export function RequestGatewayAccount(Token: string) {
             From: true,
             Regarding: true,
         },
+        Subscriptions: true
     });
 }
 

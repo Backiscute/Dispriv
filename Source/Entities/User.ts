@@ -16,7 +16,7 @@ import { Relation } from "./FriendUser";
 import { DiscordApplication } from "./Application";
 import { Channel } from "./Channel";
 import { Guild, Invite, Role } from "./Guild";
-import { CreateTimestamp, GetHighestRoleInArr } from "../Modules/DiscordUtils";
+import { CreateTimestamp, GetHighestRoleInArr, NitroType } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
@@ -122,6 +122,15 @@ export class User extends BaseEntity {
     @JoinTable()
         Memberships: Membership[];
 
+    @Column({ nullable: true })
+        PremiumStreak?: string;
+
+    @Column({ default: false })
+        Premium: boolean;
+
+    @Column({ nullable: true })
+        PremiumType?: NitroType;
+
     @Column({ default: false })
         TutorialSuppressed: boolean;
 
@@ -174,8 +183,9 @@ export class User extends BaseEntity {
             mobile: true,
             nsfw_allowed: true,
             phone: "phone number priv when",
-            premium: true,
-            premium_type: 2,
+            premium_since: this.PremiumStreak,
+            premium: this.Premium,
+            premium_type: this.PremiumType,
             premium_usage_flags: 0,
             public_flags: this.Flags,
             purchased_flags: 3,
@@ -203,7 +213,11 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
             username: this.Username,
-            bot: this.Bot
+            bot: this.Bot,
+            premium_since: this.PremiumStreak,
+            premium: this.Premium,
+            premium_type: this.PremiumType,
+            premium_usage_flags: 0,
         };
     }
 
@@ -218,7 +232,11 @@ export class User extends BaseEntity {
             id: this.ID,
             system: this.HasFlag(UserFlags.SYSTEM),
             public_flags: this.Flags,
-            username: this.Username
+            username: this.Username,
+            premium_since: this.PremiumStreak,
+            premium: this.Premium,
+            premium_type: this.PremiumType,
+            premium_usage_flags: 0
         };
     }
 
@@ -234,7 +252,10 @@ export class User extends BaseEntity {
             mute: MemberOf.Muted,
             nick: null,
             pending: false,
-            premium_since: null,
+            premium_since: this.PremiumStreak,
+            premium: this.Premium,
+            premium_type: this.PremiumType,
+            premium_usage_flags: 0,
             roles: MemberOf.Roles.filter((R) => R.ID !== MemberOf.ToGuild.ID).map((R) => R.ID),
             user: this.PackageSmall(),
         };
@@ -251,7 +272,11 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             banner: this.BannerID,
             accent_color: 0,
-            public_flags: this.Flags
+            public_flags: this.Flags,
+            premium_since: this.PremiumStreak,
+            premium: this.Premium,
+            premium_type: this.PremiumType,
+            premium_usage_flags: 0
         };
     }
 
@@ -290,6 +315,9 @@ export class Membership extends BaseEntity {
     @Column({ nullable: true })
         BoostingSince?: Date;
 
+    @Column({ default: 0 })
+        BoostCount: number;
+
     @Column({ default: false })
         Muted: boolean;
 
@@ -325,7 +353,9 @@ export class Membership extends BaseEntity {
             joined_at: CreateTimestamp(this.CreatedAt),
             deaf: this.Deafened,
             mute: this.Muted,
-            premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
+            premium_type: this.Owner.PremiumType,
+            premium_since: this.Owner.PremiumStreak,
+            premium_guild_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
             pending: false,
             permissions: GetHighestRoleInArr(this.Roles).Permissions.toString(),
             theme_colors: this.ThemeColors
@@ -342,7 +372,9 @@ export class Membership extends BaseEntity {
             mute: this.Muted,
             nick: this.GuildNickname,
             pending: false,
-            premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : null,
+            premium_type: this.Owner.PremiumType,
+            premium_since: this.Owner ? this.Owner.PremiumStreak : null,
+            premium_guild_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : null,
             roles: this.Roles ? this.Roles.map((R) => R.ID) : [],
             user: this.Owner.PartialVoice(),
         };
@@ -359,7 +391,9 @@ export class Membership extends BaseEntity {
                 joined_at: CreateTimestamp(this.CreatedAt),
                 deaf: this.Deafened,
                 mute: this.Muted,
-                premium_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
+                premium_type: this.Owner.PremiumType,
+                premium_since: this.Owner.PremiumStreak,
+                premium_guild_since: this.BoostingSince ? CreateTimestamp(this.BoostingSince) : undefined,
                 pending: false,
                 communication_disabled_until: null,
                 user_id: this.Owner.ID,

@@ -292,7 +292,8 @@ export class Guild extends BaseEntity {
     }
 
     Package(UserContext?: User) {
-        const Boosters = this.Members?.filter((M) => M.BoostingSince).length;
+        const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
+        const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
         const UserMembershipHere = UserContext?.Memberships?.find((x) => x.ToGuild.ID === this.ID);
 
         return {
@@ -325,8 +326,8 @@ export class Guild extends BaseEntity {
             vanity_url_code: this.VanityInviteURL,
             description: this.Description,
             banner: this.BannerID,
-            premium_tier: Boosters >= 14 ? 3 : Boosters >= 7 ? 2 : Boosters >= 2 ? 1 : 0,
-            premium_subscription_count: Boosters,
+            premium_tier: BoostCount >= 14 ? 3 : BoostCount >= 7 ? 2 : BoostCount >= 2 ? 1 : 0,
+            premium_subscription_count: BoostCount,
             preferred_locale: "en-US",
             nsfw_level: 0,
             system_channel_id: this.SystemChannelID,

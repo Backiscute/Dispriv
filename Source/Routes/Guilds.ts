@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
-import { Guild, GuildFeatures, Role } from "../Entities/Guild";
+import { Guild, GuildFeatures, Role, SystemChannelFlags } from "../Entities/Guild";
 import { Membership, User } from "../Entities/User";
 import { OpCodes } from "../Classes/GatewayOpCodes";
 import { Permissions, UserFlags } from "../Classes/Flags";
@@ -12,6 +12,7 @@ import {
     GetHighestRoleInArr,
     HasPermission,
     SendGuildMemberUpdate,
+    SendMessage,
     SendToMembers,
     SendToUser,
 } from "../Modules/DiscordUtils";
@@ -19,8 +20,10 @@ import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { ILike } from "typeorm";
 import { ValidateRequest } from "../Modules/ValidationUtils";
-import { CustomEmojiUploadSchema } from "../Validators/Guilds";
+import { BoostServerSchema, CustomEmojiUploadSchema } from "../Validators/Guilds";
 import { CustomEmoji } from "../Entities/Emoji";
+import { SubscriptionSlot } from "../Entities/Subscription";
+import { Message, MessageType } from "../Entities/Message";
 
 const App = Router();
 
@@ -508,6 +511,66 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
         uses: 0,
     });
 });
+
+App.put(
+    "/:GuildID/premium/subscriptions",
+    VerifyAuth,
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, BoostServerSchema);
+    },
+    async (req, res) => {
+        const SubSlots = req.body.user_premium_guild_subscription_slot_ids;
+
+        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerGuild: true } } } }))!;
+
+        const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
+
+        if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+        const Boosted = false;
+
+        for (const Slot of SubSlots) {
+            const SubSlot = await SubscriptionSlot.findOne({ where: { UserID: MyUser.ID, ID: Slot } });
+
+            if (!SubSlot) continue;
+
+            SubSlot.GuildID = Mmbr.ToGuild.ID;
+            await SubSlot.save();
+
+            Mmbr.BoostingSince = new Date();
+            Mmbr.BoostCount++;
+
+            await Mmbr.save();
+
+            const SystemChannelID = Mmbr.ToGuild.SystemChannelID;
+
+            if (!SystemChannelID) continue;
+    
+            const SystemChannel = Mmbr.ToGuild.Channels.find((x) => x.ID === SystemChannelID);
+    
+            if (!SystemChannel) continue;
+    
+            if (SystemChannel.Type !== ChannelType.GUILD_TEXT) continue;
+            if (Mmbr.ToGuild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS)) continue;
+    
+            const SystemMessage = Message.create({
+                ID: GenerateSnowflake(),
+                Channel: SystemChannel,
+                Content: "",
+                Type: MessageType.GUILD_BOOST,
+                CreationDate: new Date(),
+                Author: MyUser,
+            });
+    
+            SendMessage(SystemMessage);
+    
+            await SystemMessage.save();
+        }
+
+        if (!Boosted) return res.sendStatus(400);
+
+        res.sendStatus(204);
+    },
+);
 
 App.patch("/:GuildID", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, {

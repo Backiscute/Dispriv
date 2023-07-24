@@ -12,6 +12,7 @@ import { Remove, Upload } from "../Modules/AssetUtils";
 import {
     CreateTimestamp,
     GenerateRandomString,
+    NitroType,
     RequestGatewayAccount,
     SendGuildMemberUpdate,
     SendToUser,
@@ -570,18 +571,48 @@ async (req, res) => {
             }).save();
         }
 
+        switch (Plan.ID) 
+        {
+            case "642251038925127690":
+            case "511651880837840896":
+            case "511651885459963904":
+            case "944037208325619722":
+            {
+                for (let i = 0; i < 2; i++ ) {
+                    const SubSlot = await SubscriptionSlot.create({
+                        ID: GenerateSnowflake(),
+                        UserID: MyUser.ID,
+                        LinkedSubscriptionID: SubID,
+                    });
+    
+                    await SubSlot.save();
+                } // add nitro boosts
+                break;
+            }
+        }
+
         for ( let i = 0; i < Quantity; i++ ) {
             if (Plan.Name.includes("Nitro"))
             {
+                if (Quantity > 1) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+
                 const UserSub = await UserSubscription.create({
                     ID: SubID,
                     LinkedUser: MyUser,
                     Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
                 });
-    
+
                 await UserSub.save();
-    
                 Subs.push(UserSub.Package());
+
+                MyUser.Premium = true;
+                MyUser.PremiumStreak = CreateTimestamp();
+                MyUser.PremiumType = ( Plan.Name.includes("Basic") ? NitroType.NITRO_BASIC : Plan.Name.includes("Classic") ? NitroType.NITRO_CLASSIC : NitroType.NITRO );
+                MyUser.Subscriptions.push(UserSub);
+
+                await MyUser.save();
+
+                SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
             }
             else if (Plan.Name.includes("Server Boost"))
             {
@@ -637,15 +668,18 @@ async (req, res) => {
             }
             else if (Plan.Name.includes("Server Boost"))
             {
-                const SubID = GenerateSnowflake();
                 const SubSlot = await SubscriptionSlot.create({
                     ID: GenerateSnowflake(),
                     UserID: MyUser.ID,
-                    LinkedSubscriptionID: SubID,
+                    LinkedSubscriptionID: Subscription.ID,
                 });
 
                 await SubSlot.save();
-    
+
+                Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: GenerateSnowflake() });  
+
+                await Subscription.save();
+
                 New.push(SubSlot.Package());
             }
         }
@@ -660,6 +694,7 @@ App.get("/@me/billing/country-code", (req, res) => {
 });
 
 App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
+    const IsRenew = req.body.renewal ?? false;
     res.json({
         id: GenerateSnowflake(),
         invoice_items: [
@@ -678,13 +713,18 @@ App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
         currency: "usd",
         tax: 0,
         tax_inclusive: true,
-        subscription_period_start: CreateTimestamp(),
+        subscription_period_start: IsRenew ? "2048-01-01T00:00:00.000000+00:00" : CreateTimestamp(),
         subscription_period_end: "2048-01-01T00:00:00.000000+00:00",
     });
 });
 
-App.all("/@me/billing/subscriptions/*/preview", VerifyAuth, async (req, res) => {
-    const Items = req.body.items ?? [];
+App.all("/@me/billing/subscriptions/:SubID/preview", VerifyAuth, async (req, res) => {
+    const IsRenew = req.body.renewal ?? false;
+    const Sub = await UserSubscription.findOne({ where: { ID: req.params.SubID } });
+
+    if (!Sub) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
+
+    const Items = req.body.items ?? Sub.Items;
     const InvoiceItems = [];
 
     for (const Item of Items) {
@@ -710,7 +750,7 @@ App.all("/@me/billing/subscriptions/*/preview", VerifyAuth, async (req, res) => 
         currency: "usd",
         tax: 0,
         tax_inclusive: true,
-        subscription_period_start: CreateTimestamp(),
+        subscription_period_start: IsRenew ? "2048-01-01T00:00:00.000000+00:00" : CreateTimestamp(),
         subscription_period_end: "2048-01-01T00:00:00.000000+00:00",
     });
 });
@@ -724,7 +764,7 @@ App.get("/@me/guilds/premium/subscription-slots", VerifyAuth, async (req, res) =
 });
 
 App.get("/@me/applications/:ApplicationID/entitlements", VerifyAuth, async (req, res) => {
-    res.json([]);
+    res.json([]); // subscription credits, etc
 });
 
 App.get("/@me/billing/payment-sources", VerifyAuth, async (req, res) => {
