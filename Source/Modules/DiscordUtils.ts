@@ -541,7 +541,8 @@ export async function MakeBoosterRole(TargetGuild: Guild, Member: Membership) {
             Name: "Server Booster",
             Color: 16722884,
             Position: TargetGuild.DefaultRole.Position + 1,
-            InGuild: TargetGuild
+            InGuild: TargetGuild,
+            BoosterRole: true
         });
     
         await BoosterRole.save();
