@@ -117,6 +117,7 @@ export const enum MessageFlags {
 }
 
 export const enum Permissions {
+    NONE = 0,
     CREATE_INSTANT_INVITE = 1 << 0,
     KICK_MEMBERS = 1 << 1,
     BAN_MEMBERS = 1 << 2,

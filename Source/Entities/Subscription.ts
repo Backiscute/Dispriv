@@ -3,7 +3,7 @@ import { User } from "./User";
 import { CreateTimestamp } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
-interface SubscriptionItem {
+export interface SubscriptionItem {
     id: string;
     quantity: number;
     plan_id: string;
@@ -104,7 +104,7 @@ export class SubscriptionSlot extends BaseEntity { // aka boosts
                 id: this.ID,
                 user_id: this.UserID
             } : null,
-            subscription_id: this.LinkedSubscriptionID,
+            subscription_id: this.LinkedSubscriptionID
         };
     }
 }

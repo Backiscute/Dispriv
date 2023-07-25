@@ -13,6 +13,7 @@ import { Presence } from "../Classes/Presence";
 import { GetUserByToken } from "./AuthUtils";
 import { SKU, SubscriptionPlan } from "../Entities/Gift";
 import { DiscordApplication } from "../Entities/Application";
+import { GenerateSnowflake } from "./SnowflakeUtils";
 
 export const DISCORD_EPOCH = 1420070400000;
 export const NitroSubs = ["978380692553465866", "1024422698568122368", "511651876987469824", "511651871736201216", "642251038925127690", "511651880837840896", "511651885459963904", "944037208325619722"];
@@ -527,6 +528,55 @@ export async function SendToConnections(
             SendOp(Conn, Opcode, Data, s, t);
         });
     });
+}
+
+export async function MakeBoosterRole(TargetGuild: Guild, Member: Membership) {
+
+    let BoosterRole = TargetGuild.Roles.find((x) => x.BoosterRole == true);
+
+    if (!BoosterRole)
+    {
+        BoosterRole = Role.create({
+            ID: GenerateSnowflake(),
+            Name: "Server Booster",
+            Color: 16722884,
+            Position: TargetGuild.DefaultRole.Position + 1,
+            InGuild: TargetGuild
+        });
+    
+        await BoosterRole.save();
+
+        SendToMembers(
+            TargetGuild.ID,
+            OpCodes.DISPATCH,
+            {
+                guild_id: TargetGuild.ID,
+                role: BoosterRole.Package(),
+            },
+            6942,
+            "GUILD_ROLE_CREATE",
+        );
+    }
+
+    if (Member.Roles.find((x) => x.ID == BoosterRole?.ID)) return;
+
+    Member.Roles.push(BoosterRole);
+
+    await Member.save();
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    SendGuildMemberUpdate((await User.findOne({
+        where: {
+            ID: Member.Owner.ID
+        },
+        relations: {
+            Memberships: {
+                ToGuild: {
+                    Members: true
+                }
+            }
+        }
+    }))!);
 }
 
 export async function SendToMembers(

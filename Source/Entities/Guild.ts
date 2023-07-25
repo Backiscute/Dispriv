@@ -294,6 +294,7 @@ export class Guild extends BaseEntity {
     Package(UserContext?: User) {
         const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
         const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
+
         const UserMembershipHere = UserContext?.Memberships?.find((x) => x.ToGuild.ID === this.ID);
 
         return {
@@ -337,6 +338,9 @@ export class Guild extends BaseEntity {
     }
 
     GatewayPackage(UserContext: User) {
+        const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
+        const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
+
         return {
             application_command_counts: {},
             channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
@@ -348,7 +352,7 @@ export class Guild extends BaseEntity {
             large: this.Members ? this.Members.length > 100 : false,
             lazy: true,
             member_count: this.Members ? this.Members.length : 1,
-            premium_subscription_count: this.Members ? this.Members.filter((M) => M.BoostingSince).length : 0,
+            premium_subscription_count: BoostCount,
             properties: this.Package(UserContext),
             roles: this.Roles?.map((R) => R.Package()),
             stage_instances: [],
@@ -361,6 +365,9 @@ export class Guild extends BaseEntity {
     }
 
     DiscoveryPackage() {
+        const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
+        const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
+
         return {
             approximate_member_count: this.Members?.length,
             approximate_presence_count: 0,
@@ -375,7 +382,7 @@ export class Guild extends BaseEntity {
             keywords: [],
             name: this.Name,
             preferred_locale: "en-US",
-            premium_subscription_count: this.Members?.filter((M) => M.BoostingSince).length,
+            premium_subscription_count: BoostCount,
             primary_category_id: 0,
             splash: this.BannerID,
             vanity_url_code: this.VanityInviteURL,
@@ -383,6 +390,9 @@ export class Guild extends BaseEntity {
     }
 
     GatewayPackageEvent(UserContext: User) {
+        const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
+        const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
+
         return {
             application_command_counts: {},
             channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
@@ -394,7 +404,7 @@ export class Guild extends BaseEntity {
             large: this.Members ? this.Members.length > 100 : false,
             lazy: true,
             member_count: this.Members ? this.Members.length : 1,
-            premium_subscription_count: this.Members ? this.Members.filter((M) => M.BoostingSince).length : 0,
+            premium_subscription_count: BoostCount,
             properties: this.Package(UserContext),
             roles: this.Roles?.map((R) => R.Package()),
             stage_instances: [],
@@ -462,6 +472,9 @@ export class Role extends BaseEntity {
     @Column({ default: true })
         ShownOnMemberlist: boolean;
 
+    @Column({ default: false })
+        BoosterRole: boolean;
+
     @Column({ nullable: true })
         IconID?: string;
 
@@ -502,9 +515,9 @@ export class Role extends BaseEntity {
             unicode_emoji: this.UnicodeEmoji,
             position: this.Position,
             permissions: this.Permissions.toString(),
-            managed: false,
+            managed: this.BoosterRole,
             mentionable: this.AnyoneCanMention,
-            tags: {},
+            tags: this.BoosterRole ? { premium_subscriber: null } : undefined,
         };
     }
 }

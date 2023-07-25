@@ -11,6 +11,7 @@ import {
     GetHighestRole,
     GetHighestRoleInArr,
     HasPermission,
+    MakeBoosterRole,
     SendGuildMemberUpdate,
     SendMessage,
     SendToMembers,
@@ -512,6 +513,20 @@ App.patch("/:GuildID/vanity-url", VerifyAuth, async (req, res) => {
     });
 });
 
+App.get("/:GuildID/premium/subscriptions", VerifyAuth, async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+
+    const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
+
+    if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+
+    if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+
+    const SubSlots = await SubscriptionSlot.find({ where: { GuildID: Mmbr.ToGuild.ID } });
+
+    res.json(SubSlots.map((S) => S.Package()));
+});
+
 App.put(
     "/:GuildID/premium/subscriptions",
     VerifyAuth,
@@ -521,12 +536,15 @@ App.put(
     async (req, res) => {
         const SubSlots = req.body.user_premium_guild_subscription_slot_ids;
 
-        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Channels: { OwnerGuild: true } } } }))!;
+        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true, Channels: { OwnerGuild: true }, Roles: true } } }))!;
 
-        const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
+        let Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
 
         if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
-        const Boosted = false;
+        let Boosted = false;
+
+        const Guild = Mmbr.ToGuild;
+        const GuildPackage = Guild.Package();
 
         for (const Slot of SubSlots) {
             const SubSlot = await SubscriptionSlot.findOne({ where: { UserID: MyUser.ID, ID: Slot } });
@@ -539,24 +557,32 @@ App.put(
             Mmbr.BoostingSince = new Date();
             Mmbr.BoostCount++;
 
-            await Mmbr.save();
+            Mmbr = await Mmbr.save();
 
-            const SystemChannelID = Mmbr.ToGuild.SystemChannelID;
+            Boosted = true;
+
+            const SystemChannelID = Guild.SystemChannelID;
 
             if (!SystemChannelID) continue;
     
-            const SystemChannel = Mmbr.ToGuild.Channels.find((x) => x.ID === SystemChannelID);
+            const SystemChannel = Guild.Channels.find((x) => x.ID === SystemChannelID);
     
             if (!SystemChannel) continue;
     
             if (SystemChannel.Type !== ChannelType.GUILD_TEXT) continue;
-            if (Mmbr.ToGuild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS)) continue;
+            if (Guild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS)) continue;
+
+            GuildPackage.premium_subscription_count++;
     
+            let MessageTypeToSend = MessageType.GUILD_BOOST;
+            
+            MessageTypeToSend = GuildPackage.premium_subscription_count === 2 ? MessageType.GUILD_BOOST_TIER_1 : GuildPackage.premium_subscription_count === 7 ? MessageType.GUILD_BOOST_TIER_2 : GuildPackage.premium_subscription_count === 14 ? MessageType.GUILD_BOOST_TIER_3 : MessageType.GUILD_BOOST;
+            
             const SystemMessage = Message.create({
                 ID: GenerateSnowflake(),
                 Channel: SystemChannel,
                 Content: "",
-                Type: MessageType.GUILD_BOOST,
+                Type: MessageTypeToSend,
                 CreationDate: new Date(),
                 Author: MyUser,
             });
@@ -568,7 +594,13 @@ App.put(
 
         if (!Boosted) return res.sendStatus(400);
 
-        res.sendStatus(204);
+        GuildPackage.premium_tier = GuildPackage.premium_subscription_count >= 14 ? 3 : GuildPackage.premium_subscription_count >= 7 ? 2 : GuildPackage.premium_subscription_count >= 2 ? 1 : 0;
+
+        SendToMembers(GuildPackage.id, OpCodes.DISPATCH, GuildPackage, 1337, "GUILD_UPDATE");
+
+        MakeBoosterRole(Guild, Mmbr);
+
+        res.json({});
     },
 );
 

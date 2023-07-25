@@ -20,7 +20,7 @@ import {
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 import { FindConnection } from "../Modules/GatewayUtils";
-import { SubscriptionSlot, UserSubscription } from "../Entities/Subscription";
+import { SubscriptionItem, SubscriptionSlot, UserSubscription } from "../Entities/Subscription";
 import { ValidateRequest } from "../Modules/ValidationUtils";
 import { SubscriptionPurchaseSchema } from "../Validators/Users";
 import { SubscriptionPlan } from "../Entities/Gift";
@@ -654,20 +654,73 @@ async (req, res) => {
 
         if (!Plan) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
 
-        for ( let i = 0; i < Quantity; i++ ) {
-            if (Object.prototype.hasOwnProperty.call(Item, "id")) continue;
+        if (Object.prototype.hasOwnProperty.call(Item, "id")) 
+        {
+            let SubItem = Subscription.Items.find((I) => I.id === Item.id) as SubscriptionItem;
 
-            if (Plan.Name.includes("Nitro"))
+            if (!SubItem) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
+
+            const Old = SubItem.quantity;
+
+            SubItem.quantity = Quantity;
+
+            SubItem = Item;
+
+            if (Plan.Name.includes("Server Boost"))
             {
-                Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: GenerateSnowflake() });
+                console.log(Quantity - Old);
+                for (let i = 0; i < Quantity - Old; i++) {
+                    const SubSlot = await SubscriptionSlot.create({
+                        ID: GenerateSnowflake(),
+                        UserID: MyUser.ID,
+                        LinkedSubscriptionID: Subscription.ID,
+                    });
 
-                await Subscription.save();
+                    console.log("fr");
 
-                res.json(Subscription.Package());
-                return;
+                    New.push(SubSlot.Package());
+                    await SubSlot.save();
+                }
             }
-            else if (Plan.Name.includes("Server Boost"))
+
+            await Subscription.save();
+            continue;
+        };
+
+        if (Plan.Name.includes("Nitro"))
+        {
+            const Snowflake = GenerateSnowflake();
+            Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: Snowflake });
+
+            MyUser.Premium = true;
+            MyUser.PremiumStreak = CreateTimestamp();
+            MyUser.PremiumType = ( Plan.Name.includes("Basic") ? NitroType.NITRO_BASIC : Plan.Name.includes("Classic") ? NitroType.NITRO_CLASSIC : NitroType.NITRO );
+
+            if (MyUser.PremiumType == NitroType.NITRO)
             {
+                for (let i = 0; i < 2; i++ ) {
+                    const SubSlot = await SubscriptionSlot.create({
+                        ID: GenerateSnowflake(),
+                        UserID: MyUser.ID,
+                        LinkedSubscriptionID: Snowflake,
+                    });
+    
+                    await SubSlot.save();
+                } // add nitro boosts
+            }
+
+            await MyUser.save();
+
+            SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
+
+            await Subscription.save();
+
+            res.json(Subscription.Package());
+            return;
+        }
+        else if (Plan.Name.includes("Server Boost"))
+        {
+            for (let i = 0; i < Quantity; i++) {
                 const SubSlot = await SubscriptionSlot.create({
                     ID: GenerateSnowflake(),
                     UserID: MyUser.ID,
@@ -676,17 +729,16 @@ async (req, res) => {
 
                 await SubSlot.save();
 
+                New.push(SubSlot.Package());
+
                 Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: GenerateSnowflake() });  
 
                 await Subscription.save();
-
-                New.push(SubSlot.Package());
             }
         }
     };
 
     res.json(New);
-    
 });
 
 App.get("/@me/billing/country-code", (req, res) => {
