@@ -4,6 +4,8 @@ import { Deflate, Inflate } from "fast-zlib";
 import { WebSocket } from "ws";
 import { OpCodes } from "./GatewayOpCodes";
 import { DispatchType } from "../Modules/GatewayUtils";
+import { GatewayCapabilities } from "./GatewayCapabilities";
+import { GatewayIntents } from "./GatewayIntents";
 
 export interface BasePacket {
 	op: OpCodes; // opcode
@@ -24,6 +26,7 @@ export class GatewayConnection {
     Deflater: Deflate;
     Inflater: Inflate;
     Intents: number;
+    Capabilities: GatewayCapabilities;
 
     LastPacketSession: number = -1;
     MissedPackets: BasePacket[] = [];
@@ -38,6 +41,21 @@ export class GatewayConnection {
         this.Deflater = new Deflate();
         this.Inflater = new Inflate();
         this.Intents = 0;
+        this.Capabilities = GatewayCapabilities.UNKNOWN;
+    }
+
+    HasCapability(Capability: GatewayCapabilities): boolean {
+        return (this.Capabilities & Capability) === Capability;
+    };
+
+    CapabilitiesToStringArray(): string[] {
+        const Capabilities: string[] = [];
+        for (const Capability in GatewayCapabilities) {
+            if (this.HasCapability(GatewayCapabilities[Capability as keyof typeof GatewayCapabilities])) {
+                Capabilities.push(Capability);
+            }
+        }
+        return Capabilities;
     }
 
     Dispose() {

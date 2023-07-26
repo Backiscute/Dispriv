@@ -17,7 +17,7 @@ import {
     SendToMembers,
     SendToUser,
 } from "../Modules/DiscordUtils";
-import { Remove, Upload, ValidBaseURL } from "../Modules/AssetUtils";
+import { Remove, Upload, UploadEmoji, ValidBaseURL } from "../Modules/AssetUtils";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { ILike } from "typeorm";
 import { ValidateRequest } from "../Modules/ValidationUtils";
@@ -392,22 +392,30 @@ App.post(
         const Image = req.body.image;
         const Name = req.body.name;
 
-        console.log(Image);
-
         if (!ValidBaseURL(Image)) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
 
         const EmojiID = GenerateSnowflake();
+
+        try 
+        {
+            await UploadEmoji(Image, "Guilds/Emojis", EmojiID, Image.startsWith("data:image/gif;base64,"));
+        }
+        catch
+        {
+            return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
+        }
 
         const Emoji = await CustomEmoji.create({
             ID: EmojiID,
             Name,
             Guild: Mmbr.ToGuild,
-            Author: Mmbr.Owner
+            Author: Mmbr.Owner,
+            Animated: Image.startsWith("data:image/gif;base64,")
         });
 
         await Emoji.save();
 
-        await Upload(Image, "Guilds/Emojis", EmojiID);
+        await Mmbr.ToGuild.reload();
 
         res.json(Emoji.Package(true));
 
