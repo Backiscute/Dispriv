@@ -3,7 +3,7 @@ import { VerifyAuth } from "../Modules/AuthUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { ValidateRequest } from "../Modules/ValidationUtils";
-import { SubscriptionPurchaseSchema } from "../Validators/Users";
+import { GiftPurchaseSchema } from "../Validators/Users";
 
 const App = Router();
 
@@ -19,7 +19,7 @@ App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth, async (r
 });
 
 App.post("/skus/:SKU/purchase", VerifyAuth, async (req, res, next) => {
-    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+    ValidateRequest(req, res, next, GiftPurchaseSchema);
 },
 async (req, res) => {
     res.json({});
