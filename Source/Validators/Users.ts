@@ -14,5 +14,7 @@ export const SubscriptionPurchaseSchema = z.object({
     payment_source_token: z.string().nullable(),
     purchase_token: z.string().optional(),
     return_url: z.string().nullable().optional(),
-    trial_id: z.string().nullable().optional()
+    trial_id: z.string().nullable().optional(),
+    gift: z.boolean().optional(),
+    sku_subscription_plan_id: z.string().optional()
 });
