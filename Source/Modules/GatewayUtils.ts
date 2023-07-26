@@ -137,7 +137,7 @@ export function SendOp<T>(
     };
 
     const PackedData = SocketClient.Encoding === "etf" ? pack(D) : Buffer.from(JSON.stringify(D));
-    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
+    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData.toString();
 
     if (SocketClient.ScheduledForRemoval) {
         Msg(
@@ -167,6 +167,6 @@ export async function ReplayMissedPackets(SocketClient: GatewayConnection, FromS
 
 export function SendRawJSON(SocketClient: GatewayConnection, Data: unknown) {
     const PackedData = SocketClient.Encoding === "etf" ? pack(Data) : Buffer.from(JSON.stringify(Data));
-    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData;
+    const Bf = SocketClient.UseZlib ? SocketClient.Deflater.process(PackedData) : PackedData.toString();
     SocketClient.SocketClient.send(Bf);
 }

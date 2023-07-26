@@ -14,7 +14,7 @@ ffmpeg.setFfprobePath(ffprobeBinary);
 ffmpeg.setFfmpegPath(ffmpegBinary!);
 
 export function ValidBaseURL(URL: string) {
-    return /^data:(image\/png|image\/jpeg|application\/octet-stream);base64,/g.test(URL);
+    return /^data:(image\/png|image\/jpeg|image\/gif|application\/octet-stream);base64,/g.test(URL);
 }
 
 export function URLToBuffer(URL: string) {
@@ -36,6 +36,22 @@ export async function GetFirstFrame(FilePath: string, OutputPath: string) {
         }
     });
 }
+
+export async function UploadEmoji(RawImageString: string, Directory: Folders, FileName?: string, Animated = false) {
+    const ImgBlob = URLToBuffer(RawImageString);
+    const ID = FileName ? FileName : v4().replaceAll("-", "");
+
+    const Buffer = Animated ? await sharp(ImgBlob).gif().toBuffer() : await sharp(ImgBlob).webp({ quality: 80 }).toBuffer();
+
+    if (!existsSync(path.join(__dirname, "..", "Assets", Directory))) mkdirSync(path.join(__dirname, "..", "Assets", Directory), {
+        recursive: true
+    });
+
+    writeFileSync(path.join(__dirname, "..", "Assets", Directory, ID), Buffer);
+
+    return ID;
+}
+
 
 export async function Upload(RawImageString: string, Directory: Folders, FileName?: string) {
     const ImgBlob = URLToBuffer(RawImageString);

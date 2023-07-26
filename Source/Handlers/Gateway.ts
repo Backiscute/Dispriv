@@ -31,6 +31,7 @@ import {
 } from "../Classes/GatewayPackets";
 import { GetGuildExperiments, GetUserExperiments } from "./Experiments";
 import { Guild } from "../Entities/Guild";
+import { GatewayCapabilities } from "../Classes/GatewayCapabilities";
 
 const Socket = new WebSocketServer({
     port: parseInt(process.env.WSPORT) || 6968,
@@ -74,8 +75,8 @@ Socket.on("connection", async (Client, req) => {
     });
 
     SendOp<HelloPacket>(GatewayClient, OpCodes.HELLO, {
-        heartbeat_interval: 41250, // eslint-disable-next-line quotes
-        _trace: ['["Dispriv-Gateway",{"micros":0.0}]'],
+        heartbeat_interval: 41250,
+        _trace: ["[\"Dispriv-Gateway\",{\"micros\":0.0}]"],
     });
 
     Client.on("message", async (Data: Buffer) => {
@@ -622,6 +623,7 @@ Socket.on("connection", async (Client, req) => {
 
                 console.log("--- ACCOUNT GOTTEN");
                 const ConnectionIntents = UnpackedData.d.intents ?? 0;
+                GatewayClient.Capabilities = UnpackedData.d.capabilities ?? GatewayCapabilities.UNKNOWN;
                 GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
                 Msg(
@@ -635,6 +637,9 @@ Socket.on("connection", async (Client, req) => {
                 GatewayClient.Account!.Presence = PresenceSet;
                 SendGuildStatusUpdate(GatewayClient.Account!, PresenceSet);
                 await GatewayClient.Account!.save();
+
+                const Guilds = GatewayClient.Account.Memberships.map((M) => M.ToGuild);
+                const Memberships = Guilds.map((G) => G.Members);
 
                 console.log("--- SENDING READY DISPATCH");
                 // you'd better thank me for adding types --maddie
@@ -658,7 +663,26 @@ Socket.on("connection", async (Client, req) => {
                         guilds: GatewayClient.Account!.Memberships.map((M) =>
                             M.ToGuild.GatewayPackage(GatewayClient.Account!),
                         ),
-                        merged_members: GatewayClient.Account!.Memberships.map((M) => M.PackageGateway()), // YOUR member object in every guild (for roles and stuff)
+                        merged_members: GatewayClient.HasCapability(GatewayCapabilities.PRIORITIZED_READY_PAYLOAD) ? GatewayClient.Account!.Memberships.map((M) => M.PackageGateway()) : [
+                            ...GatewayClient.Account!.Memberships.map((M) => M.PackageGateway()),
+                            ...GatewayClient.Account!.Memberships.map((M) =>
+                                M.ToGuild.Members.map((M) => M.PackageGateway()),
+                            ).flat(),
+                        ],
+                        merged_presences: GatewayClient.HasCapability(GatewayCapabilities.PRIORITIZED_READY_PAYLOAD) ? {
+                            friends: [],
+                            guilds: Memberships.map((M) =>
+                                M.map((M) => M.Owner).map((U) => ({
+                                    user_id: U.ID,
+                                    status: U.Presence,
+                                    client_status: {
+                                        web: U.Presence,
+                                    },
+                                    broadcast: null,
+                                    activities: [],
+                                })),
+                            ),
+                        }  : undefined,   // 6 When using the DEDUPE_USER_OBJECTS Gateway capability, presences, as well as each guild's presences array, is replaced by merged_presences. In addition, each guild's members array will be collapsed into merged_members. Finally, the users array will contain the user objects for every user in the event. Any user object in the event will be omitted, with an ID left in its place (e.g. user_id in member objects, recipient_ids in private channel objects, etc.).
                         private_channels: GatewayClient.Account!.AvailableDMs.map((C) =>
                             C.GatewayDMPackage(GatewayClient.Account!),
                         ), // group chats and dms
@@ -681,7 +705,7 @@ Socket.on("connection", async (Client, req) => {
                         },
                         user: GatewayClient.Account!.Package(),
                         user_guild_settings: { entries: [], partial: false, version: 0 }, // guild settings for the user (notifications, etc)
-                        user_settings_proto: GatewayClient.Account!.SettingsProto[0], // settings of the client
+                        user_settings_proto: GatewayClient.HasCapability(GatewayCapabilities.USER_SETTINGS_PROTO) ? GatewayClient.Account!.SettingsProto[0] : undefined, // settings of the client
                         users: [
                             GatewayClient.Account!.PackageSmall(),
                             ...GatewayClient.Account!.AvailableDMs.map((C) =>
@@ -693,16 +717,19 @@ Socket.on("connection", async (Client, req) => {
                                 M.ToGuild.Members.map((M) => M.Owner.PackageSmall()),
                             ).flat(),
                         ], // EVERY user in EVERY guild (for searching, mentions, etc)
+                        auth_token: GatewayClient.HasCapability(GatewayCapabilities.AUTH_TOKEN_REFRESH) ? GatewayClient.UserToken : undefined,
                         v: 9, // api version (fr)
                     },
                     1,
                     "READY",
                 );
 
+                console.log("--- CLIENT READY'IED");
+
+                if (!GatewayClient.HasCapability(GatewayCapabilities.PRIORITIZED_READY_PAYLOAD)) return;
+
                 //console.log(GatewayClient.Account!.Memberships[0].ToGuild);
                 console.log("--- SENDING READY_SUPPLEMENTAL DISPATCH");
-                const Guilds = GatewayClient.Account.Memberships.map((M) => M.ToGuild);
-                const Memberships = Guilds.map((G) => G.Members);
                 SendOp<ReadySupplementalPacket>(
                     GatewayClient,
                     OpCodes.DISPATCH,
@@ -733,7 +760,7 @@ Socket.on("connection", async (Client, req) => {
                     2,
                     "READY_SUPPLEMENTAL",
                 );
-                console.log("--- CLIENT READY'IED");
+                console.log("--- CLIENT READY'IED (SUPPLEMENTAL)");
                 timeEnd(`identify-${GatewayClient.ID}`);
                 break;
             }

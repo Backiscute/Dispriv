@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 export enum GatewayIntents {
+    UNKNOWN = 0,
     GUILDS = 1 << 0,
     GUILD_MEMBERS = 1 << 1,
     GUILD_MODERATION = 1 << 2,

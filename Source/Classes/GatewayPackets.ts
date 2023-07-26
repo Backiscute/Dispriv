@@ -47,6 +47,10 @@ export interface ReadyPacket {
     guild_join_requests: unknown[];
     guilds: ReturnType<typeof Guild.prototype.GatewayPackage>[];
     merged_members: ReturnType<typeof Membership.prototype.PackageGateway>[];
+    merged_presences?: {
+        friends: unknown[];
+        guilds: unknown[];
+    };
     private_channels: unknown[];
     read_state: { entries: unknown[]; partial: boolean; version: number };
     relationships: unknown[];
@@ -59,6 +63,7 @@ export interface ReadyPacket {
     user_guild_settings: { entries: unknown[]; partial: boolean; version: number };
     user_settings_proto: unknown;
     users: ReturnType<typeof User.prototype.PackageSmall>[];
+    auth_token?: string;
     v: number;
 }
 

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { VerifyAuth } from "../Modules/AuthUtils";
 import { SubscriptionPlan } from "../Entities/Gift";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { SubscriptionPurchaseSchema } from "../Validators/Users";
 
 const App = Router();
 
@@ -14,6 +16,13 @@ App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth, async (r
     });
 
     res.json(Plans.map((P) => P.Package()));
+});
+
+App.post("/skus/:SKU/purchase", VerifyAuth, async (req, res, next) => {
+    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+},
+async (req, res) => {
+    res.json({});
 });
 
 module.exports = {
