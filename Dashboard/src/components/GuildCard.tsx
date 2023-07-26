@@ -1,5 +1,6 @@
 import { req } from "@/util/apiFuncs";
 import { useState } from "react";
+import { clipboard } from "electron";
 
 export enum GuildFeatures {
     ACTIVITIES_ALPHA = "ACTIVITIES_ALPHA",
@@ -190,6 +191,23 @@ export default function GuildCard(props: { server: IServer }) {
                 <h3 style={{ padding: 0, margin: "0px 0px 12px 0px" }}>
                     {server.name} [{server.id}]
                 </h3>
+                <div
+                    style={{
+                        width: 250,
+                        marginBottom: 12,
+                    }}
+                >
+                    <button
+                        onClick={async () => {
+                            const res = await req(`/CreateInvite`, "POST", {
+                                guild_id: server.id,
+                            });
+                            clipboard.writeText(res.code);
+                        }}
+                    >
+                        Copy invite to clipboard
+                    </button>
+                </div>
                 <div>
                     {Object.keys(GuildFeatures).map((feature) => (
                         <div key={feature}>
@@ -205,46 +223,26 @@ export default function GuildCard(props: { server: IServer }) {
                                         marginBottom: "5px",
                                         marginRight: "8px",
                                         width: "13px",
-                                        height: "13px"
+                                        height: "13px",
                                     }}
                                     type="checkbox"
                                     key={feature}
-                                    defaultChecked={server.features.includes(
-                                        feature as GuildFeatures
-                                    )}
+                                    defaultChecked={server.features.includes(feature as GuildFeatures)}
                                     onClick={async (e) => {
                                         e.preventDefault();
-                                        const res = await req(
-                                            `/server/${server.id}/features`,
-                                            "PATCH",
-                                            {
-                                                features:
-                                                    server.features.includes(
-                                                        feature as GuildFeatures
-                                                    )
-                                                        ? server.features.filter(
-                                                            (f) =>
-                                                                f !== feature
-                                                        )
-                                                        : [
-                                                            ...server.features,
-                                                            feature,
-                                                        ],
-                                            }
-                                        );
+                                        const res = await req(`/server/${server.id}/features`, "PATCH", {
+                                            features: server.features.includes(feature as GuildFeatures)
+                                                ? server.features.filter((f) => f !== feature)
+                                                : [...server.features, feature],
+                                        });
                                         setServer(res);
-                                        (e.target as HTMLInputElement).checked =
-                                            !(e.target as HTMLInputElement)
-                                                .checked;
+                                        (e.target as HTMLInputElement).checked = !(e.target as HTMLInputElement)
+                                            .checked;
                                     }}
                                 />
                                 {feature
                                     .split("_")
-                                    .map(
-                                        (word) =>
-                                            word[0].toUpperCase() +
-                                            word.slice(1).toLowerCase()
-                                    )
+                                    .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
                                     .join(" ")}
                             </div>
                         </div>

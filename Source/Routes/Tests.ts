@@ -3,10 +3,10 @@ import { User } from "../Entities/User";
 import { VerifyToken } from "../Modules/AuthUtils";
 import { DiscordApplication } from "../Entities/Application";
 import { Channel, ChannelType } from "../Entities/Channel";
-import { Guild } from "../Entities/Guild";
+import { Guild, Invite } from "../Entities/Guild";
 import { Badge } from "../Entities/Badge";
 import { OpCodes } from "../Classes/GatewayOpCodes";
-import { SendMessage, SendToMembers, SendToUser } from "../Modules/DiscordUtils";
+import { GenerateRandomString, SendMessage, SendToMembers, SendToUser } from "../Modules/DiscordUtils";
 import { Connections } from "../Handlers/Gateway";
 import { Gift, SKU, SubscriptionPlan } from "../Entities/Gift";
 import { GenerateCode, GenerateSnowflake } from "../Modules/SnowflakeUtils";
@@ -237,6 +237,26 @@ App.patch("/Server/:ID/Features", async (req, res) => {
         "GUILD_UPDATE",
     );
     res.send(ServerData.Package(new User()));
+});
+
+App.post("/CreateInvite", async (req, res) => {
+    const RequestedGuild = await Guild.findOne({
+        where: { ID: req.body.guild_id },
+        relations: { Members: true },
+    });
+
+    if (!RequestedGuild) return res.status(400).json({ code: 10013, message: "Unknown Guild" });
+
+    const NewInvite = await Invite.create({
+        InviteOwner: RequestedGuild.Owner,
+        InviteCode: GenerateRandomString(),
+        MaxUses: req.body["max_uses"] || 0,
+        InGuild: RequestedGuild,
+        Created: new Date(),
+        LinkedChannel: RequestedGuild.Channels[0],
+    }).save();
+
+    res.json(NewInvite.Package());
 });
 
 App.post("/Badge", async (req, res) => {
