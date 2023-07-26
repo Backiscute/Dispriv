@@ -7,11 +7,13 @@ interface SnowflakeOptions {
     Sequence?: number;
 }
 
+let SnowflakeSequence = 0;
+
 export function GenerateSnowflake(options: SnowflakeOptions = {}): string {
     const Timestamp = options.Timestamp ?? Date.now();
     const WorkerID = options.WorkerID ?? 1;
     const ProcessID = options.ProcessID ?? 0;
-    const Sequence = options.Sequence ?? 0;
+    const Sequence = ++SnowflakeSequence;
 
     const Snowflake =
         ((BigInt(Timestamp) - BigInt(DISCORD_EPOCH)) << BigInt(22)) |

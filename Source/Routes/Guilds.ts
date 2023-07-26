@@ -32,24 +32,24 @@ App.get("/*/regions", (req, res) => {
     res.json([{ id: "dispriv", name: "Dispriv Voice", custom: false, deprecated: false, optimal: true }]);
 });
 
-App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { OwnedGuilds: true }))!;
-    if (!MyUser.OwnedGuilds.map((G) => G.ID).includes(req.params.GuildID))
-        return res.status(403).json({ code: 0, message: "Missing Access" });
+// App.post("/:GuildID/delete", VerifyAuth, async (req, res) => {
+//     const MyUser = (await GetUserByRequest(req, { OwnedGuilds: true }))!;
+//     if (!MyUser.OwnedGuilds.map((G) => G.ID).includes(req.params.GuildID))
+//         return res.status(403).json({ code: 0, message: "Missing Access" });
 
-    const G = MyUser.OwnedGuilds.find((G) => G.ID === req.params.GuildID);
+//     const G = MyUser.OwnedGuilds.find((G) => G.ID === req.params.GuildID);
 
-    if (!G) return res.status(404).json({ code: 0, message: "Couldn't find that guild." });
+//     if (!G) return res.status(404).json({ code: 0, message: "Couldn't find that guild." });
 
-    if (G.IconID) Remove(G.IconID);
+//     if (G.IconID) Remove(G.IconID);
 
-    await SendToMembers(G.ID, OpCodes.DISPATCH, { id: G.ID }, 69, "GUILD_DELETE");
+//     await SendToMembers(G.ID, OpCodes.DISPATCH, { id: G.ID }, 69, "GUILD_DELETE");
 
-    console.log(JSON.stringify(G, null, 4));
-    await Guild.remove(G);
+//     console.log(JSON.stringify(G, null, 4));
+//     await Guild.remove(G);
 
-    res.status(204).send();
-});
+//     res.status(204).send();
+// });
 
 App.post("/:GuildID/roles", VerifyAuth, async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
@@ -93,31 +93,39 @@ App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], Verify
     const Mmbr = await Membership.findOne({
         where: {
             ToGuild: {
-                ID: req.params.GuildID
+                ID: req.params.GuildID,
             },
             Owner: {
-                ID: MyUser.ID
-            }
-        }
-    });
-    if (!Mmbr) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "You aren't participating in that guild." });
-    const GuildMember = IsMe ? Mmbr : await Membership.findOne({
-        where: {
-            ToGuild: {
-                ID: req.params.GuildID
+                ID: MyUser.ID,
             },
-            Owner: {
-                ID: req.params.MemberID
-            }
         },
-        relations: {
-            ToGuild: {
-                Owner: true
-            }
-        }
     });
+    if (!Mmbr)
+        return res
+            .status(400)
+            .json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "You aren't participating in that guild." });
+    const GuildMember = IsMe
+        ? Mmbr
+        : await Membership.findOne({
+              where: {
+                  ToGuild: {
+                      ID: req.params.GuildID,
+                  },
+                  Owner: {
+                      ID: req.params.MemberID,
+                  },
+              },
+              relations: {
+                  ToGuild: {
+                      Owner: true,
+                  },
+              },
+          });
 
-    if (!GuildMember) return res.status(404).json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "That user isn't a member of this guild." });
+    if (!GuildMember)
+        return res
+            .status(404)
+            .json({ code: JsonErrorCodes.UNKNOWN_MEMBER, message: "That user isn't a member of this guild." });
 
     const G = GuildMember.ToGuild;
 
@@ -188,18 +196,20 @@ App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], Verify
     await GuildMember.save();
     res.json(req.path.includes("/profile/") ? { guild_id: GuildMember.ID } : GuildMember.Package());
 
-    SendGuildMemberUpdate((await User.findOne({
-        where: {
-            ID: GuildMember.Owner.ID
-        },
-        relations: {
-            Memberships: {
-                ToGuild: {
-                    Members: true
-                }
-            }
-        }
-    }))!);
+    SendGuildMemberUpdate(
+        (await User.findOne({
+            where: {
+                ID: GuildMember.Owner.ID,
+            },
+            relations: {
+                Memberships: {
+                    ToGuild: {
+                        Members: true,
+                    },
+                },
+            },
+        }))!,
+    );
 });
 
 App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req, res) => {
@@ -215,16 +225,16 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth, async (req
 
     const RoleArray: Role[] = SingleRole
         ? [
-            await Role.findOne({
-                where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
-                relations: { InGuild: true },
-            }),
-        ]
+              await Role.findOne({
+                  where: { InGuild: { ID: G.ID }, ID: req.params.RoleID },
+                  relations: { InGuild: true },
+              }),
+          ]
         : await Promise.all(
-            req.body.map((r: { id: string }) =>
-                Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
-            ),
-        );
+              req.body.map((r: { id: string }) =>
+                  Role.findOne({ where: { InGuild: { ID: G.ID }, ID: r.id }, relations: { InGuild: true } }),
+              ),
+          );
 
     const ResponseBody = [];
 
@@ -332,26 +342,32 @@ App.patch("/:GuildID/channels", VerifyAuth, async (req, res) => {
 });
 
 App.get("/:GuildID/emojis", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } } }))!;
+    const MyUser = (await GetUserByRequest(req, {
+        Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } },
+    }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
     const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID)
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     res.json(Mmbr.ToGuild.Emojis.map((E) => E.Package(true)));
 });
 
 App.patch("/:GuildID/emojis/:EmojiID", VerifyAuth, async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } } }))!;
+    const MyUser = (await GetUserByRequest(req, {
+        Memberships: { ToGuild: { Emojis: { Author: true }, Owner: true } },
+    }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
 
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
     const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID)
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     const Emoji = Mmbr.ToGuild.Emojis.find((E) => E.ID === req.params.EmojiID);
 
@@ -372,7 +388,13 @@ App.patch("/:GuildID/emojis/:EmojiID", VerifyAuth, async (req, res) => {
 
     res.json(Emoji.Package(true));
 
-    SendToMembers(Mmbr.ToGuild.ID, OpCodes.DISPATCH, { guild_id: Mmbr.ToGuild.ID, emojis: Mmbr.ToGuild.Emojis?.map((E) => E.Package()) ?? [] }, 420, "GUILD_EMOJIS_UPDATE");
+    SendToMembers(
+        Mmbr.ToGuild.ID,
+        OpCodes.DISPATCH,
+        { guild_id: Mmbr.ToGuild.ID, emojis: Mmbr.ToGuild.Emojis?.map((E) => E.Package()) ?? [] },
+        420,
+        "GUILD_EMOJIS_UPDATE",
+    );
 });
 
 App.post(
@@ -387,22 +409,25 @@ App.post(
 
         const Permission = await HasPermission(Mmbr, Permissions.MANAGE_EXPRESSIONS);
 
-        if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+        if (!Permission && Mmbr.Owner.ID !== Mmbr.ToGuild.Owner.ID)
+            return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
         const Image = req.body.image;
         const Name = req.body.name;
 
-        if (!ValidBaseURL(Image)) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
+        if (!ValidBaseURL(Image))
+            return res
+                .status(400)
+                .json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
 
         const EmojiID = GenerateSnowflake();
 
-        try 
-        {
+        try {
             await UploadEmoji(Image, "Guilds/Emojis", EmojiID, Image.startsWith("data:image/gif;base64,"));
-        }
-        catch
-        {
-            return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
+        } catch {
+            return res
+                .status(400)
+                .json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid image" });
         }
 
         const Emoji = await CustomEmoji.create({
@@ -410,7 +435,7 @@ App.post(
             Name,
             Guild: Mmbr.ToGuild,
             Author: Mmbr.Owner,
-            Animated: Image.startsWith("data:image/gif;base64,")
+            Animated: Image.startsWith("data:image/gif;base64,"),
         });
 
         await Emoji.save();
@@ -419,7 +444,13 @@ App.post(
 
         res.json(Emoji.Package(true));
 
-        SendToMembers(Mmbr.ToGuild.ID, OpCodes.DISPATCH, { guild_id: Mmbr.ToGuild.ID, emojis: Mmbr.ToGuild.Emojis?.map((E) => E.Package()) ?? [] }, 420, "GUILD_EMOJIS_UPDATE");
+        SendToMembers(
+            Mmbr.ToGuild.ID,
+            OpCodes.DISPATCH,
+            { guild_id: Mmbr.ToGuild.ID, emojis: Mmbr.ToGuild.Emojis?.map((E) => E.Package()) ?? [] },
+            420,
+            "GUILD_EMOJIS_UPDATE",
+        );
     },
 );
 
@@ -528,7 +559,8 @@ App.get("/:GuildID/premium/subscriptions", VerifyAuth, async (req, res) => {
 
     if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
 
-    if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD))
+        return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     const SubSlots = await SubscriptionSlot.find({ where: { GuildID: Mmbr.ToGuild.ID } });
 
@@ -544,7 +576,9 @@ App.put(
     async (req, res) => {
         const SubSlots = req.body.user_premium_guild_subscription_slot_ids;
 
-        const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Members: true, Channels: { OwnerGuild: true }, Roles: true } } }))!;
+        const MyUser = (await GetUserByRequest(req, {
+            Memberships: { ToGuild: { Members: true, Channels: { OwnerGuild: true }, Roles: true } },
+        }))!;
 
         let Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
 
@@ -572,20 +606,27 @@ App.put(
             const SystemChannelID = Guild.SystemChannelID;
 
             if (!SystemChannelID) continue;
-    
+
             const SystemChannel = Guild.Channels.find((x) => x.ID === SystemChannelID);
-    
+
             if (!SystemChannel) continue;
-    
+
             if (SystemChannel.Type !== ChannelType.GUILD_TEXT) continue;
             if (Guild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS)) continue;
 
             GuildPackage.premium_subscription_count++;
-    
+
             let MessageTypeToSend = MessageType.GUILD_BOOST;
-            
-            MessageTypeToSend = GuildPackage.premium_subscription_count === 2 ? MessageType.GUILD_BOOST_TIER_1 : GuildPackage.premium_subscription_count === 7 ? MessageType.GUILD_BOOST_TIER_2 : GuildPackage.premium_subscription_count === 14 ? MessageType.GUILD_BOOST_TIER_3 : MessageType.GUILD_BOOST;
-            
+
+            MessageTypeToSend =
+                GuildPackage.premium_subscription_count === 2
+                    ? MessageType.GUILD_BOOST_TIER_1
+                    : GuildPackage.premium_subscription_count === 7
+                    ? MessageType.GUILD_BOOST_TIER_2
+                    : GuildPackage.premium_subscription_count === 14
+                    ? MessageType.GUILD_BOOST_TIER_3
+                    : MessageType.GUILD_BOOST;
+
             const SystemMessage = Message.create({
                 ID: GenerateSnowflake(),
                 Channel: SystemChannel,
@@ -594,15 +635,22 @@ App.put(
                 CreationDate: new Date(),
                 Author: MyUser,
             });
-    
+
             SendMessage(SystemMessage);
-    
+
             await SystemMessage.save();
         }
 
         if (!Boosted) return res.sendStatus(400);
 
-        GuildPackage.premium_tier = GuildPackage.premium_subscription_count >= 14 ? 3 : GuildPackage.premium_subscription_count >= 7 ? 2 : GuildPackage.premium_subscription_count >= 2 ? 1 : 0;
+        GuildPackage.premium_tier =
+            GuildPackage.premium_subscription_count >= 14
+                ? 3
+                : GuildPackage.premium_subscription_count >= 7
+                ? 2
+                : GuildPackage.premium_subscription_count >= 2
+                ? 1
+                : 0;
 
         SendToMembers(GuildPackage.id, OpCodes.DISPATCH, GuildPackage, 1337, "GUILD_UPDATE");
 
@@ -643,12 +691,11 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
                 G.IconID = await Upload(Value, "Guilds");
                 continue;
             case "system_channel_id":
-                if (!Value) 
-                {
+                if (!Value) {
                     G.SystemChannelID = undefined;
                     continue;
                 }
-                    
+
                 const Chnl = await Channel.findOne({
                     where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_TEXT },
                 });
@@ -661,8 +708,7 @@ App.patch("/:GuildID", VerifyAuth, async (req, res) => {
                 G.SystemChannelFlags = Value;
                 continue;
             case "afk_channel_id":
-                if (!Value)
-                {
+                if (!Value) {
                     G.AfkChannelID = undefined;
                     continue;
                 }

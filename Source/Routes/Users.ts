@@ -541,205 +541,233 @@ App.get("/@me/billing/subscriptions", VerifyAuth, async (req, res) => {
     res.json(MyUser.Subscriptions.map((S) => S.Package()));
 });
 
-App.post("/@me/billing/subscriptions", VerifyAuth, async (req, res, next) => {
-    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
-},
-async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
-    const Items = req.body.items;
+App.post(
+    "/@me/billing/subscriptions",
+    VerifyAuth,
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+    },
+    async (req, res) => {
+        const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
+        const Items = req.body.items;
 
-    const Subs: object[] = [];
+        const Subs: object[] = [];
 
-    for (const Item of Items) {
-        const PlanID = Item.plan_id;
-        const Quantity = Item.quantity;
+        for (const Item of Items) {
+            const PlanID = Item.plan_id;
+            const Quantity = Item.quantity;
 
-        const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
+            const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
 
-        if (!Plan) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
+            if (!Plan)
+                return res
+                    .status(400)
+                    .json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
 
-        const SubID = GenerateSnowflake();
-        if (Plan.Name.includes("Server Boost"))
-        {
-            const Sub = MyUser.Subscriptions.find((S) => S.Items[0].plan_id === PlanID);
-            if (Sub) return;
+            const SubID = GenerateSnowflake();
+            if (Plan.Name.includes("Server Boost")) {
+                const Sub = MyUser.Subscriptions.find((S) => S.Items[0].plan_id === PlanID);
+                if (Sub) return;
 
-            await UserSubscription.create({
-                ID: SubID,
-                LinkedUser: MyUser,
-                Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
-            }).save();
-        }
+                await UserSubscription.create({
+                    ID: SubID,
+                    LinkedUser: MyUser,
+                    Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
+                }).save();
+            }
 
-        switch (Plan.ID) 
-        {
-            case "642251038925127690":
-            case "511651880837840896":
-            case "511651885459963904":
-            case "944037208325619722":
-            {
-                for (let i = 0; i < 2; i++ ) {
+            switch (Plan.ID) {
+                case "642251038925127690":
+                case "511651880837840896":
+                case "511651885459963904":
+                case "944037208325619722": {
+                    for (let i = 0; i < 2; i++) {
+                        const SubSlot = await SubscriptionSlot.create({
+                            ID: GenerateSnowflake(),
+                            UserID: MyUser.ID,
+                            LinkedSubscriptionID: SubID,
+                        });
+
+                        await SubSlot.save();
+                    } // add nitro boosts
+                    break;
+                }
+            }
+
+            for (let i = 0; i < Quantity; i++) {
+                if (Plan.Name.includes("Nitro")) {
+                    if (Quantity > 1)
+                        return res.status(400).json({
+                            code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE,
+                            message: "Invalid Form Body",
+                        });
+
+                    const UserSub = await UserSubscription.create({
+                        ID: SubID,
+                        LinkedUser: MyUser,
+                        Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
+                    });
+
+                    await UserSub.save();
+                    Subs.push(UserSub.Package());
+
+                    MyUser.Premium = true;
+                    MyUser.PremiumStreak = CreateTimestamp();
+                    MyUser.PremiumType = Plan.Name.includes("Basic")
+                        ? NitroType.NITRO_BASIC
+                        : Plan.Name.includes("Classic")
+                        ? NitroType.NITRO_CLASSIC
+                        : NitroType.NITRO;
+                    MyUser.Subscriptions.push(UserSub);
+
+                    await MyUser.save();
+
+                    SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
+                } else if (Plan.Name.includes("Server Boost")) {
                     const SubSlot = await SubscriptionSlot.create({
                         ID: GenerateSnowflake(),
                         UserID: MyUser.ID,
                         LinkedSubscriptionID: SubID,
                     });
-    
+
                     await SubSlot.save();
-                } // add nitro boosts
-                break;
+
+                    Subs.push(SubSlot.Package());
+                }
             }
         }
 
-        for ( let i = 0; i < Quantity; i++ ) {
-            if (Plan.Name.includes("Nitro"))
-            {
-                if (Quantity > 1) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+        res.json(Subs.length === 1 ? Subs[0] : Subs);
+    },
+);
 
-                const UserSub = await UserSubscription.create({
-                    ID: SubID,
-                    LinkedUser: MyUser,
-                    Items: [{ id: GenerateSnowflake(), quantity: Quantity, plan_id: PlanID }],
-                });
+App.patch(
+    "/@me/billing/subscriptions/:SubID",
+    VerifyAuth,
+    async (req, res, next) => {
+        ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
+    },
+    async (req, res) => {
+        const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
+        const Items = req.body.items;
 
-                await UserSub.save();
-                Subs.push(UserSub.Package());
+        const Subscription = await UserSubscription.findOne({
+            where: { ID: req.params.SubID },
+            relations: { LinkedUser: true },
+        });
+
+        if (!Subscription) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
+
+        const New: object[] = [];
+
+        for (const Item of Items) {
+            const PlanID = Item.plan_id;
+            const Quantity = Item.quantity;
+
+            const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
+
+            if (!Plan)
+                return res
+                    .status(400)
+                    .json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
+
+            if (Object.prototype.hasOwnProperty.call(Item, "id")) {
+                let SubItem = Subscription.Items.find((I) => I.id === Item.id) as SubscriptionItem;
+
+                if (!SubItem) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
+
+                const Old = SubItem.quantity;
+
+                SubItem.quantity = Quantity;
+
+                SubItem = Item;
+
+                if (Plan.Name.includes("Server Boost")) {
+                    console.log(Quantity - Old);
+                    const Promises = [];
+                    for (let i = 0; i < Quantity - Old; i++) {
+                        Promises.push(async () => {
+                            const SubSlot = SubscriptionSlot.create({
+                                ID: GenerateSnowflake(),
+                                UserID: MyUser.ID,
+                                LinkedSubscriptionID: Subscription.ID,
+                            });
+
+                            console.log("fr");
+
+                            await New.push(SubSlot.Package());
+                            await SubSlot.save();
+                        });
+                    }
+                    await Promise.all(Promises);
+                }
+
+                Subscription.save();
+                continue;
+            }
+
+            if (Plan.Name.includes("Nitro")) {
+                const Snowflake = GenerateSnowflake();
+                Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: Snowflake });
 
                 MyUser.Premium = true;
                 MyUser.PremiumStreak = CreateTimestamp();
-                MyUser.PremiumType = ( Plan.Name.includes("Basic") ? NitroType.NITRO_BASIC : Plan.Name.includes("Classic") ? NitroType.NITRO_CLASSIC : NitroType.NITRO );
-                MyUser.Subscriptions.push(UserSub);
+                MyUser.PremiumType = Plan.Name.includes("Basic")
+                    ? NitroType.NITRO_BASIC
+                    : Plan.Name.includes("Classic")
+                    ? NitroType.NITRO_CLASSIC
+                    : NitroType.NITRO;
+
+                if (MyUser.PremiumType == NitroType.NITRO) {
+                    for (let i = 0; i < 2; i++) {
+                        const SubSlot = await SubscriptionSlot.create({
+                            ID: GenerateSnowflake(),
+                            UserID: MyUser.ID,
+                            LinkedSubscriptionID: Snowflake,
+                        });
+
+                        await SubSlot.save();
+                    } // add nitro boosts
+                }
 
                 await MyUser.save();
 
                 SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
-            }
-            else if (Plan.Name.includes("Server Boost"))
-            {
-                const SubSlot = await SubscriptionSlot.create({
-                    ID: GenerateSnowflake(),
-                    UserID: MyUser.ID,
-                    LinkedSubscriptionID: SubID,
-                });
-
-                await SubSlot.save();
-    
-                Subs.push(SubSlot.Package());
-            }
-        }
-    };
-
-    res.json((Subs.length === 1 ? Subs[0] : Subs));
-    
-});
-
-App.patch("/@me/billing/subscriptions/:SubID", VerifyAuth, async (req, res, next) => {
-    ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
-},
-async (req, res) => {
-    const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
-    const Items = req.body.items;
-
-    const Subscription = await UserSubscription.findOne({ where: { ID: req.params.SubID }, relations: { LinkedUser: true } });
-
-    if (!Subscription) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
-
-    const New: object[] = [];
-
-    for (const Item of Items) {
-        const PlanID = Item.plan_id;
-        const Quantity = Item.quantity;
-
-        const Plan = await SubscriptionPlan.findOne({ where: { ID: PlanID } });
-
-        if (!Plan) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_ENTITLEMENT, message: "Unknown Entitlement" });
-
-        if (Object.prototype.hasOwnProperty.call(Item, "id")) 
-        {
-            let SubItem = Subscription.Items.find((I) => I.id === Item.id) as SubscriptionItem;
-
-            if (!SubItem) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_SKU, message: "Unknown SKU" });
-
-            const Old = SubItem.quantity;
-
-            SubItem.quantity = Quantity;
-
-            SubItem = Item;
-
-            if (Plan.Name.includes("Server Boost"))
-            {
-                console.log(Quantity - Old);
-                for (let i = 0; i < Quantity - Old; i++) {
-                    const SubSlot = await SubscriptionSlot.create({
-                        ID: GenerateSnowflake(),
-                        UserID: MyUser.ID,
-                        LinkedSubscriptionID: Subscription.ID,
-                    });
-
-                    console.log("fr");
-
-                    New.push(SubSlot.Package());
-                    await SubSlot.save();
-                }
-            }
-
-            await Subscription.save();
-            continue;
-        };
-
-        if (Plan.Name.includes("Nitro"))
-        {
-            const Snowflake = GenerateSnowflake();
-            Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: Snowflake });
-
-            MyUser.Premium = true;
-            MyUser.PremiumStreak = CreateTimestamp();
-            MyUser.PremiumType = ( Plan.Name.includes("Basic") ? NitroType.NITRO_BASIC : Plan.Name.includes("Classic") ? NitroType.NITRO_CLASSIC : NitroType.NITRO );
-
-            if (MyUser.PremiumType == NitroType.NITRO)
-            {
-                for (let i = 0; i < 2; i++ ) {
-                    const SubSlot = await SubscriptionSlot.create({
-                        ID: GenerateSnowflake(),
-                        UserID: MyUser.ID,
-                        LinkedSubscriptionID: Snowflake,
-                    });
-    
-                    await SubSlot.save();
-                } // add nitro boosts
-            }
-
-            await MyUser.save();
-
-            SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
-
-            await Subscription.save();
-
-            res.json(Subscription.Package());
-            return;
-        }
-        else if (Plan.Name.includes("Server Boost"))
-        {
-            for (let i = 0; i < Quantity; i++) {
-                const SubSlot = await SubscriptionSlot.create({
-                    ID: GenerateSnowflake(),
-                    UserID: MyUser.ID,
-                    LinkedSubscriptionID: Subscription.ID,
-                });
-
-                await SubSlot.save();
-
-                New.push(SubSlot.Package());
-
-                Subscription.Items.unshift({ plan_id: PlanID, quantity: Quantity, id: GenerateSnowflake() });  
 
                 await Subscription.save();
+
+                res.json(Subscription.Package());
+                return;
+            } else if (Plan.Name.includes("Server Boost")) {
+                const Promises = [];
+                for (let i = 0; i < Quantity; i++) {
+                    Promises.push(async () => {
+                        const SubSlot = SubscriptionSlot.create({
+                            ID: GenerateSnowflake(),
+                            UserID: MyUser.ID,
+                            LinkedSubscriptionID: Subscription.ID,
+                        });
+
+                        await SubSlot.save();
+
+                        New.push(SubSlot.Package());
+
+                        Subscription.Items.unshift({
+                            plan_id: PlanID,
+                            quantity: Quantity,
+                            id: GenerateSnowflake(),
+                        });
+
+                        await Subscription.save();
+                    });
+                }
+                await Promise.all(Promises);
             }
         }
-    };
 
-    res.json(New);
-});
+        res.json(New);
+    },
+);
 
 App.get("/@me/billing/country-code", (req, res) => {
     res.json({ country_code: "US" });
@@ -757,8 +785,8 @@ App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
                 subscription_plan_id: req.body.items[0].plan_id,
                 subscription_plan_price: 0,
                 quantity: req.body.items[0].quantity,
-                proration: false
-            }
+                proration: false,
+            },
         ],
         total: 0,
         subtotal: 0,
@@ -790,7 +818,7 @@ App.all("/@me/billing/subscriptions/:SubID/preview", VerifyAuth, async (req, res
             subscription_plan_id: PlanID,
             subscription_plan_price: 0,
             quantity: Quantity,
-            proration: false
+            proration: false,
         });
     }
 
