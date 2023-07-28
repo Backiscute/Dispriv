@@ -1,5 +1,5 @@
 import { Guild } from "../Entities/Guild";
-import { Membership, User } from "../Entities/User";
+import { Membership, User, UserSettings } from "../Entities/User";
 
 export interface HelloPacket {
     heartbeat_interval: number;
@@ -61,6 +61,7 @@ export interface ReadyPacket {
     tutorial: { indicators_confirmed: string[]; indicators_suppressed: boolean };
     user: ReturnType<typeof User.prototype.Package>;
     user_guild_settings: { entries: unknown[]; partial: boolean; version: number };
+    user_settings?: UserSettings;
     user_settings_proto: unknown;
     users: ReturnType<typeof User.prototype.PackageSmall>[];
     auth_token?: string;

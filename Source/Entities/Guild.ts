@@ -340,8 +340,10 @@ export class Guild extends BaseEntity {
     GatewayPackage(UserContext: User) {
         const Boosters = this.Members?.filter((M) => M.BoostingSince) ?? [];
         const BoostCount = Boosters.reduce((total, M) => total + M.BoostCount, 0);
-
         return {
+            name: this.Name,
+            icon: this.IconID,
+            premium_tier: BoostCount >= 14 ? 3 : BoostCount >= 7 ? 2 : BoostCount >= 2 ? 1 : 0,
             application_command_counts: {},
             channels: this.Channels ? this.Channels.map((C) => C.GuildPackage(this.ID, UserContext.ID)) : [],
             data_mode: "full",

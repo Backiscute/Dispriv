@@ -24,6 +24,54 @@ import { Gift } from "./Gift";
 import { CustomEmoji } from "./Emoji";
 import { UserSubscription } from "./Subscription";
 
+export interface UserSettings {
+    locale: string;
+    show_current_game: boolean;
+    restricted_guilds: object[];
+    default_guilds_restricted: boolean;
+    inline_attachment_media: boolean;
+    inline_embed_media: boolean;
+    gif_auto_play: boolean;
+    render_embeds: boolean;
+    render_reactions: boolean;
+    animate_emoji: boolean;
+    enable_tts_command: boolean;
+    message_display_compact: boolean;
+    convert_emoticons: boolean;
+    explicit_content_filter: number;
+    disable_games_tab: boolean;
+    theme: string;
+    developer_mode: boolean;
+    detect_platform_accounts: boolean;
+    status: string;
+    afk_timeout: number;
+    timezone_offset: number;
+    stream_notifications_enabled: boolean;
+    allow_accessibility_detection: false,
+    contact_sync_enabled: boolean,
+    native_phone_integration_enabled: boolean,
+    animate_stickers: number,
+    friend_discovery_flags: number,
+    view_nsfw_guilds: false,
+    view_nsfw_commands: false,
+    passwordless: boolean,
+    friend_source_flags: {
+      all: boolean
+    },
+    guild_folders: {
+      guild_ids: string[];
+      id?: number | null;
+      name?: string | null;
+      color?: string | null;
+    }[];
+    custom_status?: string | null;
+    activity_restricted_guild_ids?: string[];
+    activity_joining_restricted_guild_ids?: string[];
+    broadcast_allow_friends?: false,
+    broadcast_allowed_guild_ids?: [],
+    broadcast_allowed_user_ids?: []
+}  
+
 @Entity()
 export class User extends BaseEntity {
     @PrimaryColumn()
@@ -64,6 +112,9 @@ export class User extends BaseEntity {
 
     @Column({ default: false })
         Bot: boolean;
+
+    @Column({ type: "simple-json" })
+        Settings: UserSettings;
 
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()
@@ -193,7 +244,9 @@ export class User extends BaseEntity {
             system: this.HasFlag(UserFlags.SYSTEM),
             verified: true,
             bot: this.Bot,
-            theme_colors: this.ThemeColors
+            theme_colors: this.ThemeColors,
+            locale: this.Settings.locale,
+            pronouns: null
         };
     }
 
@@ -215,9 +268,9 @@ export class User extends BaseEntity {
             username: this.Username,
             bot: this.Bot,
             premium_since: this.PremiumStreak,
-            premium: this.Premium,
             premium_type: this.PremiumType,
             premium_usage_flags: 0,
+            pronouns: null
         };
     }
 
@@ -236,7 +289,8 @@ export class User extends BaseEntity {
             premium_since: this.PremiumStreak,
             premium: this.Premium,
             premium_type: this.PremiumType,
-            premium_usage_flags: 0
+            premium_usage_flags: 0,
+            pronouns: null
         };
     }
 

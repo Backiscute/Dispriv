@@ -629,11 +629,11 @@ Socket.on("connection", async (Client, req) => {
                 Msg(
                     `Client ${red(GatewayClient.ID)} identified as ${red(
                         GatewayClient.Account!.Username + "#" + GatewayClient.Account!.Discriminator,
-                    )}`,
+                    )} using ${red(UnpackedData.d.properties?.browser ?? "Unknown")}`,
                     "Gateway",
                 );
 
-                const PresenceSet: Presence = UnpackedData.d.presence.status ?? Presence.ONLINE;
+                const PresenceSet: Presence = UnpackedData.d.presence?.status ?? Presence.ONLINE;
                 GatewayClient.Account!.Presence = PresenceSet;
                 SendGuildStatusUpdate(GatewayClient.Account!, PresenceSet);
                 await GatewayClient.Account!.save();
@@ -705,6 +705,7 @@ Socket.on("connection", async (Client, req) => {
                         },
                         user: GatewayClient.Account!.Package(),
                         user_guild_settings: { entries: [], partial: false, version: 0 }, // guild settings for the user (notifications, etc)
+                        user_settings: !GatewayClient.HasCapability(GatewayCapabilities.USER_SETTINGS_PROTO) ? GatewayClient.Account!.Settings : undefined, // settings of the client
                         user_settings_proto: GatewayClient.HasCapability(GatewayCapabilities.USER_SETTINGS_PROTO) ? GatewayClient.Account!.SettingsProto[0] : undefined, // settings of the client
                         users: [
                             GatewayClient.Account!.PackageSmall(),
