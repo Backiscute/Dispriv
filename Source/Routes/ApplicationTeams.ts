@@ -3,7 +3,7 @@ import { VerifyAuth } from "../Modules/AuthUtils";
 
 const App = Router();
 
-App.get("/", VerifyAuth, async (req, res) => {
+App.get("/", VerifyAuth(), async (req, res) => {
     res.json([]); // TODO
 });
 

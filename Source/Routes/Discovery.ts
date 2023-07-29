@@ -4,7 +4,7 @@ import { Guild } from "../Entities/Guild";
 
 const App = Router();
 
-App.get("/discoverable-guilds", VerifyAuth, async (req, res) => {
+App.get("/discoverable-guilds", VerifyAuth(false), async (req, res) => {
     const Limit = Number(req.query.limit ?? 30);
     const Offset = Number(req.query.offset ?? 0);
     //const MyUser = await GetUserByRequest(req);

@@ -5,7 +5,7 @@ import { Err } from "../Modules/Logger";
 
 const App = Router();
 
-App.get("/search", VerifyAuth, async (req, res) => {
+App.get("/search", VerifyAuth(false), async (req, res) => {
     if (!req.query.q)
         return res.status(400).json({
             code: 0,
@@ -43,7 +43,7 @@ App.get("/search", VerifyAuth, async (req, res) => {
     })));
 });
 
-App.get("/trending", VerifyAuth, async (req, res) => {
+App.get("/trending", VerifyAuth(false), async (req, res) => {
     const MediaFormat = req.query.media_format?.toString() ?? "mp4";
     const Locale = req.query.locale?.toString() ?? "en-US";
 

@@ -10,7 +10,7 @@ import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
-App.get("/:ApplicationID/test-mode", VerifyAuth, async (req, res) => {
+App.get("/:ApplicationID/test-mode", VerifyAuth(), async (req, res) => {
     // enables app test mode in discord client (generally used for testing embedded apps)
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
@@ -20,7 +20,7 @@ App.get("/:ApplicationID/test-mode", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/:ApplicationID", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/:ApplicationID", VerifyAuth(), async (req, res) => {
     // authorizes a game activity launch
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const MyUser = (await GetUserByRequest(req))!;

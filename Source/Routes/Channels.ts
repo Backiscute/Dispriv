@@ -36,7 +36,7 @@ import { CustomEmoji } from "../Entities/Emoji";
 
 const App = Router();
 
-App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
+App.patch("/:ChannelID/messages/:MessageID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 
     const RequestedMessage = await Message.findOne({
@@ -102,7 +102,7 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
     res.json(RequestedMessage.Package(MyUser));
 });
 
-App.delete("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
+App.delete("/:ChannelID/messages/:MessageID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
 
     const RequestedMessage = await Message.findOne({
@@ -149,7 +149,7 @@ App.delete("/:ChannelID/messages/:MessageID", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
+App.post("/:ChannelID/attachments", VerifyAuth(), (req, res) => {
     if (!req.body.files || !Array.isArray(req.body.files))
         return res.status(400).json({ code: JsonErrorCodes.GENERAL_ERROR, message: "No attachments provided" });
     if (req.body.files.length > 4)
@@ -175,7 +175,7 @@ App.post("/:ChannelID/attachments", VerifyAuth, (req, res) => {
     });
 });
 
-App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
+App.get("/:ChannelID/messages", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!,
         Before = /^\d+$/.test(req.query.before as string) ? (req.query.before as string) : undefined,
         After = /^\d+$/.test(req.query.after as string) ? (req.query.after as string) : undefined;
@@ -234,7 +234,7 @@ App.get("/:ChannelID/messages", VerifyAuth, async (req, res) => {
     res.json(PackagedMessages);
 });
 
-App.get("/:ChannelID", VerifyAuth, async (req, res) => {
+App.get("/:ChannelID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -265,7 +265,7 @@ App.get("/:ChannelID", VerifyAuth, async (req, res) => {
     res.json(RequestedChannel.GuildPackage(undefined, MyUser.ID));
 });
 
-App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
+App.delete("/:ChannelID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -298,7 +298,7 @@ App.delete("/:ChannelID", VerifyAuth, async (req, res) => {
     await Channel.remove(RequestedChannel);
 });
 
-App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
+App.patch("/:ChannelID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -368,7 +368,7 @@ App.patch("/:ChannelID", VerifyAuth, async (req, res) => {
     res.json(RequestedChannel.SmallDMPackage(MyUser));
 });
 
-App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/typing", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     const ChannelID = req.url.split("/")[1];
     const RequestedChannel = await Channel.findOne({
@@ -435,7 +435,7 @@ App.post("/:ChannelID/typing", VerifyAuth, async (req, res) => {
     }
 });
 
-App.get("/:ChannelID/call", VerifyAuth, async (req, res) => {
+App.get("/:ChannelID/call", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -449,7 +449,7 @@ App.get("/:ChannelID/call", VerifyAuth, async (req, res) => {
     res.json({ ringable: true });
 });
 
-App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/call/ring", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
@@ -464,7 +464,7 @@ App.post("/:ChannelID/call/ring", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
+App.post("/:ChannelID/invites", VerifyAuth(), async (req, res) => {
     if (typeof req.body.flags !== "number") return res.sendStatus(204);
 
     const MyUser = (await GetUserByRequest(req, {
@@ -498,7 +498,7 @@ App.post("/:ChannelID/invites", VerifyAuth, async (req, res) => {
 
 App.post(
     "/:ChannelID/messages",
-    VerifyAuth,
+    VerifyAuth(),
     async (req, res, next) => {
         ValidateRequest(req, res, next, MessageSendSchema);
     },
@@ -742,7 +742,7 @@ App.post(
     },
 );
 
-App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async (req, res) => {
+App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth(), async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
         GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true, Memberships: { ToGuild: true } }),
         Channel.findOne({
@@ -847,7 +847,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async 
     return res.sendStatus(204);
 });
 
-App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, async (req, res) => {
+App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth(), async (req, res) => {
     const [MyUser, RequestedChannel, RequestedMessage] = await Promise.all([
         GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }),
         Channel.findOne({
@@ -922,7 +922,7 @@ App.delete("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth, asy
     return res.sendStatus(204);
 });
 
-App.get("/:ChannelID/pins", VerifyAuth, async (req, res) => {
+App.get("/:ChannelID/pins", VerifyAuth(), async (req, res) => {
     const RequestedChannel = await Channel.findOne({
         where: { ID: req.params.ChannelID },
         relations: { OwnerGuild: true, Messages: { Channel: true } },
@@ -942,7 +942,7 @@ App.get("/:ChannelID/pins", VerifyAuth, async (req, res) => {
     res.json(PinnedMessages.map((M) => M.Package(MyUser!)));
 });
 
-App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
+App.put("/:ChannelID/pins/:MessageID", VerifyAuth(), async (req, res) => {
     const MessageToPin = await Message.findOne({
         where: { ID: req.params.MessageID },
         relations: { Channel: { OwnerGuild: true, Messages: true } },
@@ -1011,7 +1011,7 @@ App.put("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
+App.delete("/:ChannelID/pins/:MessageID", VerifyAuth(), async (req, res) => {
     const MessageToPin = await Message.findOne({
         where: { ID: req.params.MessageID },
         relations: { Channel: { OwnerGuild: true } },
@@ -1048,7 +1048,7 @@ App.delete("/:ChannelID/pins/:MessageID", VerifyAuth, async (req, res) => {
 
 App.post(
     "/:ChannelID/voice-channel-effects",
-    VerifyAuth,
+    VerifyAuth(),
     async (req, res, next) => {
         ValidateRequest(req, res, next, VCEffectSchema);
     },

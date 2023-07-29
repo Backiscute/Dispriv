@@ -121,6 +121,9 @@ App.post("/login", async (req, res) => {
     const LoginUser = await User.findOneBy({ Email });
     if (!LoginUser)
         return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Your email or password is incorrect.", res);
+
+    if (LoginUser.Bot) return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Cannot login into a bot.", res);
+
     const PasswordCheck = bcrypt.compareSync(Password, LoginUser.Password);
     if (!PasswordCheck)
         return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Your email or password is incorrect.", res);

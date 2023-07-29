@@ -213,6 +213,8 @@ export class Guild extends BaseEntity {
     @JoinColumn()
         Invites: Invite[];
 
+    
+
     @Column({ nullable: true })
         SystemChannelID?: string;
 
@@ -288,6 +290,16 @@ export class Guild extends BaseEntity {
             vanity_url_code: this.VanityInviteURL,
             emojis: this.Emojis?.map((E) => E.Package()) ?? [],
             stickers: [],
+        };
+    }
+
+    PackageOAuth2(Mmbr: Membership, RequestedPermissions: string = "4398046511103") {
+        return {
+            icon: this.IconID,
+            id: this.ID,
+            mfa_level: 0,
+            name: this.Name,
+            permissions: (Mmbr.ToGuild.Owner && Mmbr.Owner) ? Mmbr.ToGuild.Owner.ID == Mmbr.Owner.ID ? RequestedPermissions : GetHighestRole(Mmbr).Permissions.toString() : GetHighestRole(Mmbr).Permissions.toString(),
         };
     }
 
@@ -477,6 +489,12 @@ export class Role extends BaseEntity {
     @Column({ default: false })
         BoosterRole: boolean;
 
+    @Column({ default: false })
+        Managed: boolean;
+
+    @Column({ nullable: true })
+        BotID?: string;
+
     @Column({ nullable: true })
         IconID?: string;
 
@@ -517,9 +535,9 @@ export class Role extends BaseEntity {
             unicode_emoji: this.UnicodeEmoji,
             position: this.Position,
             permissions: this.Permissions.toString(),
-            managed: this.BoosterRole,
+            managed: this.BoosterRole || this.Managed,
             mentionable: this.AnyoneCanMention,
-            tags: this.BoosterRole ? { premium_subscriber: null } : undefined,
+            tags: this.Managed ? { premium_subscriber: this.BoosterRole ? null : undefined, bot_id: this.BotID ? this.BotID : undefined } : undefined,
         };
     }
 }

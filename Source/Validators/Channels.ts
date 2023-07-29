@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const MessageSendSchema = z.object({
     content: z.string().max(2000),
-    nonce: z.string(),
+    nonce: z.string().optional(),
     flags: z.number().optional(),
     tts: z.boolean().optional(),
     channel_id: z.string().optional(),

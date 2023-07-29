@@ -5,7 +5,7 @@ import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 
 const App = Router();
 
-App.get("/gift-codes/:code", VerifyAuth, async (req, res) => {
+App.get("/gift-codes/:code", VerifyAuth(false), async (req, res) => {
     const UserGift = await Gift.findOne({ where: { Code: req.params.code }, relations: { SKU: true, User: true } });
     if (!UserGift) return res.json({ code: JsonErrorCodes.UNKNOWN_GIFT_CODE, message: "Unknown Gift Code" });
     // res.json({

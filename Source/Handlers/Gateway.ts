@@ -655,6 +655,7 @@ Socket.on("connection", async (Client, req) => {
                         connected_accounts: [], // TODO
                         consents: { personalization: { consented: true } },
                         country_code: "US",
+                        application: GatewayClient.Account.BotApplication ? GatewayClient.Account.BotApplication.Package() : undefined,
                         experiments: GetUserExperiments(GatewayClient.Account),
                         friend_suggestion_count: 0,
                         geo_ordered_rtc_regions: ["dispriv"],
@@ -726,6 +727,20 @@ Socket.on("connection", async (Client, req) => {
                 );
 
                 console.log("--- CLIENT READY'IED");
+
+                if (GatewayClient.Account.Bot) // Guild and etc
+                {
+                    console.log("--- SENDING AVAILABLE GUILDS TO BOT CLIENT");
+                    const Guilds = GatewayClient.Account!.Memberships.map((M) => M.ToGuild.GatewayPackage(GatewayClient.Account!));
+
+                    if (!Guilds) return;
+
+                    Guilds.forEach((G) => {
+                        SendOp(GatewayClient, OpCodes.DISPATCH, G, 1, "GUILD_CREATE");
+                    });
+                    
+                    console.log("--- SENT GUILDS TO BOT CLIENT");
+                }
 
                 if (!GatewayClient.HasCapability(GatewayCapabilities.PRIORITIZED_READY_PAYLOAD)) return;
 

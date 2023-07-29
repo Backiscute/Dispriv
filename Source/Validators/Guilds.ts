@@ -8,3 +8,7 @@ export const CustomEmojiUploadSchema = z.object({
 export const BoostServerSchema = z.object({
     user_premium_guild_subscription_slot_ids: z.array(z.string())
 });
+
+export const CreateGuildSchema = z.object({
+    name: z.string().max(32)
+});

@@ -70,7 +70,7 @@ export function GetTokenUserId(token: string): string {
     return Id;
 }
 
-export async function VerifyToken(token: string): Promise<boolean> {
+export async function VerifyToken(token: string, allowbot: boolean = true): Promise<boolean> {
     const Parts = token.split(".");
     if (Parts.length !== 3) return false;
 
@@ -82,8 +82,9 @@ export async function VerifyToken(token: string): Promise<boolean> {
     const TUser = await User.findOneBy({ ID: UserID });
     if (!TUser) return false;
 
-    const UserHashedPassword = TUser.Password;
+    if (TUser.Bot && !allowbot) return false;
 
+    const UserHashedPassword = TUser.Password;
     const Content = `${EncodedId}.${EncodedTimestamp}`;
     const Signature = crypto.createHmac("sha256", UserHashedPassword).update(Content).digest("base64url");
 
@@ -97,7 +98,7 @@ export async function GetUserByID(ID: string, relations?: object) {
 }
 
 export async function GetUserByToken(token: string, relations?: FindOptionsRelations<User>, select?: object) {
-    const ValidToken = await VerifyToken(token);
+    const ValidToken = await VerifyToken(token, true);
     if (!ValidToken) return undefined;
 
     const UserID = GetTokenUserId(token);
@@ -106,6 +107,25 @@ export async function GetUserByToken(token: string, relations?: FindOptionsRelat
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return TUser!;
 }
+
+export const VerifyAuth = (AllowBots: boolean = true) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        let Auth = req.headers.authorization;
+        if (!Auth) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+    
+        if (Auth.startsWith("Bearer ")) Auth = Auth.substring(7);
+        if (Auth.startsWith("Bot ")) Auth = Auth.substring(4);
+    
+        VerifyToken(Auth, AllowBots)
+            .then((Valid) => {
+                if (!Valid) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+                next();
+            })
+            .catch(() => {
+                return res.status(401).json({ code: 0, message: "401: Unauthorized" });
+            });
+    };
+};
 
 export async function GetOAppByOAuthReq(req: Request) {
     let Token = req.headers.authorization ?? "";
@@ -150,6 +170,7 @@ export async function GetUserByOAuthReq(req: Request, relations?: object) {
 export async function GetUserByRequest(req: Request, relations?: FindOneOptions<User>["relations"]) {
     let Token = req.headers.authorization ?? "";
     if (Token.startsWith("Bearer ")) Token = Token.substring(7);
+    if (Token.startsWith("Bot ")) Token = Token.substring(4);
 
     const ValidToken = await VerifyToken(Token);
     if (!ValidToken) return null;
@@ -162,22 +183,6 @@ export async function GetUserByRequest(req: Request, relations?: FindOneOptions<
     const TUser = await User.findOne({ where: { ID: UserID }, relations: relations });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return TUser!;
-}
-
-export function VerifyAuth(req: Request, res: Response, next: NextFunction) {
-    let Auth = req.headers.authorization;
-    if (!Auth) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
-
-    if (Auth.startsWith("Bearer ")) Auth = Auth.substring(7);
-
-    VerifyToken(Auth)
-        .then((Valid) => {
-            if (!Valid) return res.status(401).json({ code: 0, message: "401: Unauthorized" });
-            next();
-        })
-        .catch(() => {
-            return res.status(401).json({ code: 0, message: "401: Unauthorized" });
-        });
 }
 
 export function VerifyOAuthReq(req: Request, res: Response, next: NextFunction) {

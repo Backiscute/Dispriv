@@ -36,7 +36,7 @@ function IsBase64Image(Data: string) {
     }
 }
 
-App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth, async (req, res) => {
+App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth(), async (req, res) => {
     const U = (await GetUserByRequest(req, {
         Memberships: { ToGuild: { Channels: { OwnerCategory: true, OwnerGuild: true }, Members: true } },
     }))!;
@@ -136,13 +136,13 @@ App.use("/@me/settings-proto/:index", (req, res, next) => {
         });
     else next();
 });
-App.get("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
+App.get("/@me/settings-proto/:index", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
 
     res.send({ settings: MyUser.SettingsProto[parseInt(req.params.index) - 1] });
 });
 
-App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
+App.patch("/@me/settings-proto/:index", VerifyAuth(false), async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!,
         Index = parseInt(req.params.index);
     if (typeof req.body.settings !== "string") return res.status(400).json({ code: 0, message: "Invalid payload" });
@@ -179,7 +179,7 @@ App.patch("/@me/settings-proto/:index", VerifyAuth, async (req, res) => {
     }
 });
 
-App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
+App.delete("/@me/guilds/:ServerID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
     const MembershipT = MyUser.Memberships.find((x) => x.ToGuild.ID === req.params.ServerID);
@@ -190,7 +190,7 @@ App.delete("/@me/guilds/:ServerID", VerifyAuth, async (req, res) => {
     res.send();
 });
 
-App.post("/@me/channels", VerifyAuth, async (req, res) => {
+App.post("/@me/channels", VerifyAuth(false), async (req, res) => {
     if (!Array.isArray(req.body.recipients)) return res.status(400).json({ code: 0, message: "400: Bad Request" });
 
     const DMUsers: User[] = [];
@@ -241,7 +241,7 @@ App.post("/@me/channels", VerifyAuth, async (req, res) => {
     res.json(CreatedChannel.SmallDMPackage(MyUser));
 });
 
-App.get("/@me/burst-credits", VerifyAuth, async (req, res) => {
+App.get("/@me/burst-credits", VerifyAuth(false), async (req, res) => {
     const User = (await GetUserByRequest(req))!;
     res.json({
         amount: User.AvailableSuperreactions,
@@ -253,12 +253,12 @@ App.get("/@me/library", async (req, res) => {
     res.json([]);
 });
 
-App.get("/@me", VerifyAuth, async (req, res) => {
+App.get("/@me", VerifyAuth(), async (req, res) => {
     const User = (await GetUserByRequest(req))!;
     res.json(User.Package());
 });
 
-App.get("/:UserID/profile", VerifyAuth, async (req, res) => {
+App.get("/:UserID/profile", VerifyAuth(), async (req, res) => {
     const UserID = req.params.UserID;
     if (!UserID) return res.status(400).json({ code: 0, message: "400: Bad Request" });
 
@@ -336,7 +336,7 @@ App.get("/@me/harvest", async (req, res) => {
     });
 });
 
-App.get("/@me/relationships", VerifyAuth, async (req, res) => {
+App.get("/@me/relationships", VerifyAuth(false), async (req, res) => {
     const UserData = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;
     /*UserData.Relations.forEach(R => {
         const PackagedRelation = R.PackageAPI(true, UserData);
@@ -348,7 +348,7 @@ App.get("/@me/relationships", VerifyAuth, async (req, res) => {
     ]);
 });
 
-App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
+App.delete("/@me/relationships/:RelatedUserID", VerifyAuth(false), async (req, res) => {
     const RelationTarget = await User.findOne({
         where: { ID: req.params.RelatedUserID },
         relations: { RelationsFrom: true, RelationsRegarding: true },
@@ -395,7 +395,7 @@ App.delete("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => 
     res.status(204).send();
 });
 
-App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
+App.put("/@me/relationships/:RelatedUserID", VerifyAuth(false), async (req, res) => {
     const RelationTarget = await User.findOne({
         where: { ID: req.params.RelatedUserID },
         relations: { RelationsFrom: true, RelationsRegarding: true },
@@ -471,7 +471,7 @@ App.put("/@me/relationships/:RelatedUserID", VerifyAuth, async (req, res) => {
     res.status(204).send();
 });
 
-App.post("/@me/relationships", VerifyAuth, async (req, res) => {
+App.post("/@me/relationships", VerifyAuth(false), async (req, res) => {
     const FriendUsername = req.body.username;
     let FriendDiscriminator = (req.body.discriminator ?? 0).toString();
 
@@ -536,14 +536,14 @@ App.post("/@me/relationships", VerifyAuth, async (req, res) => {
     }
 });
 
-App.get("/@me/billing/subscriptions", VerifyAuth, async (req, res) => {
+App.get("/@me/billing/subscriptions", VerifyAuth(false), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Subscriptions: { LinkedUser: true } }))!;
     res.json(MyUser.Subscriptions.map((S) => S.Package()));
 });
 
 App.post(
     "/@me/billing/subscriptions",
-    VerifyAuth,
+    VerifyAuth(false),
     async (req, res, next) => {
         ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
     },
@@ -643,7 +643,7 @@ App.post(
 
 App.patch(
     "/@me/billing/subscriptions/:SubID",
-    VerifyAuth,
+    VerifyAuth(false),
     async (req, res, next) => {
         ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
     },
@@ -773,7 +773,7 @@ App.get("/@me/billing/country-code", (req, res) => {
     res.json({ country_code: "US" });
 });
 
-App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
+App.post("/@me/billing/subscriptions/preview", VerifyAuth(false), async (req, res) => {
     const IsRenew = req.body.renewal ?? false;
     res.json({
         id: GenerateSnowflake(),
@@ -798,7 +798,7 @@ App.post("/@me/billing/subscriptions/preview", VerifyAuth, async (req, res) => {
     });
 });
 
-App.all("/@me/billing/subscriptions/:SubID/preview", VerifyAuth, async (req, res) => {
+App.all("/@me/billing/subscriptions/:SubID/preview", VerifyAuth(false), async (req, res) => {
     const IsRenew = req.body.renewal ?? false;
     const Sub = await UserSubscription.findOne({ where: { ID: req.params.SubID } });
 
@@ -835,7 +835,7 @@ App.all("/@me/billing/subscriptions/:SubID/preview", VerifyAuth, async (req, res
     });
 });
 
-App.get("/@me/guilds/premium/subscription-slots", VerifyAuth, async (req, res) => {
+App.get("/@me/guilds/premium/subscription-slots", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
 
     const Boosts = await SubscriptionSlot.find({ where: { UserID: MyUser.ID } });
@@ -843,11 +843,11 @@ App.get("/@me/guilds/premium/subscription-slots", VerifyAuth, async (req, res) =
     res.json(Boosts.map((B) => B.Package()));
 });
 
-App.get("/@me/applications/:ApplicationID/entitlements", VerifyAuth, async (req, res) => {
+App.get("/@me/applications/:ApplicationID/entitlements", VerifyAuth(false), async (req, res) => {
     res.json([]); // subscription credits, etc
 });
 
-App.get("/@me/billing/payment-sources", VerifyAuth, async (req, res) => {
+App.get("/@me/billing/payment-sources", VerifyAuth(false), async (req, res) => {
     const MyUser = (await GetUserByRequest(req))!;
 
     res.json([

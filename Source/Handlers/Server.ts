@@ -27,7 +27,7 @@ const LoadRoutes = async () => {
         if (!Contents.default.App) continue;
         Application.use(Contents.default.DefaultAPI || "/", Contents.default.App);
 
-        Msg(`Loaded route ${italic(File)}!`, "Gateway");
+        Msg(`Loaded route ${italic(File)}!`, "Server");
     }
 
     Application.use(

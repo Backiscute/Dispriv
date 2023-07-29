@@ -11,18 +11,19 @@ import {
     BeforeInsert,
 } from "typeorm";
 import { UserFlags } from "../Classes/Flags";
-import { Message } from "./Message";
+import { Message, MessageType } from "./Message";
 import { Relation } from "./FriendUser";
 import { DiscordApplication } from "./Application";
-import { Channel } from "./Channel";
-import { Guild, Invite, Role } from "./Guild";
-import { CreateTimestamp, GetHighestRoleInArr, NitroType } from "../Modules/DiscordUtils";
+import { Channel, ChannelType } from "./Channel";
+import { Guild, Invite, Role, SystemChannelFlags } from "./Guild";
+import { CreateTimestamp, GetHighestRoleInArr, NitroType, SendMessage } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
 import { Gift } from "./Gift";
 import { CustomEmoji } from "./Emoji";
 import { UserSubscription } from "./Subscription";
+import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 
 export interface UserSettings {
     locale: string;
@@ -239,7 +240,7 @@ export class User extends BaseEntity {
             premium_type: this.PremiumType,
             premium_usage_flags: 0,
             public_flags: this.Flags,
-            purchased_flags: 3,
+            purchased_flags: 0,
             username: this.Username,
             system: this.HasFlag(UserFlags.SYSTEM),
             verified: true,
@@ -395,6 +396,35 @@ export class Membership extends BaseEntity {
     @ManyToMany(() => Role, (R) => R.Members, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
         Roles: Role[];
+
+    @BeforeInsert()
+    async SendJoinMessage() {
+        if (!this.ToGuild.Channels) return;
+
+        const SystemChannelID = this.ToGuild.SystemChannelID;
+
+        if (!SystemChannelID) return;
+    
+        const SystemChannel = this.ToGuild.Channels.find((x) => x.ID === SystemChannelID);
+    
+        if (!SystemChannel) return;
+    
+        if (SystemChannel.Type !== ChannelType.GUILD_TEXT) return;
+        if (this.ToGuild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_JOIN_NOTIFICATIONS)) return;
+    
+        const SystemMessage = Message.create({
+            ID: GenerateSnowflake(),
+            Channel: SystemChannel,
+            Content: "",
+            Type: MessageType.USER_JOIN,
+            CreationDate: new Date(),
+            Author: this.Owner,
+        });
+    
+        SendMessage(SystemMessage);
+    
+        await SystemMessage.save();
+    }
 
     Package(IncludeUser: boolean = true /*, ChannelContext: Channel*/) {
         return {

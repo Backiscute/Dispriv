@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Router } from "express";
-import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
+import { GenerateToken, GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { DiscordApplication, EmbeddedAppConfig } from "../Entities/Application";
 import { ApplicationFlags } from "../Classes/Flags";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { User } from "../Entities/User";
+import { GenerateRandomString } from "../Modules/DiscordUtils";
+import bcrypt from "bcrypt";
 
 const App = Router();
 
-App.get("/", VerifyAuth, async (req, res) => {
-    const UserData = await GetUserByRequest(req, { Applications: true });
+App.get("/", VerifyAuth(false), async (req, res) => {
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true } });
     res.json([...UserData!.Applications.map((R) => R.Package())]);
 });
 
-App.post("/", VerifyAuth, async (req, res) => {
+App.post("/", VerifyAuth(false), async (req, res) => {
     const AppName = req.body.name;
     const TeamID = req.body.team_id;
 
@@ -31,12 +34,66 @@ App.post("/", VerifyAuth, async (req, res) => {
     }
 });
 
-App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
+App.post("/:ApplicationID/bot", VerifyAuth(false), async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true } });
+    const Application = UserData!.Applications.find((R) => R.ID === AppID);
+
+    if (!Application) return res.status(404).json({ message: "Unknown Application", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+
+    if (Application.Bot) return res.status(400).json({ message: "Application already has a bot", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+
+    const Password = bcrypt.hashSync(GenerateRandomString(32), 10);
+
+    const BotUser = await User.create({
+        Bot: true,
+        BotApplication: Application,
+        Username: Application.DisplayName,
+        ID: GenerateSnowflake(),
+        Email: `${Application.ID}@discord.com`,
+        Settings: {
+            locale: "en-US",
+            theme: "dark",
+        },
+        Password,
+        Bio: "",
+        DateOfBirth: new Date(),
+        TutorialReadIndicators: []
+    });
+
+    await BotUser.save();
+
+    Application.Bot = BotUser;
+
+    await Application.save();
+
+    res.json(BotUser.Package());
+});
+
+App.post("/:ApplicationID/bot/reset", VerifyAuth(false), async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true } });
+    const Application = UserData!.Applications.find((R) => R.ID === AppID);
+
+    if (!Application) return res.status(404).json({ message: "Unknown Application", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+
+    if (!Application.Bot) return res.status(400).json({ message: "Application has no bot", code: JsonErrorCodes.OAUTH2_APPLICATION_WITHOUT_BOT });
+
+    Application.Bot.Password = bcrypt.hashSync(GenerateRandomString(32), 10);
+
+    await Application.Bot.save();
+
+    const Token = GenerateToken(Application.Bot.ID, Date.now(), Application.Bot.Password);
+
+    res.json({ token: Token });
+});
+
+App.get("/:ApplicationID/embedded-activity-config", VerifyAuth(false), async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+        return res.status(404).json({ message: "Unknown Application", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
     if (!Application.embedded_activity_config) {
         const NewAppConfig = EmbeddedAppConfig.create({
@@ -53,50 +110,24 @@ App.get("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res)
     res.json(AppPackage.embedded_activity_config);
 });
 
-App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth, async (req, res) => {
+App.patch("/:ApplicationID/embedded-activity-config", VerifyAuth(false), async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application || !Application.HasFlag(ApplicationFlags.EMBEDDED_IN_CLIENT))
-        return res.status(404).json({ message: "Application not found", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+        return res.status(404).json({ message: "Unknown Application", code: JsonErrorCodes.UNKNOWN_APPLICATION });
 
-    for (const Key of Object.keys(req.body))
-        switch (Key) {
-            case "ID":
-                Application.embedded_activity_config!.ID = req.body.ID;
-                break;
-            case "MaxParticipants":
-                Application.embedded_activity_config!.max_participants = req.body.MaxParticipants;
-                break;
-            case "IsEighteenPlus":
-                Application.embedded_activity_config!.requires_age_gate = req.body.IsEighteenPlus;
-                break;
-            case "NeedsNitro":
-                Application.embedded_activity_config!.premium_tier_requirement = req.body.NeedsNitro;
-                break;
-            case "FreePeriodStarts":
-                Application.embedded_activity_config!.free_period_starts_at = req.body.FreePeriodStarts;
-                break;
-            case "FreePeriodEnds":
-                Application.embedded_activity_config!.free_period_ends_at = req.body.FreePeriodEnds;
-                break;
-            case "ActivityPreviewVideoID":
-                Application.embedded_activity_config!.activity_preview_video_asset_id = req.body.ActivityPreviewVideoID;
-                break;
-            case "SupportsPlatforms":
-                Application.embedded_activity_config!.supported_platforms = req.body.SupportsPlatforms;
-                break;
-            case "DefaultOrientation":
-                Application.embedded_activity_config!.default_orientation_lock_state = req.body.DefaultOrientation;
-                break;
-            case "TabletDefaultOrientation":
-                Application.embedded_activity_config!.tablet_default_orientation_lock_state =
-                    req.body.TabletDefaultOrientation;
-                break;
-            case "ShelfPriority":
-                Application.embedded_activity_config!.shelf_rank = req.body.ShelfPriority;
-                break;
+    if (!Application.embedded_activity_config)
+        return res.status(404).json({ message: "Application does not have embedded activity config", code: JsonErrorCodes.UNKNOWN_APPLICATION });
+
+    Object.keys(req.body).forEach((Key) => {
+        if (Object.prototype.hasOwnProperty.call(Application.embedded_activity_config, Key))
+        {  
+            //@ts-expect-error because it aint a nuclear reactor
+            Application.embedded_activity_config![Key] = req.body[Key];
         }
+    });
+
     await Application.save();
 
     const AppPackage = await Application.Package();
@@ -134,15 +165,40 @@ App.get("/:ApplicationID/public", async (req, res) => {
     res.json(Application.PackagePublic());
 });
 
-App.get("/:ApplicationID", VerifyAuth, async (req, res) => {
+App.get("/:ApplicationID", VerifyAuth(false), async (req, res) => {
     const AppID = req.params.ApplicationID;
-    const UserData = await GetUserByRequest(req, { Applications: true });
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true } });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
     if (!Application) return res.status(404).json({ message: "404: Not Found", code: 0 });
     res.json(Application.Package());
 });
 
-App.patch("/:ApplicationID", VerifyAuth, async (req, res) => {
+App.patch("/:ApplicationID/bot", VerifyAuth(false), async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true } });
+    const Application = UserData!.Applications.find((R) => R.ID === AppID);
+    if (!Application) return res.status(404).json({ message: "404: Not Found", code: 0 });
+
+    if (!Application.Bot) return res.status(400).json({ message: "Application has no bot", code: JsonErrorCodes.OAUTH2_APPLICATION_WITHOUT_BOT });
+
+    for (const Key of Object.keys(req.body)) {
+        const Value = req.body[Key];
+        switch (Key) {
+            case "username": 
+                if (typeof Value !== "string") break;
+                if (Value.length > 32) break;
+
+                Application.Bot!.Username = Value;
+                break;
+        }
+    }
+
+    await Application.Bot.save();
+
+    res.json(Application.Bot.PackageSmall());
+});
+
+App.patch("/:ApplicationID", VerifyAuth(false), async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: true });
     const Application = UserData!.Applications.find((R) => R.ID === AppID);
@@ -157,6 +213,38 @@ App.patch("/:ApplicationID", VerifyAuth, async (req, res) => {
 
                 Application.DisplayName = Value;
                 break;
+            case "description":
+                if (typeof Value !== "string") break;
+                if (Value.length > 128) break;
+
+                Application.Description = Value;
+                break;
+            case "summary":
+                if (typeof Value !== "string") break;
+                if (Value.length > 128) break;
+                
+                Application.Summary = Value;
+                break;
+            case "bot_public":
+                if (typeof Value !== "boolean") break;
+
+                Application.PublicBot = Value;
+                break;
+            case "bot_require_code_grant":
+                if (typeof Value !== "boolean") break;
+
+                Application.BotRequireCodeGrant = Value;
+                break;
+            case "flags":
+            {
+                if (typeof Value !== "number") break;
+                const AllowedFlags = ApplicationFlags.GATEWAY_PRESENCE | ApplicationFlags.GATEWAY_PRESENCE_LIMITED | ApplicationFlags.GATEWAY_GUILD_MEMBERS | ApplicationFlags.GATEWAY_GUILD_MEMBERS_LIMITED | ApplicationFlags.GATEWAY_MESSAGE_CONTENT | ApplicationFlags.GATEWAY_MESSAGE_CONTENT_LIMITED;
+
+                if (Value != (Value & AllowedFlags)) break;
+
+                Application.Flags = Value;
+                break;
+            }
         }
     }
 

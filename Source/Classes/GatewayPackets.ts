@@ -40,6 +40,7 @@ export interface ReadyPacket {
     connected_accounts: unknown[];
     consents: { [key: string]: { consented: boolean } };
     country_code: string;
+    application?: object;
     experiments: unknown[];
     friend_suggestion_count: number;
     geo_ordered_rtc_regions: string[];

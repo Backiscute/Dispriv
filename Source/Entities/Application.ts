@@ -128,6 +128,12 @@ export class DiscordApplication extends BaseEntity {
     @Column({ nullable: true })
         TermsOfService?: string;
 
+    @Column({ default: true })
+        PublicBot: boolean;
+
+    @Column({ default: false })
+        BotRequireCodeGrant: boolean;
+
     @ManyToOne(() => User, (U) => U.Applications, { eager: true, nullable: true })
     @JoinColumn()
         Owner?: User;
@@ -166,6 +172,9 @@ export class DiscordApplication extends BaseEntity {
             summary: this.Summary,
             hook: this.IsHook,
             verify_key: null,
+            bot_public: this.PublicBot,
+            bot_require_code_grant: this.BotRequireCodeGrant,
+            bot: this.Bot ? this.Bot.PackageSmall() : null,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             owner: this.Team != null ? this.Team.PackageTeamUser() : this.Owner!.PackagePublic(),
             publishers: this.Publishers,
@@ -186,7 +195,6 @@ export class DiscordApplication extends BaseEntity {
             role_connections_verification_url: this.RoleConnectionsURL,
             privacy_policy_url: this.PrivacyPolicy,
             terms_of_service_url: this.TermsOfService,
-            bot: this.Bot?.PackagePublic(),
             tags: this.UserTags,
             max_participants: this.EmbeddedParticipants,
             ...EmbeddedAppConfig,

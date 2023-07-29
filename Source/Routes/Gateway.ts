@@ -5,14 +5,14 @@ const App = Router();
 App.get("/gateway", (req, res) => {
     // unless overriden - send this url
     res.json({
-        url: process.env.OverrideWS || "ws://127.0.0.1:6968",
+        url: process.env.OverrideWS || `ws://${req.hostname}:${process.env.WSPORT}`,
     });
 });
 
 App.get("/gateway/bot", (req, res) => {
     // unless overriden - send this url
     res.json({
-        url: process.env.OverrideWS || "ws://127.0.0.1:6968",
+        url: process.env.OverrideWS || `ws://${req.hostname}:${process.env.WSPORT}`,
         session_start_limit: {
             max_concurrency: 1,
             remaining: 1000,

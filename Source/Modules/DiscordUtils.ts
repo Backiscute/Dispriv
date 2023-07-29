@@ -64,14 +64,18 @@ export function RequestGatewayAccount(Token: string) {
             From: true,
             Regarding: true,
         },
-        Subscriptions: true
+        Subscriptions: true,
+        BotApplication: true
     });
 }
 
 export async function HasPermission(Usr: Membership, Permission: Permissions) {
     const HR = GetHighestRole(Usr);
 
-    //    if (Usr.ToGuild.Owner.ID === Usr.Owner.ID) return true;
+    if (Usr.ToGuild.Owner && Usr.Owner)
+    {
+        if (Usr.ToGuild.Owner.ID === Usr.Owner.ID) return true;
+    }
 
     if ((HR.Permissions & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR) return true;
 

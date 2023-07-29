@@ -7,7 +7,7 @@ import { GiftPurchaseSchema } from "../Validators/Users";
 
 const App = Router();
 
-App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth, async (req, res) => {
+App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth(false), async (req, res) => {
     const Plans = await SubscriptionPlan.find({ where: { SKUID: req.params.SKU } });
 
     if (Plans.length <= 0) return res.status(404).json({
@@ -18,7 +18,7 @@ App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth, async (r
     res.json(Plans.map((P) => P.Package()));
 });
 
-App.post("/skus/:SKU/purchase", VerifyAuth, async (req, res, next) => {
+App.post("/skus/:SKU/purchase", VerifyAuth(false), async (req, res, next) => {
     ValidateRequest(req, res, next, GiftPurchaseSchema);
 },
 async (req, res) => {

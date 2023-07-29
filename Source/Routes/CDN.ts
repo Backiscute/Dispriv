@@ -16,7 +16,7 @@ App.put("/upload/:Filename", raw({
 }), (req, res, next) => {
     req.headers.authorization = req.query.auth as string;
     next();
-}, VerifyAuth, async (req, res) => {
+}, VerifyAuth(), async (req, res) => {
     try {
         UploadAttachment(req.body as Buffer, req.headers["content-type"] as string, req.params.Filename);
         res.sendStatus(200);

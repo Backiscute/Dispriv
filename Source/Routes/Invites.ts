@@ -2,19 +2,17 @@
 import { Router } from "express";
 import { GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
-import { Guild, Invite, InviteType, SystemChannelFlags } from "../Entities/Guild";
+import { Guild, Invite, InviteType } from "../Entities/Guild";
 import { Membership } from "../Entities/User";
 import { FindConnection, SendOp } from "../Modules/GatewayUtils";
 import { OpCodes } from "../Classes/GatewayOpCodes";
-import { HasPermission, SendMessage } from "../Modules/DiscordUtils";
+import { HasPermission } from "../Modules/DiscordUtils";
 import { Permissions } from "../Classes/Flags";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { Message, MessageType } from "../Entities/Message";
-import { ChannelType } from "../Entities/Channel";
 
 const App = Router();
 
-App.get("/:InviteCode", VerifyAuth, async (req, res) => {
+App.get("/:InviteCode", VerifyAuth(false), async (req, res) => {
     const RequestedInvite = await Invite.findOne({
         where: { InviteCode: req.params.InviteCode },
         relations: { InGuild: { Members: true } },
@@ -48,7 +46,7 @@ App.get("/:InviteCode", VerifyAuth, async (req, res) => {
     res.json(RequestedInvite.PackagePublic());
 });
 
-App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
+App.delete("/:InviteCode", VerifyAuth(), async (req, res) => {
     const RequestedInvite = await Invite.findOne({
         where: { InviteCode: req.params.InviteCode },
         relations: { InGuild: { Members: true, Channels: true } },
@@ -68,7 +66,7 @@ App.delete("/:InviteCode", VerifyAuth, async (req, res) => {
     res.sendStatus(204);
 });
 
-App.post("/:InviteCode", VerifyAuth, async (req, res) => {
+App.post("/:InviteCode", VerifyAuth(false), async (req, res) => {
     const RequestedInvite = await Invite.findOne({
         where: { InviteCode: req.params.InviteCode },
         relations: { InGuild: { Members: true, Channels: { OwnerGuild: true } } },
@@ -129,30 +127,6 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
 
         SendOp(Conn, OpCodes.DISPATCH, { ...VanityGuild.GatewayPackage(MyUser), ...VanityGuild.GatewaySupplementalPackage(), members: VanityGuild.Members.map((C) => C.Package()).concat(NewMembership.Package()) }, 24, "GUILD_CREATE");
 
-        const SystemChannelID = VanityGuild.SystemChannelID;
-
-        if (!SystemChannelID) return;
-    
-        const SystemChannel = VanityGuild.Channels.find((x) => x.ID === SystemChannelID);
-    
-        if (!SystemChannel) return;
-    
-        if (SystemChannel.Type !== ChannelType.GUILD_TEXT) return;
-        if (VanityGuild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_JOIN_NOTIFICATIONS)) return;
-    
-        const SystemMessage = Message.create({
-            ID: GenerateSnowflake(),
-            Channel: SystemChannel,
-            Content: "",
-            Type: MessageType.USER_JOIN,
-            CreationDate: new Date(),
-            Author: MyUser,
-        });
-    
-        SendMessage(SystemMessage);
-    
-        await SystemMessage.save();
-
         return;
     }
 
@@ -178,30 +152,6 @@ App.post("/:InviteCode", VerifyAuth, async (req, res) => {
     if (!Conn) return;
 
     SendOp(Conn, OpCodes.DISPATCH, { ...TargetGuild.GatewayPackage(MyUser), ...TargetGuild.GatewaySupplementalPackage(), members: TargetGuild.Members.map((C) => C.Package()).concat(NewMembership.Package()) }, 24, "GUILD_CREATE");
-
-    const SystemChannelID = TargetGuild.SystemChannelID;
-
-    if (!SystemChannelID) return;
-
-    const SystemChannel = TargetGuild.Channels.find((x) => x.ID === SystemChannelID);
-
-    if (!SystemChannel) return;
-
-    if (SystemChannel.Type !== ChannelType.GUILD_TEXT) return;
-    if (TargetGuild.SystemChannelHasFlag(SystemChannelFlags.SUPPRESS_JOIN_NOTIFICATIONS)) return;
-
-    const SystemMessage = Message.create({
-        ID: GenerateSnowflake(),
-        Channel: SystemChannel,
-        Type: MessageType.USER_JOIN,
-        Content: "",
-        CreationDate: new Date(),
-        Author: MyUser,
-    });
-
-    SendMessage(SystemMessage);
-
-    await SystemMessage.save();
 });
 
 module.exports = {

@@ -8,7 +8,7 @@ App.get("/build_overrides", async (req, res) => {
     res.json({ DisprivTestOverride: { id: "DisprivBuildOverride-1", type: "branch" } }); // TODO
 });
 
-App.post("/create_build_override_link", VerifyAuth, async (req, res) => {
+App.post("/create_build_override_link", VerifyAuth(false), async (req, res) => {
     const BuildOverrideMeta = req.body.meta;
     if (!BuildOverrideMeta) return res.sendStatus(403).send("The maze wasn't meant for you.");
 
