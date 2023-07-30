@@ -24,6 +24,7 @@ import { Gift } from "./Gift";
 import { CustomEmoji } from "./Emoji";
 import { UserSubscription } from "./Subscription";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
+import { Integration } from "./Integration";
 
 export interface UserSettings {
     locale: string;
@@ -396,6 +397,10 @@ export class Membership extends BaseEntity {
     @ManyToMany(() => Role, (R) => R.Members, { eager: true, onDelete: "CASCADE", orphanedRowAction: "delete" })
     @JoinTable()
         Roles: Role[];
+
+    @OneToMany(() => Integration, (I) => I.AddedBy, { orphanedRowAction: "delete" })
+    @JoinTable()
+        AddedIntegrations: Integration[];
 
     @BeforeInsert()
     async SendJoinMessage() {

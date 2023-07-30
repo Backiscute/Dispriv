@@ -305,6 +305,20 @@ App.patch(["/:GuildID/roles/:RoleID", "/:GuildID/roles"], VerifyAuth(), async (r
     if (!res.headersSent) res.json(ResponseBody);
 });
 
+App.get("/:GuildID/integrations", VerifyAuth(), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Integrations: { Application: { Bot: true }, AddedBy: true } } } }))!;
+
+    const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
+    if (!Mmbr) return res.status(400).json({ code: 0, message: "You aren't participating in that guild." });
+
+    const G = Mmbr.ToGuild;
+
+    if (!HasPermission(Mmbr, Permissions.MANAGE_GUILD)) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+
+    const Integrations = G.Integrations;
+    res.json(Integrations.map((I) => I.Package()));
+});
+
 App.patch("/:GuildID/channels", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);

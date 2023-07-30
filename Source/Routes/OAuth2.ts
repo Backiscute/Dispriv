@@ -10,6 +10,7 @@ import { Permissions } from "../Classes/Flags";
 import { Membership } from "../Entities/User";
 import { Role } from "../Entities/Guild";
 import { OpCodes } from "../Classes/GatewayOpCodes";
+import { Integration } from "../Entities/Integration";
 
 const App = Router();
 
@@ -148,7 +149,17 @@ App.post("/authorize", VerifyAuth(), async (req, res) => {
 
             await BotMembership.save();
 
-            res.json({ authorized: true });
+            const BotIntegration = await Integration.create({
+                ID: GenerateSnowflake(),
+                Application,
+                Scopes,
+                AddedBy: UserMembership,
+                OwnerGuild: UserMembership.ToGuild
+            });
+
+            await BotIntegration.save();
+
+            res.json({ authorized: true, bot: Application.Bot?.PackagePublic(), user: MyUser?.PackagePublic(), application: Application.PackagePublic() });
 
             break;
         }

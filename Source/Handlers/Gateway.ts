@@ -626,6 +626,8 @@ Socket.on("connection", async (Client, req) => {
                 GatewayClient.Capabilities = UnpackedData.d.capabilities ?? GatewayCapabilities.UNKNOWN;
                 GatewayClient.Intents = ConnectionIntents; // TODO: add check for privileged intents
 
+                if (ConnectionIntents == 0 && GatewayClient.Account.Bot) return CloseConnection(GatewayClient, GatewayCloseCodes.InvalidIntents, "Invalid intents");
+
                 Msg(
                     `Client ${red(GatewayClient.ID)} identified as ${red(
                         GatewayClient.Account!.Username + "#" + GatewayClient.Account!.Discriminator,
@@ -730,6 +732,7 @@ Socket.on("connection", async (Client, req) => {
 
                 if (GatewayClient.Account.Bot) // Guild and etc
                 {
+
                     console.log("--- SENDING AVAILABLE GUILDS TO BOT CLIENT");
                     const Guilds = GatewayClient.Account!.Memberships.map((M) => M.ToGuild.GatewayPackage(GatewayClient.Account!));
 

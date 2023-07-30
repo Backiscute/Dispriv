@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
-import { ZodObject } from "zod";
+import { ZodArray, ZodObject } from "zod";
 
 export function handleError(
     err: TypeError,
@@ -13,13 +13,14 @@ export function handleError(
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function ValidateRequest(req: Request, res: Response, next: NextFunction, Schema: ZodObject<any>) {
+export function ValidateRequest(req: Request, res: Response, next: NextFunction, Schema: ZodObject<any> | ZodArray<any>) {
     if (!req.body) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
 
     const Result = Schema.safeParse(req.body);
 
     if (!Result.success)
     {
+        console.log(JSON.stringify(Result));
         const Errors = Result.error.errors.reduce((acc, error) => {
             const Property = error.path[0];
             if (!Object.hasOwnProperty.call(acc, Property))

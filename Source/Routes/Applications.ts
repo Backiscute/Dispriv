@@ -8,6 +8,9 @@ import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { User } from "../Entities/User";
 import { GenerateRandomString } from "../Modules/DiscordUtils";
 import bcrypt from "bcrypt";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { CreateGlobalCommandSchema } from "../Validators/Applications";
+import { SlashCommand, SlashCommandOptions } from "../Entities/SlashCommand";
 
 const App = Router();
 
@@ -251,6 +254,67 @@ App.patch("/:ApplicationID", VerifyAuth(false), async (req, res) => {
     await Application.save();
 
     res.json(Application.Package());
+});
+
+App.put("/:ApplicationID/commands", VerifyAuth(), async (req, res, next) => {
+    ValidateRequest(req, res, next, CreateGlobalCommandSchema);
+},
+async (req, res) => {
+    const AppID = req.params.ApplicationID;
+    const UserData = await GetUserByRequest(req, { Applications: { Bot: true, SlashCommands: { LinkedApplication: true } } });
+    const Application = await DiscordApplication.findOne({ where: { Bot: { ID: UserData?.ID }, ID: AppID }, relations: { Bot: true, SlashCommands: true }});
+
+    if (!Application) return res.status(404).json({ message: "404: Not Found", code: 0 });
+
+    if (!Application.Bot)
+        return res
+            .status(400)
+            .json({ message: "Application has no bot", code: JsonErrorCodes.OAUTH2_APPLICATION_WITHOUT_BOT });
+
+    /*
+    Your app cannot have two global CHAT_INPUT commands with the same name
+    Your app cannot have two guild CHAT_INPUT commands within the same name on the same guild
+    Your app cannot have two global USER commands with the same name
+    Your app can have a global and guild CHAT_INPUT command with the same name
+    Your app can have a global CHAT_INPUT and USER command with the same name
+    Multiple apps can have commands with the same names
+    */
+
+    const AddedCommands = [];
+
+    for ( const Command of req.body ) {
+        const CommandName = Command.name;
+        const CommandType = Command.type;
+        const CommandDescription = Command.description ?? "No description provided.";
+        const CommandOptions = Command.options || [];
+        const CommandDefaultPermission = Command.default_member_permissions ?? null;
+
+        // check if commandname is already used
+        const CommandNameUsed = Application.SlashCommands.find((R) => R.Name === CommandName && R.Type === CommandType);
+        if (CommandNameUsed) continue;
+
+        console.log("making funny command");
+
+        console.log(CommandOptions as SlashCommandOptions[]);
+
+        const NewSlashCommand = await SlashCommand.create({
+            ID: GenerateSnowflake(),
+            LinkedApplication: Application,
+            Name: CommandName,
+            Type: CommandType,
+            Description: CommandDescription,
+            Options: CommandOptions as SlashCommandOptions[],
+            DefaultMemberPermission: CommandDefaultPermission,
+            Global: true,
+            Version: GenerateSnowflake()
+        });
+
+        await NewSlashCommand.save();
+
+        AddedCommands.push(NewSlashCommand.Package());
+    }
+
+    res.json(AddedCommands);
 });
 
 module.exports = {

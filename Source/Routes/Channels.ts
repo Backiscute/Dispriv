@@ -442,12 +442,53 @@ App.get("/:ChannelID/call", VerifyAuth(), async (req, res) => {
         relations: { DMRecipients: true },
     });
 
-    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
-    if (!RequestedChannel.IsDM) return res.status(400).json({ code: 0, message: "No access" });
-    if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: 0, message: "No access" });
+    if (!RequestedChannel) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+    if (!RequestedChannel.IsDM) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (!RequestedChannel.CheckDMAccess(MyUser)) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
 
     res.json({ ringable: true });
 });
+
+App.get("/:ChannelID/application-commands/search", VerifyAuth(), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Integrations: { Application: { SlashCommands: { LinkedApplication: true } } } } } }))!;
+    const RequestedChannel = await Channel.findOne({
+        where: { ID: req.params.ChannelID },
+        relations: { OwnerGuild: true },
+    });
+
+    const Type = req.query.type as string;
+    const Limit = req.query.limit as string;
+    const CommandIDS = req.query.command_ids ?? []; // possibly commands to exclude
+
+    console.log(CommandIDS);
+
+    if (!Type || !Limit) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+    if (!CommandIDS) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+
+
+    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (RequestedChannel.IsDM) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    
+    const Guild = RequestedChannel.OwnerGuild;
+
+    if (!Guild) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+
+    const Membership = MyUser.Memberships.find((M) => M.ToGuild.ID === Guild.ID);
+
+    if (!Membership) return res.status(400).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+
+    // get only slash commands that are either global or the guild id matches the guild id of the channel and exlude the command ids
+
+    let SlashCommands = Membership.ToGuild.Integrations.flatMap((I) => I.Application.SlashCommands).filter((C) => C.Global || C.GuildID === Guild.ID);
+    SlashCommands = SlashCommands.filter((C) => !(CommandIDS as string[]).includes(C.ID));
+
+    // get all the packaged applications of the filtered slash commands
+    const ApplicationsMap = new Map(SlashCommands.map((C) => [C.LinkedApplication.ID, C.LinkedApplication.PackagePublic()]));
+    const Applications = Array.from(ApplicationsMap.values());
+
+    res.json({ application_commands: SlashCommands.map((SC) => SC.Package()), applications: Applications, cursor: { next: null, previous: null, repaired: null } });
+});
+
 
 App.post("/:ChannelID/call/ring", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { RelationsFrom: true, RelationsRegarding: true }))!;

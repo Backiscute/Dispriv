@@ -14,6 +14,8 @@ import { ApplicationFlags } from "../Classes/Flags";
 import { User } from "./User";
 import { Team } from "./ApplicationTeam";
 import { OAuth2App } from "./OAuth2";
+import { Integration } from "./Integration";
+import { SlashCommand } from "./SlashCommand";
 
 @Entity()
 export class EmbeddedAppConfig extends BaseEntity {
@@ -150,6 +152,14 @@ export class DiscordApplication extends BaseEntity {
     @JoinTable()
         OAuth2Clients?: OAuth2App[];
 
+    @OneToMany(() => Integration, (I) => I.Application, {})
+    @JoinTable()
+        LinkedIntegrations?: Integration[];
+
+    @OneToMany(() => SlashCommand, (SC) => SC.LinkedApplication, { orphanedRowAction: "delete" })
+    @JoinTable()
+        SlashCommands: SlashCommand[];
+
     @Column({ default: -1, nullable: true })
         EmbeddedParticipants: number;
 
@@ -240,6 +250,7 @@ export class DiscordApplication extends BaseEntity {
             type: null,
             cover_image: null,
             hook: this.IsHook,
+            bot: this.Bot ? this.Bot.PackageSmall() : null,
             bot_public: this.IsIntegrationPublic,
             bot_require_code_grant: this.IntegrationRequiresCodeGrant,
             terms_of_service_url: null,

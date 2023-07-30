@@ -19,6 +19,7 @@ import { CreateTimestamp, GetHighestRole } from "../Modules/DiscordUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { VoiceSessions } from "../Handlers/RTCSocket";
 import { CustomEmoji } from "./Emoji";
+import { Integration } from "./Integration";
 
 export const enum InviteType {
     GUILD = 0,
@@ -213,7 +214,9 @@ export class Guild extends BaseEntity {
     @JoinColumn()
         Invites: Invite[];
 
-    
+    @OneToMany(() => Integration, (I) => I.OwnerGuild, { orphanedRowAction: "delete" })
+    @JoinTable()
+        Integrations: Integration[];
 
     @Column({ nullable: true })
         SystemChannelID?: string;
@@ -254,12 +257,16 @@ export class Guild extends BaseEntity {
 
     @AfterInsert()
     private async CreateDefaultChannels() {
-        // categories made the thing logout for osme rason
         const GeneralChannel = await Channel.create({
             ID: GenerateSnowflake(),
             DisplayName: "general",
             OwnerGuild: this,
-            //OwnerCategory: TextCategory,
+            /*OwnerCategory: await Channel.create({
+                ID: GenerateSnowflake(),
+                DisplayName: "Text Channels",
+                Type: ChannelType.GUILD_CATEGORY,
+                OwnerGuild: this,
+            }).save(),*/
         }).save();
 
         await Channel.create({
@@ -267,7 +274,12 @@ export class Guild extends BaseEntity {
             DisplayName: "General",
             Type: ChannelType.GUILD_VOICE,
             OwnerGuild: this,
-            //OwnerCategory: VoiceCategory,
+            /*OwnerCategory: await Channel.create({
+                ID: GenerateSnowflake(),
+                DisplayName: "Voice Channels",
+                Type: ChannelType.GUILD_CATEGORY,
+                OwnerGuild: this,
+            }).save(),*/
         }).save();
 
         this.SystemChannelID = GeneralChannel.ID;
