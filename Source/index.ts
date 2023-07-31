@@ -1,7 +1,7 @@
 import env from "dotenv";
 env.config();
 import { DataSource } from "typeorm";
-import { Msg } from "./Modules/Logger";
+import { Err, Msg } from "./Modules/Logger";
 import fs from "fs";
 import path from "path";
 import { italic } from "colorette";
@@ -27,7 +27,13 @@ async function SubscriptionCheck() {
 
     Msg("Creating Default Subscriptions!", "Database");
 
-    CreateDefaultSubscriptions();
+    try
+    {
+        CreateDefaultSubscriptions();
+    }
+    catch (err) {
+        Err("An error occured while creating default subscriptions.");
+    };
 }
 
 const UsePublicTestsDB = true;

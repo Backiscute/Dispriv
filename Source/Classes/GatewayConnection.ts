@@ -5,7 +5,6 @@ import { WebSocket } from "ws";
 import { OpCodes } from "./GatewayOpCodes";
 import { DispatchType } from "../Modules/GatewayUtils";
 import { GatewayCapabilities } from "./GatewayCapabilities";
-import { GatewayIntents } from "./GatewayIntents";
 
 export interface BasePacket {
 	op: OpCodes; // opcode

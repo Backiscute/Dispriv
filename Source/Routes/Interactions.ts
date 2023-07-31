@@ -44,8 +44,6 @@ App.post("/", VerifyAuth(false), async (req, res) => {
         console.log(Command);
         console.log(InteractionType);
 
-        if (Command.Type !== InteractionType) return res.status(404).json({ message: "Unknown Interaction", code: JsonErrorCodes.UNKNOWN_INTERACTION });
-
         if (!Integration.Application.Bot) return res.status(404).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
 
         // find the bot gateway connection??

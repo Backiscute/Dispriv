@@ -10,7 +10,8 @@ import { GenerateRandomString } from "../Modules/DiscordUtils";
 import bcrypt from "bcrypt";
 import { ValidateRequest } from "../Modules/ValidationUtils";
 import { CreateGlobalCommandSchema } from "../Validators/Applications";
-import { SlashCommand, SlashCommandOptions } from "../Entities/SlashCommand";
+import { SlashCommand } from "../Entities/SlashCommand";
+import { Msg } from "../Modules/Logger";
 
 const App = Router();
 
@@ -293,9 +294,7 @@ async (req, res) => {
         const CommandNameUsed = Application.SlashCommands.find((R) => R.Name === CommandName && R.Type === CommandType);
         if (CommandNameUsed) continue;
 
-        console.log("making funny command");
-
-        console.log(CommandOptions as SlashCommandOptions[]);
+        Msg(`Creating slash command ${CommandName} for "${Application.DisplayName}:${Application.ID}"`, "Applications");
 
         const NewSlashCommand = await SlashCommand.create({
             ID: GenerateSnowflake(),
@@ -303,7 +302,7 @@ async (req, res) => {
             Name: CommandName,
             Type: CommandType,
             Description: CommandDescription,
-            Options: CommandOptions as SlashCommandOptions[],
+            Options: JSON.stringify(CommandOptions),
             DefaultMemberPermission: CommandDefaultPermission,
             Global: true,
             Version: GenerateSnowflake()

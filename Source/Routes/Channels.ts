@@ -581,6 +581,8 @@ App.post(
                     .json({ code: JsonErrorCodes.GENERAL_ERROR, message: "Cannot DM a system account" });
         }
 
+        console.log(req.body);
+
         let MessageReplyingTo: Message | undefined;
         if (
             typeof req.body.message_reference === "object" &&
@@ -608,6 +610,26 @@ App.post(
 
             if (!MessageReference)
                 return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
+            MessageReplyingTo = MessageReference;
+        }
+        else if (typeof req.body.message_reference === "object" && typeof req.body.message_reference.message_id === "string") {
+            const MessageReference = await Message.findOne({
+                where: {
+                    ID: req.body.message_reference.message_id,
+                },
+                relations: {
+                    Channel: {
+                        Messages: false,
+                    },
+                },
+            });
+
+            if (!MessageReference)
+                return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
+
+            if (MessageReference.Channel.ID !== RequestedChannel.ID)
+                return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Message" });
+
             MessageReplyingTo = MessageReference;
         }
 

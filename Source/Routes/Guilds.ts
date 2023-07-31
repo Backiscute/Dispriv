@@ -182,6 +182,8 @@ App.patch(["/:GuildID/members/:MemberID", "/:GuildID/profile/:MemberID"], Verify
                 for (const Role of AllRoles) {
                     if (Role.Position >= HR.Position && G.Owner.ID !== MyUser.ID) continue;
 
+                    if (Role.Managed) continue;
+
                     if (Role.ID === G.ID) continue;
 
                     RolesToSet.push(Role);

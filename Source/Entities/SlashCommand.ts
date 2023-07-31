@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Entity, BaseEntity, PrimaryColumn, ManyToOne, JoinTable, Column } from "typeorm";
-import { Integration } from "./Integration";
+import { Entity, BaseEntity, PrimaryColumn, ManyToOne, JoinTable, Column, BeforeInsert, BeforeUpdate } from "typeorm";
 import { Permissions } from "../Classes/Flags";
 import { DiscordApplication } from "./Application";
 
@@ -81,8 +80,15 @@ export class SlashCommand extends BaseEntity {
     @Column({ nullable: true })
         GuildID?: string;
 
-    @Column({ nullable: true, type: "simple-array", array: true })
-        Options?: object[];
+    @Column({ nullable: true })
+        Options?: string;
+
+    get ParsedOptions(): SlashCommandOptions[] | undefined {
+        if (this.Options) {
+            return JSON.parse(this.Options) as SlashCommandOptions[];
+        }
+        return undefined;
+    }
 
     Package() {
         return {
@@ -96,7 +102,7 @@ export class SlashCommand extends BaseEntity {
             type: this.Type,
             version: this.Version,
             guild_id: this.GuildID,
-            options: this.Options
+            options: this.ParsedOptions
         };
     }
 }
