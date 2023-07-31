@@ -415,9 +415,7 @@ App.patch("/:GuildID/emojis/:EmojiID", VerifyAuth(), async (req, res) => {
 
 App.post(
     "/:GuildID/emojis",
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, CustomEmojiUploadSchema);
-    },
+    ValidateRequest(CustomEmojiUploadSchema),
     async (req, res) => {
         const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: { Emojis: true, Owner: true } } }))!;
         const Mmbr = MyUser.Memberships.find((G) => G.ToGuild.ID === req.params.GuildID);
@@ -586,9 +584,7 @@ App.get("/:GuildID/premium/subscriptions", VerifyAuth(), async (req, res) => {
 App.put(
     "/:GuildID/premium/subscriptions",
     VerifyAuth(false),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, BoostServerSchema);
-    },
+    ValidateRequest(BoostServerSchema),
     async (req, res) => {
         const SubSlots = req.body.user_premium_guild_subscription_slot_ids;
 
@@ -763,9 +759,7 @@ App.patch("/:GuildID", VerifyAuth(), async (req, res) => {
 App.post(
     "/",
     VerifyAuth(),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, CreateGuildSchema);
-    },
+    ValidateRequest(CreateGuildSchema),
     async (req, res) => {
         const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 

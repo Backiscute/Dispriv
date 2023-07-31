@@ -17,6 +17,11 @@ export const MessageSendSchema = z.object({
     ).optional(),
 });
 
+export const WebhookCreateSchema = z.object({
+    name: z.string().min(1).max(80),
+    avatar: z.string().optional()
+});
+
 export const VCEffectSchema = z.object({
     animation_id: z.number().max(20),
     animation_type: z.number().min(0).max(1),

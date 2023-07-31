@@ -4,10 +4,7 @@ import { UsernameAvailableUnAuthedSchema } from "../Validators/UniqueUsername";
 
 const App = Router();
 
-App.post("/username-attempt-unauthed", async (req, res, next) => {
-    ValidateRequest(req, res, next, UsernameAvailableUnAuthedSchema);
-},
-async (req, res) => {
+App.post("/username-attempt-unauthed",ValidateRequest(UsernameAvailableUnAuthedSchema), async (req, res) => {
     res.sendStatus(200); // temp
 });
 

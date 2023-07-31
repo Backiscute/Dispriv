@@ -257,10 +257,7 @@ App.patch("/:ApplicationID", VerifyAuth(false), async (req, res) => {
     res.json(Application.Package());
 });
 
-App.put("/:ApplicationID/commands", VerifyAuth(), async (req, res, next) => {
-    ValidateRequest(req, res, next, CreateGlobalCommandSchema);
-},
-async (req, res) => {
+App.put("/:ApplicationID/commands", VerifyAuth(), ValidateRequest(CreateGlobalCommandSchema), async (req, res) => {
     const AppID = req.params.ApplicationID;
     const UserData = await GetUserByRequest(req, { Applications: { Bot: true, SlashCommands: { LinkedApplication: true } } });
     const Application = await DiscordApplication.findOne({ where: { Bot: { ID: UserData?.ID }, ID: AppID }, relations: { Bot: true, SlashCommands: true }});

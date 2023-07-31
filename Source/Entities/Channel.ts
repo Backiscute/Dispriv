@@ -6,6 +6,7 @@ import { Guild, Invite } from "./Guild";
 import { rmSync } from "fs";
 import path from "path";
 import { glob } from "glob";
+import { Webhook } from "./Webhook";
 
 export const enum ChannelType {
     GUILD_TEXT = 0,
@@ -90,6 +91,10 @@ export class Channel extends BaseEntity {
     @OneToMany(() => Channel, (C) => C.OwnerCategory, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn()
         CategoryChannels?: Channel[];
+
+    @OneToMany(() => Webhook, (Wh) => Wh.Channel, { onDelete: "DEFAULT" })
+    @JoinColumn()
+        Webhooks: Webhook[];
 
     @ManyToMany(() => User, (U) => U.AvailableDMs, { nullable: true, orphanedRowAction: "delete", onDelete: "CASCADE" })
     @JoinColumn()

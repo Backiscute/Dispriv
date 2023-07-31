@@ -544,9 +544,7 @@ App.get("/@me/billing/subscriptions", VerifyAuth(false), async (req, res) => {
 App.post(
     "/@me/billing/subscriptions",
     VerifyAuth(false),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
-    },
+    ValidateRequest(SubscriptionPurchaseSchema),
     async (req, res) => {
         const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
         const Items = req.body.items;
@@ -644,9 +642,7 @@ App.post(
 App.patch(
     "/@me/billing/subscriptions/:SubID",
     VerifyAuth(false),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, SubscriptionPurchaseSchema);
-    },
+    ValidateRequest(SubscriptionPurchaseSchema),
     async (req, res) => {
         const MyUser = (await GetUserByRequest(req, { Subscriptions: true }))!;
         const Items = req.body.items;

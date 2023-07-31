@@ -26,13 +26,14 @@ import { Err, Msg } from "../Modules/Logger";
 import { JsonErrorCodes } from "../Classes/JsonOpCodes";
 import { AttachmentMessagePost, AttachmentReq } from "../Classes/Attachments";
 import { v4 } from "uuid";
-import { FindAttachment, HandleAttachment } from "../Modules/AssetUtils";
+import { FindAttachment, HandleAttachment, Upload, ValidBaseURL } from "../Modules/AssetUtils";
 import { User } from "../Entities/User";
 import { VoiceSessions } from "../Handlers/RTCSocket";
 import { FindOptionsWhere, LessThan, MoreThan } from "typeorm";
 import { ValidateRequest } from "../Modules/ValidationUtils";
-import { MessageSendSchema, VCEffectSchema } from "../Validators/Channels";
+import { MessageSendSchema, VCEffectSchema, WebhookCreateSchema } from "../Validators/Channels";
 import { CustomEmoji } from "../Entities/Emoji";
+import { Webhook } from "../Entities/Webhook";
 
 const App = Router();
 
@@ -55,7 +56,7 @@ App.patch("/:ChannelID/messages/:MessageID", VerifyAuth(), async (req, res) => {
         return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
     if (RequestedMessage.Channel.ID !== req.params.ChannelID)
         return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_MESSAGE, message: "Unknown Message" });
-    if (RequestedMessage.Author.ID !== MyUser.ID)
+    if (RequestedMessage.Author!.ID !== MyUser.ID)
         return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
     if (RequestedMessage.Type !== MessageType.DEFAULT && RequestedMessage.Type !== MessageType.REPLY)
         return res.status(400).json({ code: JsonErrorCodes.INVALID_MESSAGE_TYPE, message: "Invalid Message Type" });
@@ -125,9 +126,9 @@ App.delete("/:ChannelID/messages/:MessageID", VerifyAuth(), async (req, res) => 
 
     if (
         (RequestedMessage.Channel.IsDM &&
-            (MyUser.ID !== RequestedMessage.Author.ID || !RequestedMessage.Channel.CheckDMAccess(MyUser))) ||
+            (MyUser.ID !== RequestedMessage.Author!.ID || !RequestedMessage.Channel.CheckDMAccess(MyUser))) ||
         (!RequestedMessage.Channel.IsDM &&
-            MyUser.ID !== RequestedMessage.Author.ID &&
+            MyUser.ID !== RequestedMessage.Author!.ID &&
             !HasPermission(
                 MembershipFromGuild(MyUser, RequestedMessage.Channel.OwnerGuild!)!,
                 Permissions.MANAGE_MESSAGES,
@@ -265,6 +266,55 @@ App.get("/:ChannelID", VerifyAuth(), async (req, res) => {
     res.json(RequestedChannel.GuildPackage(undefined, MyUser.ID));
 });
 
+App.get("/:ChannelID/webhooks", VerifyAuth(), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+    const RequestedChannel = await Channel.findOne({
+        where: { ID: req.params.ChannelID },
+        relations: {
+            OwnerGuild: { Owner: true },
+            Webhooks: true
+        }
+    });
+
+    if (!RequestedChannel) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.MANAGE_WEBHOOKS)) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+
+    res.json(RequestedChannel.Webhooks.map(x => x.Package(RequestedChannel)));
+});
+
+App.post("/:ChannelID/webhooks", VerifyAuth(), ValidateRequest(WebhookCreateSchema), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
+    const RequestedChannel = await Channel.findOne({
+        where: { ID: req.params.ChannelID },
+        relations: {
+            OwnerGuild: { Owner: true },
+            Webhooks: true
+        }
+    });
+
+    if (!RequestedChannel) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
+    if (!HasPermission(MembershipFromGuild(MyUser, RequestedChannel.OwnerGuild!)!, Permissions.MANAGE_WEBHOOKS)) return res.status(403).json({ code: JsonErrorCodes.MISSING_ACCESS, message: "Missing Access" });
+    if (RequestedChannel?.Webhooks.length >= 20) return res.status(400).json({ code: JsonErrorCodes.MAXIMUM_WEBHOOKS_REACHED, message: "Maximum Webhooks Reached" });
+
+    const Wh = await Webhook.create({
+        CreatedBy: MyUser,
+        Channel: RequestedChannel,
+        Name: req.body.name
+    });
+
+    if (ValidBaseURL(req.body.avatar))
+        Wh.IconID = await Upload(req.body.avatar, "Users");
+
+    Wh.save();
+
+    SendToDMOrServer(RequestedChannel, OpCodes.DISPATCH, {
+        guild_id: RequestedChannel.OwnerGuild?.ID,
+        channel_id: RequestedChannel.ID
+    }, null, "WEBHOOKS_UPDATE");
+
+    res.json(Wh.Package());
+});
+
 App.delete("/:ChannelID", VerifyAuth(), async (req, res) => {
     const MyUser = (await GetUserByRequest(req, { Memberships: { ToGuild: true } }))!;
     const RequestedChannel = await Channel.findOne({
@@ -276,7 +326,7 @@ App.delete("/:ChannelID", VerifyAuth(), async (req, res) => {
         },
     });
 
-    if (!RequestedChannel) return res.status(400).json({ code: 10013, message: "Unknown Channel" });
+    if (!RequestedChannel) return res.status(400).json({ code: JsonErrorCodes.UNKNOWN_CHANNEL, message: "Unknown Channel" });
     if (RequestedChannel.IsDM && !RequestedChannel.CheckDMAccess(MyUser))
         return res.status(400).json({ code: 0, message: "No access" });
     if (
@@ -540,9 +590,7 @@ App.post("/:ChannelID/invites", VerifyAuth(), async (req, res) => {
 App.post(
     "/:ChannelID/messages",
     VerifyAuth(),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, MessageSendSchema);
-    },
+    ValidateRequest(MessageSendSchema),
     async (req, res) => {
         const MyUser = (await GetUserByRequest(req, {
             Memberships: { ToGuild: true },
@@ -654,7 +702,7 @@ App.post(
         } catch (e) {
             Err("Error while parsing embeds");
         }
-        const Type = MessageType[req.body.content.replace("!", "") as keyof typeof MessageType] || MessageType.DEFAULT;
+        const Type = MyUser.HasFlag(UserFlags.STAFF) ? MessageType[req.body.content.replace("!", "") as keyof typeof MessageType] || MessageType.DEFAULT : MessageType.DEFAULT;
         if (req.body.content === "!ALL") {
             // for (const Type of Object.values(MessageType)) {
             //     const CreatedMessage = Message.create({
@@ -724,6 +772,7 @@ App.post(
             // }
             return;
         }
+        
         const CreatedMessage = Message.create({
             ID: GenerateSnowflake(),
             Author: MyUser,
@@ -864,7 +913,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth(), asyn
                         user_id: MyUser!.ID,
                         type: MessageReaction?.Type === "normal" ? 0 : 1,
                         message_id: RequestedMessage.ID,
-                        message_author_id: RequestedMessage.Author.ID,
+                        message_author_id: RequestedMessage.Author!.ID,
                         emoji: {
                             name: Emoji,
                             id: null,
@@ -887,7 +936,7 @@ App.put("/:ChannelID/messages/:MessageID/reactions/:Emoji/*", VerifyAuth(), asyn
                         user_id: MyUser!.ID,
                         type: MessageReaction?.Type === "normal" ? 0 : 1,
                         message_id: RequestedMessage.ID,
-                        message_author_id: RequestedMessage.Author.ID,
+                        message_author_id: RequestedMessage.Author!.ID,
                         member: {
                             user: MyUser!.Package(),
                             ...MyUser!.Memberships.find(
@@ -1112,9 +1161,7 @@ App.delete("/:ChannelID/pins/:MessageID", VerifyAuth(), async (req, res) => {
 App.post(
     "/:ChannelID/voice-channel-effects",
     VerifyAuth(),
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, VCEffectSchema);
-    },
+    ValidateRequest(VCEffectSchema),
     async (req, res) => {
         const RequestedChannel = await Channel.findOne({
             where: { ID: req.params.ChannelID },

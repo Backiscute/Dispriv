@@ -7,6 +7,7 @@ import { MessageFlags } from "../Classes/Flags";
 import { glob } from "glob";
 import path from "path";
 import { rmSync } from "fs";
+import { Webhook } from "./Webhook";
 
 export enum MessageType {
     DEFAULT = 0,
@@ -116,8 +117,8 @@ export class Message extends BaseEntity {
     @Column({ type: "simple-json", nullable: true })
         Attachments: Attachment[] = [];
 
-    @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true })
-        Author: User;
+    @ManyToOne(() => User, (U) => U.MessagesByUser, { eager: true, nullable: true })
+        Author?: User;
 
     @Column({ default: MessageType.DEFAULT })
         Type: MessageType;
@@ -205,7 +206,7 @@ export class Message extends BaseEntity {
             id: this.ID,
             pinned: this.Pinned,
             edited_timestamp: this.EditedTimestamp ? CreateTimestamp(this.EditedTimestamp) : null,
-            author: this.Author.PackagePublic(),
+            author: this.Author!.PackagePublic(),
             mention_roles: [],
             content: this.Content,
             channel_id: this.Channel.ID,

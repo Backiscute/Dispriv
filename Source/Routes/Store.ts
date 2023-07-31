@@ -18,12 +18,11 @@ App.get("/published-listings/skus/:SKU/subscription-plans", VerifyAuth(false), a
     res.json(Plans.map((P) => P.Package()));
 });
 
-App.post("/skus/:SKU/purchase", VerifyAuth(false), async (req, res, next) => {
-    ValidateRequest(req, res, next, GiftPurchaseSchema);
-},
-async (req, res) => {
-    res.json({});
-});
+App.post("/skus/:SKU/purchase", VerifyAuth(false),
+    ValidateRequest(GiftPurchaseSchema),
+    async (req, res) => {
+        res.json({});
+    });
 
 module.exports = {
     DefaultAPI: "/api/v9/store",

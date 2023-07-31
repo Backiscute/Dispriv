@@ -25,6 +25,7 @@ import { CustomEmoji } from "./Emoji";
 import { UserSubscription } from "./Subscription";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Integration } from "./Integration";
+import { Webhook } from "./Webhook";
 
 export interface UserSettings {
     locale: string;
@@ -117,6 +118,10 @@ export class User extends BaseEntity {
 
     @Column({ type: "simple-json" })
         Settings: UserSettings;
+
+    @OneToMany(() => Webhook, WH => WH.CreatedBy, { onDelete: "DEFAULT" })
+    @JoinTable()
+        CreatedWebhooks: Webhook[];
 
     @ManyToMany(() => Badge, (B) => B.UsersOwningThis, { orphanedRowAction: "nullify", eager: true })
     @JoinTable()

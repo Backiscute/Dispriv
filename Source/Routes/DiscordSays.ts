@@ -13,9 +13,7 @@ const App = Router();
 
 App.post(
     "/:ApplicationID/api/token",
-    async (req, res, next) => {
-        ValidateRequest(req, res, next, TokenSchema);
-    },
+    ValidateRequest(TokenSchema),
     async (req, res) => {
         const Token = req.body.code;
         const UserID = Token.split("-")[0];
