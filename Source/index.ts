@@ -38,7 +38,7 @@ async function SubscriptionCheck() {
 
 const UsePublicTestsDB = true;
 export const DisprivDataSource = new DataSource({
-    type: "sqlite",
+    type: "better-sqlite3",
     database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",
     synchronize: true,
     logging: false,
