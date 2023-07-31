@@ -131,6 +131,8 @@ bin/
 Source/Assets
 
 *.db
+*.db-shm
+*.db-wal
 
 DONT-PUSH/
 Source/Assets/

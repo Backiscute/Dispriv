@@ -45,6 +45,7 @@ export const DisprivDataSource = new DataSource({
     entities: [__dirname + "/Entities/*{.js,.ts}"],
     subscribers: [],
     migrations: [],
+    enableWAL: true
 })
     .initialize()
     .then(() => {
