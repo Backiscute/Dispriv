@@ -84,19 +84,6 @@ export default async function (url: string): Promise<Embed | undefined> {
                 description: Metadata.description,
             };
         }
-
-        return {
-            type: EmbedType.rich,
-            url,
-            title: "Twitter embeds are not supported.",
-            description: "You can still visit the tweet manually.",
-            color: 1942002,
-            footer: {
-                text: "Twitter",
-                proxy_icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
-                icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
-            }
-        };
     } else if (/(www\.)?(youtube\.com|youtu\.be)/.test(url)) {
         const Response = await Request(url);
         if (!Response) return;
@@ -129,10 +116,7 @@ export default async function (url: string): Promise<Embed | undefined> {
             },
         };
     } else {
-        // TODO: temp
-        return;
-
-        /*const Response = await Request(url);
+        const Response = await Request(url);
         if (!Response) return;
 
         if (Response.headers["content-type"].includes("image")) return await HandleImage(url);
@@ -165,17 +149,21 @@ export default async function (url: string): Promise<Embed | undefined> {
                 } : undefined,
                 description: Metadata.description,
             };
-        }*/
+        }
     }
 }
 
 async function Request(url: string, Head = false, BearerToken?: string) {
     try {
-        return await axios[Head ? "head" : "get"](url, {
-            headers: {
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-                Authorization: BearerToken ? `Bearer ${BearerToken}` : undefined,
-            },
+        const headers: { [key: string]: string | undefined } = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+            Authorization: BearerToken ? `Bearer ${BearerToken}` : undefined,
+        };
+
+        if (process.env.ProxyAuthorization) headers[process.env.ProxyAuthorization.split(":")[0]] = process.env.ProxyAuthorization.split(":")[1];
+
+        return await axios[Head ? "head" : "get"](process.env.ProxyURL ? `${process.env.ProxyURL}${process.env.ProxyURL.endsWith("/") ? "" : "/"}${encodeURIComponent(url)}` : url, {
+            headers,
             maxContentLength: 1024 * 1024 * 5,
         });
     } catch (err) {

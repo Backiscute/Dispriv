@@ -1,7 +1,7 @@
 import { green, italic } from "colorette";
 import express from "express";
 import fs from "fs";
-import { Msg } from "../Modules/Logger";
+import { Msg, Err } from "../Modules/Logger";
 import path from "path";
 import cors from "cors";
 import { handleError } from "../Modules/ValidationUtils";
@@ -42,6 +42,8 @@ const LoadRoutes = async () => {
     Application.use((req, res) => res.status(404).json({ message: "404: Not Found", code: 0 }));
     
     Application.listen(process.env.PORT, () => Msg(`Application now listening on port ${green(process.env.PORT)}`));
+
+    if (!process.env.ProxyURL || !/^(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?(\/([\S]+)?)?$/.test(process.env.ProxyURL)) Err("Invalid or no proxy server URL. Your ip will be exposed to websites when parsing embeds and you're at risk of ip grabbers.");
 };
 
 LoadRoutes();

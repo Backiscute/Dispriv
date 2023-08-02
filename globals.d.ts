@@ -11,6 +11,8 @@ declare global {
             GiphyAPIKey: string;
             RTCMediaPort: string;
             RTCMediaIP: string;
+            ProxyURL: string;
+            ProxyAuthorization: string;
         }
     }
 }
