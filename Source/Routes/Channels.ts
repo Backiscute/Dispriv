@@ -592,11 +592,17 @@ App.post(
     VerifyAuth(),
     ValidateRequest(MessageSendSchema),
     async (req, res) => {
+
         const MyUser = (await GetUserByRequest(req, {
             Memberships: { ToGuild: true },
             RelationsFrom: true,
             RelationsRegarding: true,
         }))!;
+
+        if (!req.body.content && !req.body.embeds) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+        else if (!req.body.content)
+            req.body.content = "";
+
         const RequestedChannel = await Channel.findOne({
             where: { ID: req.params.ChannelID },
             relations: { DMRecipients: true, OwnerGuild: true },
@@ -685,6 +691,7 @@ App.post(
 
         try {
             if (req.body.content)
+            {
                 for await (const link of req.body.content.match(
                     /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
                 ) ?? []) {
@@ -696,9 +703,27 @@ App.post(
                         )
                     )
                         break;
+                        
                     const Embed = await EmbedParser(link);
                     if (Embed) Embeds.push(Embed);
                 }
+            }
+            else if (req.body.embeds)
+            {
+                for await (const Embed of req.body.embeds) {
+                    if (
+                        !RequestedChannel.IsDM &&
+                        !HasPermission(
+                            MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedChannel.OwnerGuild!.ID)!,
+                            Permissions.EMBED_LINKS,
+                        )
+                    )
+                        break;
+
+                    if (!MyUser.Bot) return res.status(400).json({ code: JsonErrorCodes.ONLY_BOTS_CAN_USE_ENDPOINT, message: "Only bots can use endpoint" });
+                    Embeds.push(Embed);
+                }
+            }   
         } catch (e) {
             Err("Error while parsing embeds");
         }

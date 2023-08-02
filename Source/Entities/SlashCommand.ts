@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Entity, BaseEntity, PrimaryColumn, ManyToOne, JoinTable, Column, BeforeInsert, BeforeUpdate } from "typeorm";
+import { Entity, BaseEntity, PrimaryColumn, ManyToOne, JoinTable, Column } from "typeorm";
 import { Permissions } from "../Classes/Flags";
 import { DiscordApplication } from "./Application";
 
