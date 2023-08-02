@@ -21,7 +21,6 @@ export function ValidateRequest(Schema: ZodObject<any> | ZodArray<any>) {
 
         if (!Result.success)
         {
-            console.log(JSON.stringify(Result));
             const Errors = Result.error.errors.reduce((acc, error) => {
                 const Property = error.path[0];
                 if (!Object.hasOwnProperty.call(acc, Property))
