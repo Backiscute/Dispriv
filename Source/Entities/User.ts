@@ -26,6 +26,7 @@ import { UserSubscription } from "./Subscription";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Integration } from "./Integration";
 import { Webhook } from "./Webhook";
+import { MFABackup } from "./MFA";
 
 export interface UserSettings {
     locale: string;
@@ -204,6 +205,16 @@ export class User extends BaseEntity {
     @Column({ type: "simple-array", nullable: true })
         ThemeColors: number[] = [];
 
+    @Column({ default: false })
+        MFAEnabled: boolean;
+
+    @Column({ nullable: true })
+        MFASecret?: string;
+
+    @OneToMany(() => MFABackup, MFA => MFA.LinkedUser, { orphanedRowAction: "delete" })
+    @JoinTable()
+        MFABackups: MFABackup[];
+
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
     }
@@ -237,7 +248,7 @@ export class User extends BaseEntity {
             flags: this.Flags,
             global_name: this.Username,
             id: this.ID,
-            mfa_enabled: true,
+            mfa_enabled: this.MFAEnabled,
             mobile: true,
             nsfw_allowed: true,
             phone: "phone number priv when",

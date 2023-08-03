@@ -13,6 +13,14 @@ export function GenerateToken(Snowflake: string, Timestamp: number, HashedPasswo
     return `${Content}.${Signature}`;
 }
 
+export function GenerateMFAAuthToken(Snowflake: string, Timestamp: number): string {
+    const EncodedId = Buffer.from(Snowflake).toString("base64url");
+    const EncodedTimestamp = Buffer.from((Timestamp - DISCORD_EPOCH).toString()).toString("base64url");
+    const Content = `${EncodedId}.${EncodedTimestamp}`;
+    const Signature = crypto.createHmac("sha256", Snowflake).update(Content).digest("base64url");
+    return `${Content}.${Signature}`;
+}
+
 export async function GenerateOAuth2Token(OAuthSnowflake: string): Promise<string | null> {
     const LinkedOAuth = await OAuth2App.findOne({
         where: { ID: OAuthSnowflake },

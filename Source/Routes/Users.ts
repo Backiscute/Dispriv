@@ -22,8 +22,11 @@ import { FrecencyUserSettings, PreloadedUserSettings } from "discord-protos";
 import { FindConnection } from "../Modules/GatewayUtils";
 import { SubscriptionItem, SubscriptionSlot, UserSubscription } from "../Entities/Subscription";
 import { ValidateRequest } from "../Modules/ValidationUtils";
-import { SubscriptionPurchaseSchema } from "../Validators/Users";
+import { MFAEnableSchema, SubscriptionPurchaseSchema } from "../Validators/Users";
 import { SubscriptionPlan } from "../Entities/Gift";
+import bcrypt from "bcrypt";
+import { verifyToken } from "node-2fa";
+import { MFABackup } from "../Entities/MFA";
 
 const App = Router();
 
@@ -867,6 +870,64 @@ App.get("/@me/billing/payment-sources", VerifyAuth(false), async (req, res) => {
             default: true,
         },
     ]);
+});
+
+App.post("/@me/mfa/totp/enable", VerifyAuth(false), ValidateRequest(MFAEnableSchema), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req))!;
+
+    if (MyUser.MFAEnabled) return res.status(400).json({ message: "MFA Already Enabled", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+
+    const Password = req.body.password;
+
+    if (!bcrypt.compareSync(Password, MyUser.Password)) return res.status(400).json({ message: "Invalid Password", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+
+    if (!req.body.secret) return res.status(400).json({ message: "Invalid two-factor secret", code: JsonErrorCodes.INVALID_TWO_FACTOR_SECRET });
+    if (!req.body.code) return res.status(400).json({ message: "Invalid two-factor code", code: JsonErrorCodes.INVALID_TWO_FACTOR_SECRET });
+
+    const Secret = req.body.secret;
+    const Code = req.body.code;
+
+    const Verify = verifyToken(Secret, Code);
+
+    if (!Verify) return res.status(400).json({ message: "Invalid two-factor code", code: JsonErrorCodes.INVALID_TWO_FACTOR_SECRET });
+
+    MyUser.MFAEnabled = true;
+    MyUser.MFASecret = Secret;
+
+    const BackupCodes = [];
+
+    for (let i = 0; i < 10; i++) {
+        const Backup = MFABackup.create({
+            LinkedUser: MyUser
+        });
+
+        BackupCodes.push(Backup.Package());
+
+        await Backup.save();
+    }
+
+    await MyUser.save();
+
+    let Auth = req.headers.authorization;
+
+    if (Auth!.startsWith("Bearer ")) Auth = Auth!.substring(7);
+
+    res.json({
+        token: Auth,
+        backup_codes: BackupCodes
+    });
+
+    SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), 0, "USER_UPDATE");
+});
+
+App.post("/@me/mfa/codes-verification", VerifyAuth(false), async (req, res) => {
+    const MyUser = (await GetUserByRequest(req, { MFABackups: true }))!;
+
+    if (!MyUser.MFAEnabled) return res.status(400).json({ message: "MFA Not Enabled", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+
+    res.json({
+        backup_codes: MyUser.MFABackups.map((B) => B.Package())
+    });
 });
 
 module.exports = {

@@ -2,11 +2,16 @@ import { Router } from "express";
 import { GenAccountErrorLogin, GenAccountErrorLoginAll } from "../Modules/ErrorUtils";
 import { User } from "../Entities/User";
 import bcrypt from "bcrypt";
-import { GenerateToken } from "../Modules/AuthUtils";
+import { GenerateMFAAuthToken, GenerateToken, GetTokenUserId, GetUserByRequest, VerifyAuth } from "../Modules/AuthUtils";
 import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Msg } from "../Modules/Logger";
-import { Application } from "../Handlers/Server";
 import { Presence } from "../Classes/Presence";
+import { ValidateRequest } from "../Modules/ValidationUtils";
+import { MFAEnableSchema } from "../Validators/Users";
+import { JsonErrorCodes } from "../Classes/JsonOpCodes";
+import { TOTPAuthSchema } from "../Validators/Auth";
+import crypto from "crypto";
+import { verifyToken } from "node-2fa";
 
 const App = Router();
 
@@ -120,13 +125,22 @@ App.post("/login", async (req, res) => {
 
     const LoginUser = await User.findOneBy({ Email });
     if (!LoginUser)
-        return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Your email or password is incorrect.", res);
+        return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Login or password is invalid.", res);
 
     if (LoginUser.Bot) return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Cannot login into a bot.", res);
 
     const PasswordCheck = bcrypt.compareSync(Password, LoginUser.Password);
     if (!PasswordCheck)
-        return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Your email or password is incorrect.", res);
+        return GenAccountErrorLoginAll("DISPRIV_INVALID_LOGIN", "Login or password is invalid.", res);
+
+    if (LoginUser.MFAEnabled)
+        return res.status(200).json({
+            mfa: true,
+            sms: false,
+            user_id: LoginUser.ID,
+            ticket: GenerateMFAAuthToken(LoginUser.ID, Date.now()),
+            webauthn: null
+        });
 
     const NewToken = GenerateToken(LoginUser.ID, Date.now(), LoginUser.Password);
     Msg(`User ${LoginUser.Username} logged in!`, "Auth");
@@ -139,13 +153,86 @@ App.post("/login", async (req, res) => {
     res.end();
 });
 
-Application.get("/location-metadata", (req, res) => {
+App.get("/location-metadata", (req, res) => {
     res.json({
         consent_required: false,
         country_code: "US",
         promotional_email_opt_in: { required: false, pre_checked: false },
     });
 });
+
+App.post("/verify/:Challenge", VerifyAuth(false), ValidateRequest(MFAEnableSchema), async (req, res) => {
+    const Challenge = req.params.Challenge;
+    const MyUser = await GetUserByRequest(req, { MFABackups: true });
+
+    if (!MyUser) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+
+    const PasswordCheck = bcrypt.compareSync(req.body.password, MyUser.Password);
+
+    if (!PasswordCheck) return res.status(400).json({ message: "Password does not match", code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE });
+
+    switch (Challenge)
+    {
+        default:
+            res.json({}); // temp
+    }
+
+});
+
+App.post("/mfa/totp", ValidateRequest(TOTPAuthSchema), async (req, res) => {
+    const MFACode = req.body.code;
+    const Token = req.body.ticket;
+
+    const Parts = Token.split(".");
+    if (Parts.length !== 3) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+
+    const UserID = GetTokenUserId(Token);
+
+    const EncodedId = Parts[0];
+    const EncodedTimestamp = Parts[1];
+
+    const TUser = await User.findOne({ where: { ID: UserID }, relations: { MFABackups: true } });
+
+    if (!TUser) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+    if (TUser.Bot) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+
+    const Content = `${EncodedId}.${EncodedTimestamp}`;
+    const Signature = crypto.createHmac("sha256", UserID).update(Content).digest("base64url");
+    if (Parts[2] !== Signature) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+
+    const MFASecret = TUser.MFASecret;
+
+    if (!MFASecret) return res.status(400).json({ message: "Missing Access", code: JsonErrorCodes.MISSING_ACCESS });
+
+    const Verify = verifyToken(MFASecret, MFACode);
+
+    if (!Verify)
+    {
+        const MFABackups = TUser.MFABackups;
+
+        if (!MFABackups) return res.status(400).json({ message: "Invalid two-factor code", code: JsonErrorCodes.INVALID_TWO_FACTOR_CODE });
+
+        const Backup = MFABackups.find((x) => x.BackupCode === MFACode.replace(/-/g, ""));
+        if (!Backup) return res.status(400).json({ message: "Invalid two-factor code", code: JsonErrorCodes.INVALID_TWO_FACTOR_CODE });
+        if (Backup.Consumed) return res.status(400).json({ message: "Invalid two-factor code", code: JsonErrorCodes.INVALID_TWO_FACTOR_CODE });
+
+        Backup.Consumed = true;
+
+        await Backup.save();
+    }
+
+    const NewToken = GenerateToken(TUser.ID, Date.now(), TUser.Password);
+    Msg(`User ${TUser.Username} logged in using 2FA!`, "Auth");
+
+    const Payload = { user_id: TUser.ID, token: NewToken, user_settings: { locale: TUser.Settings.locale, theme: TUser.Settings.theme } };
+
+    // custom clients need this
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.write(JSON.stringify(Payload));
+    res.end();
+});
+
+
 
 module.exports = {
     DefaultAPI: "/api/v9/auth",

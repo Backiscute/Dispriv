@@ -33,3 +33,7 @@ export const GiftPurchaseSchema = z.object({
     gift: z.boolean().optional(),
     sku_subscription_plan_id: z.string().optional()
 });
+
+export const MFAEnableSchema = z.object({
+    password: z.string()
+});
