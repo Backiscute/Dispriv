@@ -599,7 +599,7 @@ App.post(
             RelationsRegarding: true,
         }))!;
 
-        if (!req.body.content && !req.body.embeds) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
+        if (!req.body.content && !req.body.embeds && !req.body.attachments) return res.status(400).json({ code: JsonErrorCodes.INVALID_FORM_BODY_OR_CONTENT_TYPE, message: "Invalid Form Body" });
         else if (!req.body.content)
             req.body.content = "";
 

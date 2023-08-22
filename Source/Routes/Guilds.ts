@@ -746,6 +746,16 @@ App.patch("/:GuildID", VerifyAuth(), async (req, res) => {
             case "default_message_notifications":
                 G.DefaultMessageNotifications = Value;
                 continue;
+
+            case "features":
+                const AllowedFeatures = ["COMMUNITY", "NEWS"]; // this + the features already in the guild
+                if (Array.isArray(Value)) {
+                    if (Value.length <= 0 ) continue;
+                    G.Features = Value.filter((x) => AllowedFeatures.includes(x) && !G.Features.includes(x));
+                }
+                continue;
+                
+
         }
     }
 

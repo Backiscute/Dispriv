@@ -191,7 +191,7 @@ export class Guild extends BaseEntity {
     @Column({ type: "simple-array" })
         Features: GuildFeatures[];
 
-    @Column({ default: 1000 })
+    @Column({ default: 500000 }) // to make the annoying popup go away but we can add some check ig
         MaximumMembers: number;
 
     @OneToMany(() => Membership, (U) => U.ToGuild, { orphanedRowAction: "delete", onDelete: "CASCADE" })
