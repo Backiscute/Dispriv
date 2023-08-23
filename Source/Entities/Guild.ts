@@ -182,12 +182,15 @@ export class Guild extends BaseEntity {
     @Column({ default: false })
         ClassifiedAsNSFW: boolean;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, length: 120 })
         Description?: string;
 
     @Column({ default: false })
         Disabled: boolean;
 
+    @Column({ nullable: true })
+        Locale?: string;    
+    
     @Column({ type: "simple-array" })
         Features: GuildFeatures[];
 
@@ -223,6 +226,15 @@ export class Guild extends BaseEntity {
 
     @Column({ default: 0 })
         SystemChannelFlags: number;
+
+    @Column({ nullable: true })
+        RulesChannelID?: string;
+
+    @Column({ nullable: true })
+        PublicUpdatesChannelID?: string;
+
+    @Column({ nullable: true })
+        SafetyAlertsChannelID?: string;
 
     @Column({ nullable: true })
         AfkChannelID?: string;
@@ -353,8 +365,11 @@ export class Guild extends BaseEntity {
             banner: this.BannerID,
             premium_tier: BoostCount >= 14 ? 3 : BoostCount >= 7 ? 2 : BoostCount >= 2 ? 1 : 0,
             premium_subscription_count: BoostCount,
-            preferred_locale: "en-US",
+            preferred_locale: this.Locale,
             nsfw_level: 0,
+            rules_channel_id: this.RulesChannelID,
+            public_updates_channel_id: this.PublicUpdatesChannelID,
+            safety_alerts_channel_id: this.SafetyAlertsChannelID,
             system_channel_id: this.SystemChannelID,
             system_channel_flags: this.SystemChannelFlags,
             premium_progress_bar_enabled: this.ShowBoostBar
@@ -407,7 +422,7 @@ export class Guild extends BaseEntity {
             is_published: true,
             keywords: [],
             name: this.Name,
-            preferred_locale: "en-US",
+            preferred_locale: this.Locale,
             premium_subscription_count: BoostCount,
             primary_category_id: 0,
             splash: this.BannerID,

@@ -692,6 +692,7 @@ App.patch("/:GuildID", VerifyAuth(), async (req, res) => {
                 G.Name = Value;
                 continue;
             case "description":
+                if (Value && Value.length > 120) continue;
                 G.Description = Value;
                 continue;
             case "icon":
@@ -747,13 +748,92 @@ App.patch("/:GuildID", VerifyAuth(), async (req, res) => {
                 G.DefaultMessageNotifications = Value;
                 continue;
 
+            case "rules_channel_id":
+
+                if (!Value) {
+                    G.RulesChannelID = undefined;
+                    continue;
+                }
+                else if (Value == "1")
+                {
+                    const RulesID = GenerateSnowflake();
+                    // create new rules channel
+                    await Channel.create({
+                        ID: RulesID,
+                        DisplayName: "rules",
+                        OwnerGuild: G
+                    }).save();
+
+                    G.RulesChannelID = RulesID;
+                    continue;
+                }
+
+                const RulesChnl = await Channel.findOne({
+                    where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_TEXT },
+                });
+
+                if (!RulesChnl) continue;
+
+                G.RulesChannelID = RulesChnl.ID;
+                continue;
+
+            case "public_updates_channel_id":
+
+                let PublicUpdatesChnl;
+
+                if (!Value) {
+                    G.PublicUpdatesChannelID = undefined;
+                    continue;
+                }
+                else if (Value == "1")
+                {
+                    // create new public updates channel
+                    PublicUpdatesChnl = Channel.create({ // TODO: @everyone view channel permissions should be off
+                        ID: GenerateSnowflake(),
+                        Type: ChannelType.GUILD_TEXT,
+                        DisplayName: "moderator-only",
+                        OwnerGuild: G,
+                    });
+
+                    await PublicUpdatesChnl.save();
+                }
+                else
+                {
+                    PublicUpdatesChnl = await Channel.findOne({
+                        where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_TEXT },
+                    });
+                }
+
+                if (!PublicUpdatesChnl) continue;
+
+                G.PublicUpdatesChannelID = PublicUpdatesChnl.ID;
+                continue;
+
+            case "safety_updates_channel_id":
+
+                if (!Value) {
+                    G.SafetyAlertsChannelID = undefined;
+                    continue;
+                }
+
+                const SafetyUpdatesChnl = await Channel.findOne({
+                    where: { OwnerGuild: { ID: G.ID }, ID: Value, Type: ChannelType.GUILD_TEXT },
+                });
+
+                if (!SafetyUpdatesChnl) continue;
+
+                G.SafetyAlertsChannelID = SafetyUpdatesChnl.ID;
+                continue;
+
+
             case "features":
                 const AllowedFeatures = ["COMMUNITY", "NEWS"]; // this + the features already in the guild
-                if (Array.isArray(Value)) {
-                    if (Value.length <= 0 ) continue;
-                    G.Features = Value.filter((x) => AllowedFeatures.includes(x) && !G.Features.includes(x));
-                }
+
+                if (Array.isArray(Value))
+                    G.Features = [...new Set([...G.Features, ...Value.filter((x) => AllowedFeatures.includes(x))])];
+
                 continue;
+                
                 
 
         }
