@@ -114,6 +114,9 @@ export class Channel extends BaseEntity {
     @Column({ nullable: true })
         FirstMessageID?: string;
 
+    @Column({ default: 0 })
+        RateLimitPerUser: number;
+
     @BeforeRemove()
     private DeleteAttachments() {
         const FilePaths = glob.sync(path.join(__dirname, "..", "Assets", "Attachments", `${this.ID}-*-*.*`).replace(/\\/g, "/"));
@@ -180,7 +183,7 @@ export class Channel extends BaseEntity {
             last_message_id: UserId ? this.MessageAcknowledgments[UserId] ?? this.FirstMessageID : this.FirstMessageID,
             flags: 0,
             topic: this.Topic ?? null,
-            rate_limit_per_user: 0
+            rate_limit_per_user: this.RateLimitPerUser
         };
     }
 

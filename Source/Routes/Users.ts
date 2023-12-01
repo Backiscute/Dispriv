@@ -120,7 +120,6 @@ App.patch(["/@me", "/@me/profile", "/%40me/profile"], VerifyAuth(), async (req, 
     }
 
     await SendGuildMemberUpdate(U); //SendToConnections(U, OpCodes.DISPATCH, U.PackagePublic(), 9999, "GUILD_MEMBER_UPDATE");  no its for when you change ur profile n shit and roles and nickname and etc
-    SendToUser(U, OpCodes.DISPATCH, U.Package(), 9998, "USER_UPDATE");
 });
 App.post("/@me/devices", (req, res) => res.sendStatus(204));
 
@@ -622,8 +621,6 @@ App.post(
                     MyUser.Subscriptions.push(UserSub);
 
                     await MyUser.save();
-
-                    SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
                 } else if (Plan.Name.includes("Server Boost")) {
                     const SubSlot = await SubscriptionSlot.create({
                         ID: GenerateSnowflake(),
@@ -730,8 +727,6 @@ App.patch(
                 }
 
                 await MyUser.save();
-
-                SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), null, "USER_UPDATE");
 
                 await Subscription.save();
 
@@ -916,8 +911,6 @@ App.post("/@me/mfa/totp/enable", VerifyAuth(false), ValidateRequest(MFAEnableSch
         token: Auth,
         backup_codes: BackupCodes
     });
-
-    SendToUser(MyUser, OpCodes.DISPATCH, MyUser.Package(), 0, "USER_UPDATE");
 });
 
 App.post("/@me/mfa/codes-verification", VerifyAuth(false), async (req, res) => {

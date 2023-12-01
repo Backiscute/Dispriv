@@ -3,7 +3,7 @@ import { Router } from "express";
 const App = Router();
 
 // analytics
-App.post("/science", async (req, res) => {
+App.post(["/science", "/metrics"], async (req, res) => {
     res.sendStatus(204);
 });
 

@@ -7,6 +7,7 @@ import { CloseConnection, SendOp } from "../Modules/GatewayUtils";
 export async function HandleOpcode(UnpackedData: any, GatewayClient: GatewayConnection) {
     if (!GatewayClient.Account)
         return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
+    
     SendOp<SpeedTestDeletePacket>(
         GatewayClient,
         OpCodes.DISPATCH,

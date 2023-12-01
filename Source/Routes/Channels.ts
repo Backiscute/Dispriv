@@ -403,6 +403,12 @@ App.patch("/:ChannelID", VerifyAuth(), async (req, res) => {
                 if (typeof Value !== "boolean") break;
                 RequestedChannel.IsNSFW = Value;
                 break;
+
+            case "rate_limit_per_user":
+                if (typeof Value !== "number") break;
+                if (Value < 0 || Value > 21600) break;
+                RequestedChannel.RateLimitPerUser = Value;
+                break;
         }
     }
 

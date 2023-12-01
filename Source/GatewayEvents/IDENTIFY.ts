@@ -154,7 +154,6 @@ export async function HandleOpcode(UnpackedData: any, GatewayClient: GatewayConn
 
                 if (GatewayClient.Account.Bot) // Guild and etc
                 {
-
                     console.log("--- SENDING AVAILABLE GUILDS TO BOT CLIENT");
                     const Guilds = GatewayClient.Account!.Memberships.map((M) => M.ToGuild.GatewayPackage(GatewayClient.Account!));
 

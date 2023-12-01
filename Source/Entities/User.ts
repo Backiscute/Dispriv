@@ -9,6 +9,7 @@ import {
     JoinTable,
     OneToOne,
     BeforeInsert,
+    AfterUpdate,
 } from "typeorm";
 import { UserFlags } from "../Classes/Flags";
 import { Message, MessageType } from "./Message";
@@ -16,7 +17,7 @@ import { Relation } from "./FriendUser";
 import { DiscordApplication } from "./Application";
 import { Channel, ChannelType } from "./Channel";
 import { Guild, Invite, Role, SystemChannelFlags } from "./Guild";
-import { CreateTimestamp, GetHighestRoleInArr, NitroType, SendMessage } from "../Modules/DiscordUtils";
+import { CreateTimestamp, GetHighestRoleInArr, NitroType, SendMessage, SendToUser } from "../Modules/DiscordUtils";
 import { Presence } from "../Classes/Presence";
 import { Badge } from "./Badge";
 import { OAuth2App } from "./OAuth2";
@@ -27,6 +28,7 @@ import { GenerateSnowflake } from "../Modules/SnowflakeUtils";
 import { Integration } from "./Integration";
 import { Webhook } from "./Webhook";
 import { MFABackup } from "./MFA";
+import { OpCodes } from "../Classes/GatewayOpCodes";
 
 export interface UserSettings {
     locale: string;
@@ -217,6 +219,11 @@ export class User extends BaseEntity {
 
     HasFlag(Flag: UserFlags) {
         return (this.Flags & Flag) === Flag;
+    }
+
+    @AfterUpdate()
+    private async UpdateUser() {
+        SendToUser(this, OpCodes.DISPATCH, this.Package(), 9998, "USER_UPDATE");
     }
 
     @BeforeInsert()

@@ -53,7 +53,7 @@ App.delete("/:InviteCode", VerifyAuth(), async (req, res) => {
     });
     const MyUser = (await GetUserByRequest(req, { Memberships: { Owner: false, ToGuild: true } }))!;
 
-    if (!RequestedInvite) return res.status(404).json({ message: "Unknown Invite", code: 10006 });
+    if (!RequestedInvite) return res.status(404).json({ message: "Unknown Invite", code: JsonErrorCodes.UNKNOWN_INVITE });
 
     const Membership = MyUser.Memberships.find((x) => x.ToGuild.ID === RequestedInvite.InGuild.ID);
     if (!Membership) return res.status(403).json({ message: "You are not a member of this guild", code: 0 });
