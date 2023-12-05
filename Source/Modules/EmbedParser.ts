@@ -23,7 +23,7 @@ export default async function (url: string): Promise<Embed | undefined> {
                 proxy_icon_url: Tweet.user_profile_image_url,
                 icon_url: Tweet.user_profile_image_url,
             },
-            timestamp: new Date(Tweet.data.created_at),
+            timestamp: new Date(Tweet.date_epoch * 1000),
             fields: [
                 {
                     inline: true,
