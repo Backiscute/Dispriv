@@ -6,36 +6,40 @@ import { Err } from "./Logger";
 
 export default async function (url: string): Promise<Embed | undefined> {
     if (/((media\d+\.)?giphy\.com|((c|media)\.)?tenor\.com)/.test(url)) return await HandleGif(url);
-    else if (/(www\.)?twitter\.com\/(\w+)\/status\/(\d+)/.test(url)) {
-        /*const Matches = (url.match(/twitter\.com\/(\w+)\/status\/(\d+)/) ?? []);
+    else if (/(www\.)?((vx)?twitter\.com|(fixv)?x\.com)\/(\w+)\/status\/(\d+)/.test(url)) {
+        const Matches = (url.match(/((vx)?twitter\.com|(fixv)?x\.com)\/(\w+)\/status\/(\d+)/) ?? []);
         const TweetID = Matches[2];
         if (!TweetID) return;
-        const Response = await Request(`https://api.twitter.com/2/tweets/${TweetID}?expansions=author_id,attachments.media_keys&media.fields=url,width,height&tweet.fields=created_at,public_metrics&user.fields=profile_image_url`, false, process.env.TwitterToken);
+        const Response = await Request(`https://api.vxtwitter.com/Twitter/status/${TweetID}`);
         if (!Response) return;
-        const Tweet = Response.data, Author = Tweet.includes.users[0], Media = Tweet.includes.media?.filter((x: { type: string }) => x.type == "photo");
-
-        return {
-            type: EmbedType.rich,
-            url,
-            description: Tweet.data.text,
+        const Tweet = Response.data, Videos = Tweet.media_extended.filter((m: { type: string }) => m.type === "video"), Images = Tweet.media_extended.filter((m: { type: string }) => m.type === "image");
+        
+        const BaseEmbed = {
+            url: Tweet.tweetURL,
+            description: Tweet.text,
             author: {
-                url: `https://twitter.com/${Author.username}`,
-                name: `${Author.name} (@${Author.username})`,
-                proxy_icon_url: Author.profile_image_url,
-                icon_url: Author.profile_image_url,
+                url: `https://twitter.com/${Tweet.user_name}`,
+                name: `${Tweet.user_screen_name} (@${Tweet.user_name})`,
+                proxy_icon_url: Tweet.user_profile_image_url,
+                icon_url: Tweet.user_profile_image_url,
             },
             timestamp: new Date(Tweet.data.created_at),
             fields: [
                 {
                     inline: true,
                     name: "Likes",
-                    value: Tweet.data.public_metrics.metrics.like_count.toString(),
+                    value: Tweet.likes.toString(),
                 },
                 {
                     inline: true,
                     name: "Retweet",
-                    value: Tweet.data.public_metrics.metrics.retweet_count.toString(),
+                    value: Tweet.retweets.toString(),
                 },
+                {
+                    inline: true,
+                    name: "Replies",
+                    value: Tweet.replies.toString(),
+                }
             ],
             color: 1942002,
             footer: {
@@ -43,47 +47,47 @@ export default async function (url: string): Promise<Embed | undefined> {
                 proxy_icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
                 icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png",
             },
-            image: Media ? {
-                width: Media[0].width,
-                height: Media[0].height,
-                url: Media[0].url,
-                proxy_url: Media[0].url,
-            } : undefined
-        };*/
-        const Response = await Request(url.replace("twitter", "vxtwitter"));
-        if (!Response) return;
+        };
 
-        if (Response.headers["content-type"].includes("image")) return await HandleImage(url);
-        else {
-            const Metadata = GetMetadata(Response.data);
-            const Image = Metadata.image ?? Metadata.image_fallback;
-
-            if (!Image && !Metadata.title && !Metadata.description) return;
-
-            if (Image && (!Metadata.height || !Metadata.width)) {
-                try {
-                    const ImageMetadata = await probe(Image);
-                    Metadata.width = ImageMetadata.width;
-                    Metadata.height = ImageMetadata.height;
-                } catch (e) {
-                    if (!Metadata.title && !Metadata.description) return;
-                }
-            }
+        if (
+            (Videos.length !== 0 && Images.length !== 0) ||
+            (Videos.length === 0 && Images.length !== 0)
+        ) {
+            const images = [...Videos.map((v: { thumbnail_url: string }) => v.thumbnail_url), ...Images.map((i: { url: string }) => i.url)];
+            const imageURL = `https://vxtwitter.com/rendercombined.jpg?imgs=${images.join(",")}`;
+            const imageMetadata = await probe(imageURL);
 
             return {
-                url,
-                type: EmbedType.link,
-                title: Metadata.title,
-                color: Metadata.color,
-                thumbnail: Image ? {
-                    width: Metadata.width,
-                    height: Metadata.height,
-                    url: Image,
-                    proxy_url: Image,
-                } : undefined,
-                description: Metadata.description,
+                ...BaseEmbed,
+                type: EmbedType.rich,
+                image: {
+                    height: imageMetadata.height,
+                    width: imageMetadata.width,
+                    url: imageURL,
+                    proxy_url: imageURL
+                }
             };
-        }
+        } else if (Videos.length !== 0 && Images === 0) {
+            const video = Videos[0];
+            const thumbnailMetadata = await probe(video.thumbnail_url);
+
+            return {
+                ...BaseEmbed,
+                type: EmbedType.video,
+                thumbnail: {
+                    height: thumbnailMetadata.height,
+                    width: thumbnailMetadata.width,
+                    url: video.thumbnail_url,
+                    proxy_url: video.thumbnail_url
+                },
+                video: {
+                    height: video.size.height,
+                    width: video.size.width,
+                    url: video.url,
+                    proxy_url: video.url
+                }
+            };
+        } else return { ...BaseEmbed, type: EmbedType.rich };
     } else if (/(www\.)?(youtube\.com|youtu\.be)/.test(url)) {
         const Response = await Request(url);
         if (!Response) return;
