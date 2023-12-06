@@ -96,6 +96,7 @@ export interface Embed {
         value: string;
         inline?: boolean;
     }[];
+    images?: EmbedImage[];
 }
 
 export interface Attachment {

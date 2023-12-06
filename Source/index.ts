@@ -36,7 +36,7 @@ async function SubscriptionCheck() {
     };
 }
 
-const UsePublicTestsDB = true;
+const UsePublicTestsDB = false;
 export const DisprivDataSource = new DataSource({
     type: "better-sqlite3",
     database: UsePublicTestsDB ? "Dispriv-TESTING.db" : "Dispriv.db",
