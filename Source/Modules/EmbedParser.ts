@@ -49,8 +49,6 @@ export default async function(url: string): Promise<Embed | undefined> {
             },
         };
 
-        console.log(Videos, Images);
-
         if (
             (Videos.length !== 0 && Images.length !== 0) ||
             (Videos.length === 0 && Images.length !== 0)
