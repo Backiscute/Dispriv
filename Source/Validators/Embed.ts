@@ -53,6 +53,7 @@ const DiscordEmbed = z.object({
     provider: DiscordEmbedProvider.optional(),
     author: DiscordEmbedAuthor.optional(),
     fields: z.array(DiscordEmbedField).max(25).optional(),
+    images: z.array(DiscordEmbedImage).max(4).optional(),
 });
 
 export default DiscordEmbed;

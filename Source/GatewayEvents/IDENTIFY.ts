@@ -121,7 +121,7 @@ export async function HandleOpcode(UnpackedData: any, GatewayClient: GatewayConn
                                 R.PackageGateway(true, GatewayClient.Account!),
                             ),
                         ], // friends
-                        resume_gateway_url: process.env.OverrideWS || "ws://127.0.0.1:6968",
+                        resume_gateway_url: process.env.OverrideWS || "ws://localhost:6968",
                         session_id: GatewayClient.ID,
                         session_type: "normal",
                         sessions: [], // sessions so you can see the devices to log them out i think

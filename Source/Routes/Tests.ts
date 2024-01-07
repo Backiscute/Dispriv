@@ -81,7 +81,7 @@ App.get("/SystemAccount", async (req, res) => {
             Flags: UserFlags.SYSTEM,
             Bot: true,
             TutorialReadIndicators: [],
-            AuthorizedApps: [],
+            AuthorizedApps: []
         }).save();
 
     return res.json({
