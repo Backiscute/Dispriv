@@ -53,6 +53,7 @@ export interface ReadyPacket {
         guilds: unknown[];
     };
     private_channels: unknown[];
+    notification_settings: { flags: number };
     read_state: { entries: unknown[]; partial: boolean; version: number };
     relationships: unknown[];
     resume_gateway_url: string;

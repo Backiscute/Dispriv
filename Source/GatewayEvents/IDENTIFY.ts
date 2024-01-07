@@ -111,6 +111,7 @@ export async function HandleOpcode(UnpackedData: any, GatewayClient: GatewayConn
                         private_channels: GatewayClient.Account!.AvailableDMs.map((C) =>
                             C.GatewayDMPackage(GatewayClient.Account!),
                         ), // group chats and dms
+                        notification_settings: { flags: 0 },
                         read_state: { entries: [], partial: false, version: 0 }, // not sure what this is (prob unread dms)
                         relationships: [
                             ...GatewayClient.Account!.RelationsFrom.map((R) =>
