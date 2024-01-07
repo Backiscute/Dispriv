@@ -4,12 +4,14 @@ import { GatewayConnection } from "../Classes/GatewayConnection";
 import { GatewayCloseCodes } from "../Classes/GatewayOpCodes";
 import { Presence } from "../Classes/Presence";
 import { Guild } from "../Entities/Guild";
-import { SendGuildStatusUpdate, SyncMemberList } from "../Modules/DiscordUtils";
+import { RequestGatewayAccount, SendGuildStatusUpdate, SyncMemberList } from "../Modules/DiscordUtils";
 import { CloseConnection } from "../Modules/GatewayUtils";
 
 export async function HandleOpcode(UnpackedData: any, GatewayClient: GatewayConnection) {
     if (!GatewayClient.Account)
         return CloseConnection(GatewayClient, GatewayCloseCodes.NotAuthenticated, "Not authenticated");
+
+    GatewayClient.Account = (await RequestGatewayAccount(GatewayClient.UserToken))!; // relod
 
     switch (UnpackedData.d.status) {
         case "online":
