@@ -1,10 +1,12 @@
 # Dispriv
 
-Dispriv is a private Discord server implementation — a backend built to mimic Discord's own server/API behavior.
+Dispriv is a private Discord server implementation, a backend built to mimic Discord's own server/API behavior.
 
 ## Status
 
-This project is old and deprecated. It is no longer maintained and should not be used as a reference for how to build something like this today. Please do not treat the code as a quality benchmark — a lot of it was written quickly, some of it is messy, and there are known bad security practices throughout (weak auth handling, insufficient input validation, and other shortcuts that should not be replicated in anything meant for real use).
+This project is old and deprecated. It was made in 2023. It is no longer maintained and should not be used as a reference for how to build something like this today. Please do not treat the code as a quality benchmark — a lot of it was written quickly, some of it is messy, and there are known bad security practices throughout (insufficient input validation and other shortcuts that should not be replicated in anything meant for real use).
+
+The code also is by no means great but it was sufficient enough to get this unserious project working.
 
 This project was built purely for fun and for educational purposes. It was not designed with production use, security, or long-term maintenance in mind.
 
